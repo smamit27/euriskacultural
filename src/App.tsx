@@ -216,7 +216,7 @@ function AppContent() {
           setSubPage(null);
           setShowAdminLogin(true);
         }
-      } else if (path.includes('/prasad') || tabParam === 'prasad') {
+      } else if (path.includes('/prasad') || tabParam === 'prasad' || path.includes('/mahaprasad') || tabParam === 'mahaprasad') {
         setActiveTab('prasad');
         setSubPage(null);
       } else if (path.includes('/kalakriti') || tabParam === 'kalakriti') {

@@ -1049,4 +1049,307 @@ export const pdfService = {
 
     downloadFile(lines.join('\n'), 'Euriska_Complete_Financial_Statement_2026.csv', 'text/csv;charset=utf-8;');
   },
+
+  /**
+   * Export Single Devotee Maha Prasad Meal Token / Pass PDF
+   */
+  async exportMahaPrasadPassPDF(rsvp: import('../types').MahaPrasadRSVP) {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    // Outer Decorative Double Border Frame
+    doc.setDrawColor(194, 65, 12); // Saffron #c2410c
+    doc.setLineWidth(1.4);
+    doc.roundedRect(10, 10, 190, 277, 5, 5, 'D');
+
+    doc.setDrawColor(245, 158, 11); // Gold trim #f59e0b
+    doc.setLineWidth(0.6);
+    doc.roundedRect(12.5, 12.5, 185, 272, 4, 4, 'D');
+
+    // Header Background Fill
+    doc.setFillColor(154, 52, 18); // Deep festive maroon #9a3412
+    doc.roundedRect(14, 14, 182, 44, 3, 3, 'F');
+
+    // Gold accent divider in header
+    doc.setFillColor(251, 191, 36);
+    doc.rect(14, 56, 182, 2, 'F');
+
+    // Embed Logos safely
+    try {
+      const logoData = await getImageDataUrl('/euriska_logo.png');
+      if (logoData) {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(18, 18, 28, 28, 4, 4, 'F');
+        doc.addImage(logoData, 'PNG', 19.5, 19.5, 25, 25);
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
+      const ganeshData = await getImageDataUrl('/ganesh_bhagwan.jpg');
+      if (ganeshData) {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(164, 18, 28, 28, 4, 4, 'F');
+        doc.addImage(ganeshData, 'JPEG', 165.5, 19.5, 25, 25);
+      }
+    } catch {
+      // ignore
+    }
+
+    // Header Text
+    doc.setTextColor(254, 215, 170);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('* SHRI GANESHAYA NAMAHA *', 105, 22, { align: 'center' });
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text('EURISKA CULTURAL COMMITTEE', 105, 30, { align: 'center' });
+
+    doc.setTextColor(254, 240, 138);
+    doc.setFontSize(11.5);
+    doc.text('GRAND MAHA PRASAD SEVA & FEAST PASS', 105, 38, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 237, 213);
+    doc.text('Official Devotee Family Meal Invitation & Entry Token', 105, 45, { align: 'center' });
+
+    // Date & Time Ribbon
+    doc.setFillColor(254, 243, 199);
+    doc.setDrawColor(245, 158, 11);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(14, 62, 182, 18, 3, 3, 'FD');
+
+    doc.setTextColor(180, 83, 9);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12.5);
+    doc.text(
+      'Thursday, 24th September 2026  |  8:00 PM - 10:00 PM',
+      105,
+      71,
+      { align: 'center' }
+    );
+
+    doc.setFontSize(9.5);
+    doc.setTextColor(154, 52, 18);
+    doc.text(
+      'Venue: Club House Podium & Lawn  |  Traditional Maharashtrian Feast',
+      105,
+      77,
+      { align: 'center' }
+    );
+
+    // RSVP Family Details Table
+    const details = [
+      ['Flat Number:', cleanPdfText(rsvp.flatNumber) || 'N/A'],
+      ['Family / Devotee Name:', cleanPdfText(rsvp.residentName) || 'Resident Family'],
+      ['Total Headcount:', `${rsvp.totalHeadcount} Members (${rsvp.adultsCount} Adults, ${rsvp.childrenCount} Kids)`],
+      ['Dietary Preference:', rsvp.dietaryPreference === 'JAIN' ? 'JAIN (Satvik - No Onion/Garlic)' : 'REGULAR SATVIK FEAST'],
+      ['Meal Timing Window:', cleanPdfText(rsvp.timeSlot) || '8:00 PM - 10:00 PM'],
+      ['Contact Phone:', cleanPdfText(rsvp.phone) || 'Registered Society Devotee'],
+      ['Volunteer Status:', rsvp.isVolunteering ? 'YES - Assisting in Prasad Distribution' : 'Family Devotee Guest'],
+    ];
+
+    if (rsvp.notes) {
+      details.push(['Special Notes / Requests:', cleanPdfText(rsvp.notes)]);
+    }
+
+    autoTable(doc, {
+      startY: 84,
+      body: details,
+      theme: 'grid',
+      styles: {
+        fontSize: 10,
+        cellPadding: 4.5,
+        lineColor: [226, 232, 240],
+        lineWidth: 0.3,
+      },
+      alternateRowStyles: {
+        fillColor: [255, 251, 235],
+      },
+      columnStyles: {
+        0: {
+          fontStyle: 'bold',
+          textColor: [124, 45, 18],
+          cellWidth: 54,
+          fillColor: [254, 243, 199],
+        },
+        1: {
+          fontStyle: 'bold',
+          textColor: [15, 23, 42],
+          cellWidth: 128,
+        },
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    const endY = (doc as any).lastAutoTable.finalY || 160;
+
+    // Festive Blessing Banner
+    const blessingY = endY + 14;
+    doc.setFillColor(255, 247, 237);
+    doc.setDrawColor(251, 146, 60);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(14, blessingY, 182, 18, 3, 3, 'FD');
+
+    doc.setTextColor(194, 65, 12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('* GANPATI BAPPA MORYA *', 105, blessingY + 11.5, { align: 'center' });
+
+    // Official Pass Footer & Verification Badge
+    const footerY = blessingY + 30;
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text('EURISKA CULTURAL & FESTIVE COMMITTEE 2026-27', 16, footerY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    doc.text(`Digital Verification Pass | Generated on: ${dateStr}`, 16, footerY + 5);
+
+    // Pass Reference Tag on Right
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(203, 213, 225);
+    doc.roundedRect(125, footerY - 5, 71, 12, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(30, 41, 59);
+    const passRef = `EUR-MAHA-${cleanPdfText(rsvp.flatNumber) || 'TOKEN'}`;
+    doc.text(`MEAL TOKEN: ${passRef}`, 160, footerY + 2.5, { align: 'center' });
+
+    doc.save(`Euriska_Maha_Prasad_Pass_${cleanPdfText(rsvp.flatNumber) || 'Token'}_24Sep2026.pdf`);
+  },
+
+  /**
+   * Export Full Maha Prasad Roster PDF for Catering & Volunteer Committee
+   */
+  exportMahaPrasadRosterPDF(rsvps: import('../types').MahaPrasadRSVP[]) {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const totalHeadcount = rsvps.reduce((acc, r) => acc + (r.totalHeadcount || 0), 0);
+    const totalAdults = rsvps.reduce((acc, r) => acc + (r.adultsCount || 0), 0);
+    const totalKids = rsvps.reduce((acc, r) => acc + (r.childrenCount || 0), 0);
+    const jainCount = rsvps
+      .filter((r) => r.dietaryPreference === 'JAIN')
+      .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0);
+
+    // Header Background
+    doc.setFillColor(154, 52, 18);
+    doc.rect(0, 0, 297, 26, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.text('EURISKA GANESHOTSAV 2026 - MAHA PRASAD ROSTER & HEADCOUNT', 14, 12);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(254, 215, 170);
+    doc.text(
+      `Event Date: 24th September 2026 (8:00 PM - 10:00 PM) | Total Headcount: ${totalHeadcount} (${totalAdults} Adults, ${totalKids} Kids, ${jainCount} Jain) | Families: ${rsvps.length}`,
+      14,
+      20
+    );
+
+    const headers = [
+      '#',
+      'Wing',
+      'Flat',
+      'Resident / Devotee Name',
+      'Phone',
+      'Adults',
+      'Kids',
+      'Total',
+      'Dietary Preference',
+      'Time Slot',
+      'Volunteer?',
+      'Special Requests',
+    ];
+
+    const body = rsvps.map((r, idx) => [
+      idx + 1,
+      r.buildingId,
+      cleanPdfText(r.flatNumber),
+      cleanPdfText(r.residentName),
+      cleanPdfText(r.phone) || '-',
+      r.adultsCount,
+      r.childrenCount,
+      r.totalHeadcount,
+      r.dietaryPreference === 'JAIN' ? 'JAIN' : 'REGULAR',
+      cleanPdfText(r.timeSlot) || '8-10 PM',
+      r.isVolunteering ? 'YES' : 'No',
+      cleanPdfText(r.notes) || '-',
+    ]);
+
+    autoTable(doc, {
+      startY: 30,
+      head: [headers],
+      body,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [194, 65, 12],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8.5,
+        halign: 'center',
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [15, 23, 42],
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 14 },
+        2: { cellWidth: 18, fontStyle: 'bold' },
+        3: { cellWidth: 44, halign: 'left', fontStyle: 'bold' },
+        4: { cellWidth: 26 },
+        5: { cellWidth: 14 },
+        6: { cellWidth: 14 },
+        7: { cellWidth: 14, fontStyle: 'bold' },
+        8: { cellWidth: 32 },
+        9: { cellWidth: 34 },
+        10: { cellWidth: 20 },
+        11: { cellWidth: 36, halign: 'left' },
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body') {
+          if (data.column.index === 8 && data.cell.raw === 'JAIN') {
+            data.cell.styles.textColor = [194, 65, 12];
+            data.cell.styles.fontStyle = 'bold';
+          }
+          if (data.column.index === 10 && data.cell.raw === 'YES') {
+            data.cell.styles.textColor = [5, 150, 105];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
+      margin: { left: 10, right: 10 },
+    });
+
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Euriska Cultural Committee - Confidential Catering Roster | Page ${i} of ${pageCount}`, 14, 200);
+    }
+
+    doc.save('Euriska_Maha_Prasad_Roster_24Sep2026.pdf');
+  },
 };
+

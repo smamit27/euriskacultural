@@ -66,10 +66,10 @@ export const CULTURAL_EVENTS: CulturalEvent[] = [
       {
         icon: '🍽️',
         date: 'Thu, 24 Sep',
-        time: '8:30 PM',
-        title: 'Community Grand Maha Prasad Dinner',
-        desc: 'Special Pre-Visarjan Aarti @ 8:00 PM followed by Grand Feast starting ~8:30 PM.',
-        badge: 'Feast @ 8:30 PM',
+        time: '8:00 PM – 10:00 PM',
+        title: 'Community Grand Maha Prasad Feast',
+        desc: 'Special Maha Aarti followed by Traditional Community Feast (8:00 PM – 10:00 PM).',
+        badge: '8:00 PM – 10:00 PM',
       },
       {
         icon: '🌊',

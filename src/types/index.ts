@@ -340,6 +340,39 @@ export interface PrasadBooking {
   bookedAt?: string;       // ISO timestamp
 }
 
+export interface MahaPrasadRSVP {
+  id: string;                    // e.g. 'rsvp-A-304'
+  buildingId: 'A' | 'B' | 'C';
+  flatNumber: string;            // e.g. 'A-304'
+  residentName: string;          // e.g. 'Mr. Rajesh & Family'
+  phone: string;                 // e.g. '9876543210'
+  adultsCount: number;           // e.g. 2
+  childrenCount: number;         // e.g. 1 (<12 yrs)
+  totalHeadcount: number;        // adultsCount + childrenCount
+  dietaryPreference: 'REGULAR' | 'JAIN'; // Regular Satvik or Jain (No Onion/Garlic)
+  timeSlot?: string;             // e.g. '8:00 PM - 9:00 PM', '9:00 PM - 10:00 PM', or 'Anytime (8-10 PM)'
+  isVolunteering?: boolean;      // Ready to help in prasad distribution
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MahaPrasadSummary {
+  totalHeadcount: number;
+  totalAdults: number;
+  totalChildren: number;
+  totalFamilies: number;
+  jainCount: number;
+  regularCount: number;
+  volunteersCount: number;
+  buildingBreakdown: {
+    A: { families: number; headcount: number };
+    B: { families: number; headcount: number };
+    C: { families: number; headcount: number };
+  };
+}
+
+
 export interface PrasadSlot {
   id: string;              // e.g. '2026-09-14'
   dayNumber: number;       // 1 to 12

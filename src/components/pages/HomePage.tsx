@@ -274,9 +274,9 @@ export const HomePage: React.FC<HomePageProps> = ({
             {
               icon: '🍽️',
               date: '24 Sep',
-              time: '8:30 PM',
-              title: 'Maha Prasad Community Dinner',
-              badge: 'Feast starts ~8:30 PM',
+              time: '8:00 PM – 10:00 PM',
+              title: 'Grand Maha Prasad Community Feast',
+              badge: '8:00 PM – 10:00 PM • RSVP Open',
             },
             {
               icon: '🌊',
