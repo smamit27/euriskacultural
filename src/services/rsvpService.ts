@@ -49,7 +49,7 @@ export const rsvpService = {
   async mergeWithPaidFlats(baseRSVPs: MahaPrasadRSVP[]): Promise<MahaPrasadRSVP[]> {
     const rsvpMap = new Map<string, MahaPrasadRSVP>();
 
-    // Baseline from seed data
+    // 1. Baseline from seed data
     INITIAL_MAHA_PRASAD_RSVPS.forEach((item) => {
       const cleanFlat = item.flatNumber.trim().toUpperCase();
       rsvpMap.set(cleanFlat, {
@@ -59,17 +59,7 @@ export const rsvpService = {
       });
     });
 
-    // Merge base / remote entries (which have priority over seed)
-    baseRSVPs.forEach((item) => {
-      const cleanFlat = item.flatNumber.trim().toUpperCase();
-      rsvpMap.set(cleanFlat, {
-        ...item,
-        id: normalizeFlatId(cleanFlat),
-        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
-      });
-    });
-
-    // Ensure all paid flats from contributionService are enrolled
+    // 2. Ensure all paid flats from contributionService are enrolled as defaults
     try {
       const contributions = await contributionService.getContributions();
       const paidFlats = contributions.filter((c) => c.status === 'PAID' && (c.paidAmount || 0) > 0);
@@ -99,6 +89,16 @@ export const rsvpService = {
     } catch (err) {
       console.warn('Could not sync paid flats:', err);
     }
+
+    // 3. Merge base / Firestore remote entries (Highest priority: cloud edits ALWAYS win)
+    baseRSVPs.forEach((item) => {
+      const cleanFlat = item.flatNumber.trim().toUpperCase();
+      rsvpMap.set(cleanFlat, {
+        ...item,
+        id: normalizeFlatId(cleanFlat),
+        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
+      });
+    });
 
     const result = Array.from(rsvpMap.values());
     result.sort((a, b) => {

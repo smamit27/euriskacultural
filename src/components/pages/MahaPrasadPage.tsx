@@ -128,6 +128,25 @@ export const MahaPrasadPage: React.FC = () => {
     }
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncToFirebase = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await rsvpService.syncToFirebase();
+      if (res.success) {
+        showToast(`☁️ All ${res.count} devotee RSVPs saved & synchronized to Firebase Firestore!`, 'success');
+      } else {
+        showToast('Firebase sync failed. Please check network.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Firebase sync error.', 'error');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 16px 40px 16px' }}>
       {/* Festive Hero Banner */}
@@ -161,7 +180,7 @@ export const MahaPrasadPage: React.FC = () => {
                 🍲 Grand Community Feast
               </span>
               <span style={{ fontSize: 12.5, color: '#fed7aa', fontWeight: 700 }}>
-                Ganeshotsav 2026 Special
+                Ganeshotsav 2026 Special (Real-Time Cloud Database)
               </span>
             </div>
 
@@ -186,6 +205,26 @@ export const MahaPrasadPage: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={handleSyncToFirebase}
+              disabled={isSyncing}
+              style={{
+                background: 'rgba(255,255,255,0.18)',
+                color: '#ffffff',
+                border: '1.5px solid rgba(255,255,255,0.3)',
+                borderRadius: 14,
+                padding: '12px 16px',
+                fontSize: 13.5,
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span>{isSyncing ? '⏳ Syncing...' : '☁️ Cloud Sync'}</span>
+            </button>
+
             <button
               onClick={() => setIsScannerOpen(true)}
               style={{

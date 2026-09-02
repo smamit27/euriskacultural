@@ -17,6 +17,14 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Allow Maha Prasad RSVPs & Headcount Tracking (Real-time)
+    match /maha_prasad_rsvps/{document=**} {
+      allow read, write: if true;
+    }
+    match /maha_prasad_rsvp/{document=**} {
+      allow read, write: if true;
+    }
+
     // Allow Society Expenses & Approvals
     match /expenses/{document=**} {
       allow read, write: if true;
