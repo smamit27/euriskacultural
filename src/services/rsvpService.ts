@@ -44,14 +44,19 @@ export const rsvpService = {
             merged.push(r);
           }
         });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-        return merged;
+        const normalized = merged.map((r) =>
+          r.flatNumber === 'A-1007' || r.id === 'rsvp-A-1007' ? { ...r, residentName: 'Mr. Amit Singh' } : r
+        );
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+        return normalized;
       }
     } catch (err) {
       console.warn('Could not load RSVPs from Firestore, using local cache:', err);
     }
 
-    return local;
+    return local.map((r) =>
+      r.flatNumber === 'A-1007' || r.id === 'rsvp-A-1007' ? { ...r, residentName: 'Mr. Amit Singh' } : r
+    );
   },
 
   /**

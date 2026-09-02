@@ -337,12 +337,14 @@ async function getStoredContributions(): Promise<Contribution[]> {
     return !isRefuge;
   });
 
-  // Normalize expected amounts
+  // Normalize expected amounts and resident names
   return filteredList.map((item) => {
     const normExpected = item.expectedAmount !== undefined && item.expectedAmount !== 2000 ? item.expectedAmount : 1500;
     const isPending = item.status === 'PENDING';
+    const isA1007 = (item.flatNumber || '').replace(/\s+/g, '').toUpperCase() === 'A-1007' || item.id === 'contrib-A-1007';
     return {
       ...item,
+      residentName: isA1007 ? 'Mr. Amit Singh' : item.residentName,
       expectedAmount: normExpected,
       paidAmount: isPending ? 0 : (item.paidAmount !== undefined ? item.paidAmount : normExpected),
     };
