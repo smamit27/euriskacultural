@@ -1,4 +1,5 @@
 import { readCollection, writeDocument, deleteDocument } from './firestoreService';
+import { contributionService } from './contributionService';
 import { INITIAL_MAHA_PRASAD_RSVPS } from './seedData';
 import type { MahaPrasadRSVP, MahaPrasadSummary } from '../types';
 
@@ -7,56 +8,116 @@ const COLLECTION_NAME = 'maha_prasad_rsvp';
 
 export const rsvpService = {
   /**
-   * Fetch all Maha Prasad RSVPs (Firestore with LocalStorage cache fallback)
+   * Fetch all Maha Prasad RSVPs (Dynamically synchronized with Paid Contributions & Firestore)
    */
   async getRSVPs(): Promise<MahaPrasadRSVP[]> {
+    // 1. Load local cache
     let local: MahaPrasadRSVP[] = [];
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         local = JSON.parse(stored);
-        const localFlats = new Set(local.map((r) => r.flatNumber));
-        let hasNew = false;
-        INITIAL_MAHA_PRASAD_RSVPS.forEach((item) => {
-          if (!localFlats.has(item.flatNumber)) {
-            local.push(item);
-            hasNew = true;
-          }
-        });
-        if (hasNew) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
-        }
-      } else {
-        local = INITIAL_MAHA_PRASAD_RSVPS;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
       }
     } catch {
-      local = INITIAL_MAHA_PRASAD_RSVPS;
+      local = [];
     }
 
+    // 2. Fetch remote Firestore entries
+    let remote: MahaPrasadRSVP[] = [];
     try {
-      const remote = await readCollection<MahaPrasadRSVP>(COLLECTION_NAME);
-      if (remote && remote.length > 0) {
-        const remoteMap = new Map<string, MahaPrasadRSVP>(remote.map((r: MahaPrasadRSVP) => [r.id, r]));
-        const merged: MahaPrasadRSVP[] = local.map((item) => remoteMap.get(item.id) || item);
-        remote.forEach((r: MahaPrasadRSVP) => {
-          if (!local.some((l) => l.id === r.id)) {
-            merged.push(r);
-          }
-        });
-        const normalized = merged.map((r) =>
-          r.flatNumber === 'A-1007' || r.id === 'rsvp-A-1007' ? { ...r, residentName: 'Mr. Amit Singh' } : r
-        );
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-        return normalized;
+      const remoteData = await readCollection<MahaPrasadRSVP>(COLLECTION_NAME);
+      if (remoteData && remoteData.length > 0) {
+        remote = remoteData;
       }
     } catch (err) {
-      console.warn('Could not load RSVPs from Firestore, using local cache:', err);
+      console.warn('Could not load RSVPs from Firestore:', err);
     }
 
-    return local.map((r) =>
-      r.flatNumber === 'A-1007' || r.id === 'rsvp-A-1007' ? { ...r, residentName: 'Mr. Amit Singh' } : r
-    );
+    // 3. Fetch all paid contributions directly from contributionService
+    let paidFlats: { buildingId: 'A' | 'B' | 'C'; flatNumber: string; residentName: string; phone?: string }[] = [];
+    try {
+      const contributions = await contributionService.getContributions();
+      paidFlats = contributions
+        .filter((c) => c.status === 'PAID' && (c.paidAmount || 0) > 0)
+        .map((c) => ({
+          buildingId: c.buildingId as 'A' | 'B' | 'C',
+          flatNumber: c.flatNumber,
+          residentName: c.flatNumber === 'A-1007' || c.id === 'contrib-A-1007' ? 'Mr. Amit Singh' : c.residentName,
+        }));
+    } catch (err) {
+      console.warn('Could not fetch contributions for RSVP sync:', err);
+    }
+
+    // Map existing records by clean flat number
+    const rsvpMap = new Map<string, MahaPrasadRSVP>();
+
+    // Baseline from seed data
+    INITIAL_MAHA_PRASAD_RSVPS.forEach((item) => {
+      const cleanFlat = item.flatNumber.trim().toUpperCase();
+      rsvpMap.set(cleanFlat, {
+        ...item,
+        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
+      });
+    });
+
+    // Merge local storage edits
+    local.forEach((item) => {
+      const cleanFlat = item.flatNumber.trim().toUpperCase();
+      rsvpMap.set(cleanFlat, {
+        ...item,
+        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
+      });
+    });
+
+    // Merge remote Firestore edits
+    remote.forEach((item) => {
+      const cleanFlat = item.flatNumber.trim().toUpperCase();
+      rsvpMap.set(cleanFlat, {
+        ...item,
+        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
+      });
+    });
+
+    // Ensure EVERY single paid flat is present in rsvpMap
+    paidFlats.forEach((paid) => {
+      const cleanFlat = paid.flatNumber.trim().toUpperCase();
+      if (!rsvpMap.has(cleanFlat)) {
+        rsvpMap.set(cleanFlat, {
+          id: `rsvp-${cleanFlat.replace(/[^A-Z0-9]/g, '-')}`,
+          buildingId: paid.buildingId,
+          flatNumber: cleanFlat,
+          residentName: paid.residentName,
+          phone: '',
+          adultsCount: 2,
+          childrenCount: 0,
+          totalHeadcount: 2,
+          dietaryPreference: 'REGULAR',
+          timeSlot: '8:00 PM - 9:00 PM',
+          isVolunteering: false,
+          notes: '',
+          createdAt: '2026-08-20T10:00:00Z',
+          updatedAt: '2026-08-20T10:00:00Z',
+        });
+      }
+    });
+
+    const result = Array.from(rsvpMap.values());
+
+    // Sort by Wing (A, B, C) and Flat numerical value
+    result.sort((a, b) => {
+      if (a.buildingId !== b.buildingId) return a.buildingId.localeCompare(b.buildingId);
+      const numA = parseInt(a.flatNumber.replace(/\D/g, ''), 10) || 0;
+      const numB = parseInt(b.flatNumber.replace(/\D/g, ''), 10) || 0;
+      return numA - numB;
+    });
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
+    } catch {
+      // ignore
+    }
+
+    return result;
   },
 
   /**
