@@ -1,0 +1,87 @@
+:root {
+  /* Color Palette - Vibrant Cultural Theme */
+  --primary: #f97316; /* Warm Festive Saffron */
+  --primary-hover: #ea580c;
+  --primary-light: #fff7ed;
+  --primary-glow: rgba(249, 115, 22, 0.25);
+
+  --secondary: #8b5cf6; /* Royal Purple */
+  --secondary-light: #f5f3ff;
+  
+  --accent: #06b6d4; /* Teal Accent */
+  
+  --success: #10b981; /* Emerald Green */
+  --success-light: #ecfdf5;
+  --success-text: #065f46;
+  
+  --warning: #f59e0b; /* Amber */
+  --warning-light: #fffbeb;
+  --warning-text: #92400e;
+  
+  --danger: #ef4444; /* Rose/Red */
+  --danger-light: #fef2f2;
+  --danger-text: #991b1b;
+
+  /* Surfaces & Backgrounds */
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f1f5f9;
+  --bg-glass: rgba(255, 255, 255, 0.88);
+  --bg-dark-glass: rgba(15, 23, 42, 0.85);
+
+  /* Typography */
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Borders & Shadows */
+  --border-light: #e2e8f0;
+  --border-focus: #f97316;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
+
+  /* Layout dimensions */
+  --header-height: 60px;
+  --bottom-nav-height: 64px;
+  --max-content-width: 480px; /* Default mobile view frame */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Safe Area Insets for iOS & Android */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0b1120;
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}

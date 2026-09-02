@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://euriskacultural.web.app/sitemap.xml

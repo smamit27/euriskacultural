@@ -1,0 +1,30 @@
+{
+  "name": "Euriska — Cultural & Festive Calendar",
+  "short_name": "Euriska Cultural",
+  "description": "Euriska Cultural & Festive Portal 2026–27. Live schedules, Ganesh Chaturthi, Navratri, Diwali, Prasad Seva, Kalakriti, and community activities in Pune.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "categories": ["events", "lifestyle", "social"],
+  "icons": [
+    {
+      "src": "/euriska_logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/euriska_favicon.jpg",
+      "sizes": "256x256",
+      "type": "image/jpeg"
+    }
+  ]
+}
