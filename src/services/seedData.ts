@@ -120,7 +120,6 @@ export const REAL_A_BUILDING_RESIDENTS = [
   { flat: '703', name: 'Mr. Sandeep Kumar', amount: 0, status: 'PENDING' as const },
   { flat: '704', name: 'Mr. Sachin Nivrutti Savakhande', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
   { flat: '705', name: 'Mr. Ram Kumar', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
-  { flat: '706', name: 'Refuge Area', amount: 0, expectedAmount: 0, status: 'PENDING' as const, remarks: 'Refuge Area' },
   { flat: '707', name: 'Mr. Narayan Pandurang Dange', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
   { flat: '708', name: 'Mr. Wasim Jamal', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
   { flat: '801', name: 'Mr. Sanchet J. Shetty', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
@@ -349,11 +348,11 @@ export function generateSeedContributions(): Contribution[] {
   const contributions: Contribution[] = [];
   let idCounter = 100;
 
-  // 1. Insert real A Building residents (88 flats)
+  // 1. Insert real A Building residents (87 flats)
   REAL_A_BUILDING_RESIDENTS.forEach((item, idx) => {
     idCounter++;
     const isPaid = item.status === 'PAID';
-    const expected = item.expectedAmount !== undefined ? item.expectedAmount : 1500;
+    const expected = 1500;
     const day = (idx % 14) + 15;
 
     contributions.push({
@@ -369,7 +368,7 @@ export function generateSeedContributions(): Contribution[] {
       receiptNumber: isPaid ? `REC-2026-A${item.flat}` : undefined,
       paymentDate: isPaid ? `2026-08-${day < 10 ? '0' + day : day}` : undefined,
       status: item.status,
-      remarks: item.remarks || (isPaid ? 'Payment received online' : 'Pending follow-up'),
+      remarks: isPaid ? 'Payment received online' : 'Pending follow-up',
       createdAt: '2026-08-01T10:00:00Z',
       updatedAt: '2026-08-30T18:00:00Z',
     });

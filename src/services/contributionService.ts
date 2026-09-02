@@ -83,10 +83,9 @@ export const contributionService = {
 
     const baseRecord = index !== -1 ? list[index] : ({ id } as Contribution);
     const isPending = updates.status === 'PENDING';
-    const isRefuge = (updates.flatNumber || baseRecord.flatNumber || '').includes('706');
-    const normExpected = isRefuge ? 0 : (updates.expectedAmount !== undefined && updates.expectedAmount !== 2000
+    const normExpected = updates.expectedAmount !== undefined && updates.expectedAmount !== 2000
       ? updates.expectedAmount
-      : (baseRecord.expectedAmount !== undefined && baseRecord.expectedAmount !== 2000 ? baseRecord.expectedAmount : 1500));
+      : (baseRecord.expectedAmount !== undefined && baseRecord.expectedAmount !== 2000 ? baseRecord.expectedAmount : 1500);
 
     const updated: Contribution = {
       ...baseRecord,
@@ -327,10 +326,20 @@ async function getStoredContributions(): Promise<Contribution[]> {
     console.warn('Failed to load contributions from Firestore, using local cache:', err);
   }
 
-  // Normalize legacy 2000 expected amounts to 1500
-  return list.map((item) => {
-    const isRefuge = item.flatNumber?.includes('706');
-    const normExpected = isRefuge ? 0 : (item.expectedAmount !== undefined && item.expectedAmount !== 2000 ? item.expectedAmount : 1500);
+  // Filter out non-residential refuge area flat (A-706)
+  const filteredList = list.filter((item) => {
+    const flatClean = (item.flatNumber || '').replace(/\s+/g, '').toUpperCase();
+    const isRefuge =
+      flatClean === 'A-706' ||
+      flatClean === '706' ||
+      item.id === 'contrib-A-706' ||
+      (item.residentName || '').toLowerCase().includes('refuge');
+    return !isRefuge;
+  });
+
+  // Normalize expected amounts
+  return filteredList.map((item) => {
+    const normExpected = item.expectedAmount !== undefined && item.expectedAmount !== 2000 ? item.expectedAmount : 1500;
     const isPending = item.status === 'PENDING';
     return {
       ...item,

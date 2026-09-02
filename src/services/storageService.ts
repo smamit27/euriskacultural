@@ -41,7 +41,7 @@ const STORAGE_KEYS = {
   SEED_VERSION: 'euriska_seed_version',
 };
 
-const CURRENT_SEED_VERSION = 'v11_dhol_pathak_expense';
+const CURRENT_SEED_VERSION = 'v12_remove_refuge_706';
 
 class DataStore {
   private get<T>(key: string, defaultVal: T): T {
