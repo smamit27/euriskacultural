@@ -13,7 +13,7 @@ interface MoreMenuProps {
 }
 
 const MENU_ITEMS: { page: SubPage; icon: React.ReactNode; label: string; desc: string; adminOnly?: boolean }[] = [
-  { page: 'mahaprasad', icon: <UtensilsCrossed size={22} color="#c2410c" />, label: '🍲 Maha Prasad RSVP (24 Sep)', desc: 'Community feast headcount & meal token (8:00 PM – 10:00 PM)' },
+  { page: 'mahaprasad', icon: <UtensilsCrossed size={22} color="#c2410c" />, label: '🍲 Maha Prasad RSVP (24 Sep)', desc: 'Community feast headcount & meal token (8:00 PM – 10:00 PM)', adminOnly: true },
   { page: 'prasad', icon: <Flame size={22} color="#ea580c" />, label: '🪔 Ganpati Prasad Seva', desc: 'Book evening Aarti (8 PM) prasad slots' },
   { page: 'kalakriti', icon: <Palette size={22} color="#ea580c" />, label: '🎨 Kalakriti', desc: 'Activity matrix & resident registrations' },
   { page: 'events', icon: <PartyPopper size={22} color="#d97706" />, label: '🎉 Cultural Calendar', desc: 'Festive events 2026–27' },

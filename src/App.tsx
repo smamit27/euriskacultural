@@ -218,7 +218,16 @@ function AppContent() {
           setSubPage(null);
           setShowAdminLogin(true);
         }
-      } else if (path.includes('/prasad') || tabParam === 'prasad' || path.includes('/mahaprasad') || tabParam === 'mahaprasad') {
+      } else if (path.includes('/mahaprasad') || tabParam === 'mahaprasad') {
+        if (isAdmin) {
+          setActiveTab('mahaprasad');
+          setSubPage(null);
+        } else {
+          setActiveTab('prasad');
+          setSubPage(null);
+          setShowAdminLogin(true);
+        }
+      } else if (path.includes('/prasad') || tabParam === 'prasad') {
         setActiveTab('prasad');
         setSubPage(null);
       } else if (path.includes('/kalakriti') || tabParam === 'kalakriti') {
@@ -239,8 +248,8 @@ function AppContent() {
   }, [isAdmin]);
 
   const handleTabChange = (tab: TabType) => {
-    if ((tab === 'contributions' || tab === 'expenses' || tab === 'report') && !isAdmin) {
-      showToast('🔒 Admin password required for Financial Reports, Contributions & Expenses.', 'info');
+    if ((tab === 'contributions' || tab === 'expenses' || tab === 'report' || tab === 'mahaprasad') && !isAdmin) {
+      showToast('🔒 Admin password required for Maha Prasad & Financial Management.', 'info');
       setShowAdminLogin(true);
       return;
     }
@@ -342,7 +351,7 @@ function AppContent() {
     if (subPage === 'events') return <EventsCalendarPage />;
     if (subPage === 'kalakriti') return <KalakritiPage />;
     if (subPage === 'prasad') return <PrasadPage />;
-    if (subPage === 'mahaprasad') return <MahaPrasadPage />;
+    if (subPage === 'mahaprasad') return isAdmin ? <MahaPrasadPage /> : <PrasadPage />;
 
     // Main tabs
     switch (activeTab) {
@@ -364,7 +373,7 @@ function AppContent() {
       case 'prasad':
         return <PrasadPage />;
       case 'mahaprasad':
-        return <MahaPrasadPage />;
+        return isAdmin ? <MahaPrasadPage /> : <PrasadPage />;
       case 'kalakriti':
         return <KalakritiPage />;
       case 'report':

@@ -167,82 +167,84 @@ export const PrasadPage: React.FC = () => {
 
   return (
     <div style={{ padding: '0 14px 28px', width: '100%', boxSizing: 'border-box', fontFamily: "'Outfit', sans-serif" }}>
-      {/* Top Tab Switcher between Daily Aarti Seva vs Grand Maha Prasad RSVP */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 10,
-          marginTop: 10,
-          marginBottom: 16,
-          background: '#ffffff',
-          border: '1.5px solid #fed7aa',
-          borderRadius: 16,
-          padding: 6,
-          boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
-        }}
-      >
-        <button
-          onClick={() => setActiveTab('DAILY_PRASAD')}
+      {/* Top Tab Switcher between Daily Aarti Seva vs Grand Maha Prasad RSVP (Admin Only) */}
+      {isAdmin && (
+        <div
           style={{
-            flex: 1,
-            padding: '10px 14px',
-            borderRadius: 12,
-            border: 'none',
-            background: activeTab === 'DAILY_PRASAD' ? 'linear-gradient(135deg, #c2410c, #ea580c)' : 'transparent',
-            color: activeTab === 'DAILY_PRASAD' ? '#ffffff' : '#64748b',
-            fontSize: 14,
-            fontWeight: 800,
-            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 6,
-            boxShadow: activeTab === 'DAILY_PRASAD' ? '0 4px 12px rgba(234, 88, 12, 0.25)' : 'none',
-            transition: 'all 0.2s ease',
+            gap: 10,
+            marginTop: 10,
+            marginBottom: 16,
+            background: '#ffffff',
+            border: '1.5px solid #fed7aa',
+            borderRadius: 16,
+            padding: 6,
+            boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
           }}
         >
-          <span>🪔 Daily Aarti Prasad (12 Days)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('MAHA_PRASAD')}
-          style={{
-            flex: 1,
-            padding: '10px 14px',
-            borderRadius: 12,
-            border: 'none',
-            background: activeTab === 'MAHA_PRASAD' ? 'linear-gradient(135deg, #c2410c, #ea580c)' : 'transparent',
-            color: activeTab === 'MAHA_PRASAD' ? '#ffffff' : '#64748b',
-            fontSize: 14,
-            fontWeight: 800,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            boxShadow: activeTab === 'MAHA_PRASAD' ? '0 4px 12px rgba(234, 88, 12, 0.25)' : 'none',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <span>🍲 Maha Prasad RSVP (24 Sep, 8-10 PM)</span>
-          <span
+          <button
+            onClick={() => setActiveTab('DAILY_PRASAD')}
             style={{
-              background: activeTab === 'MAHA_PRASAD' ? '#fef08a' : '#ffedd5',
-              color: activeTab === 'MAHA_PRASAD' ? '#854d0e' : '#c2410c',
-              fontSize: 11,
-              fontWeight: 900,
-              padding: '2px 7px',
-              borderRadius: 10,
+              flex: 1,
+              padding: '10px 14px',
+              borderRadius: 12,
+              border: 'none',
+              background: activeTab === 'DAILY_PRASAD' ? 'linear-gradient(135deg, #c2410c, #ea580c)' : 'transparent',
+              color: activeTab === 'DAILY_PRASAD' ? '#ffffff' : '#64748b',
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              boxShadow: activeTab === 'DAILY_PRASAD' ? '0 4px 12px rgba(234, 88, 12, 0.25)' : 'none',
+              transition: 'all 0.2s ease',
             }}
           >
-            New
-          </span>
-        </button>
-      </div>
+            <span>🪔 Daily Aarti Prasad (12 Days)</span>
+          </button>
 
-      {activeTab === 'MAHA_PRASAD' ? (
+          <button
+            onClick={() => setActiveTab('MAHA_PRASAD')}
+            style={{
+              flex: 1,
+              padding: '10px 14px',
+              borderRadius: 12,
+              border: 'none',
+              background: activeTab === 'MAHA_PRASAD' ? 'linear-gradient(135deg, #c2410c, #ea580c)' : 'transparent',
+              color: activeTab === 'MAHA_PRASAD' ? '#ffffff' : '#64748b',
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              boxShadow: activeTab === 'MAHA_PRASAD' ? '0 4px 12px rgba(234, 88, 12, 0.25)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <span>🍲 Maha Prasad RSVP (24 Sep, 8-10 PM)</span>
+            <span
+              style={{
+                background: activeTab === 'MAHA_PRASAD' ? '#fef08a' : '#ffedd5',
+                color: activeTab === 'MAHA_PRASAD' ? '#854d0e' : '#c2410c',
+                fontSize: 11,
+                fontWeight: 900,
+                padding: '2px 7px',
+                borderRadius: 10,
+              }}
+            >
+              Admin
+            </span>
+          </button>
+        </div>
+      )}
+
+      {isAdmin && activeTab === 'MAHA_PRASAD' ? (
         <MahaPrasadPage />
       ) : (
         <>
