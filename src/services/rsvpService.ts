@@ -15,6 +15,17 @@ export const rsvpService = {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         local = JSON.parse(stored);
+        const localFlats = new Set(local.map((r) => r.flatNumber));
+        let hasNew = false;
+        INITIAL_MAHA_PRASAD_RSVPS.forEach((item) => {
+          if (!localFlats.has(item.flatNumber)) {
+            local.push(item);
+            hasNew = true;
+          }
+        });
+        if (hasNew) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
+        }
       } else {
         local = INITIAL_MAHA_PRASAD_RSVPS;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(local));

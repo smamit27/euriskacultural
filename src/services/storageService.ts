@@ -9,6 +9,7 @@ import {
   INITIAL_SPONSORS,
   INITIAL_VOLUNTEERS,
   INITIAL_TASKS,
+  INITIAL_MAHA_PRASAD_RSVPS,
   generateSeedContributions,
 } from './seedData';
 import type {
@@ -39,9 +40,10 @@ const STORAGE_KEYS = {
   TASKS: 'euriska_tasks',
   CURRENT_ROLE: 'euriska_user_role',
   SEED_VERSION: 'euriska_seed_version',
+  MAHA_PRASAD_RSVP: 'euriska_maha_prasad_rsvp',
 };
 
-const CURRENT_SEED_VERSION = 'v12_remove_refuge_706';
+const CURRENT_SEED_VERSION = 'v13_mahaprasad_paid_flats';
 
 class DataStore {
   private get<T>(key: string, defaultVal: T): T {
@@ -100,6 +102,7 @@ class DataStore {
     this.set(STORAGE_KEYS.SPONSORS, INITIAL_SPONSORS);
     this.set(STORAGE_KEYS.VOLUNTEERS, INITIAL_VOLUNTEERS);
     this.set(STORAGE_KEYS.TASKS, INITIAL_TASKS);
+    this.set(STORAGE_KEYS.MAHA_PRASAD_RSVP, INITIAL_MAHA_PRASAD_RSVPS);
     this.set(STORAGE_KEYS.SEED_VERSION, CURRENT_SEED_VERSION);
   }
 

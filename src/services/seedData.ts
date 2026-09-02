@@ -961,102 +961,75 @@ export const INITIAL_TASKS: Task[] = [
   },
 ];
 
-export const INITIAL_MAHA_PRASAD_RSVPS: MahaPrasadRSVP[] = [
-  {
-    id: 'rsvp-A-101',
-    buildingId: 'A',
-    flatNumber: 'A-101',
-    residentName: 'Mr. Sujit Sadanand Gokhale',
-    phone: '9822011223',
-    adultsCount: 3,
-    childrenCount: 1,
-    totalHeadcount: 4,
-    dietaryPreference: 'REGULAR',
-    timeSlot: '8:00 PM - 9:00 PM',
-    isVolunteering: true,
-    notes: 'Will help in queue coordination',
-    createdAt: '2026-08-20T10:00:00Z',
-    updatedAt: '2026-08-20T10:00:00Z',
-  },
-  {
-    id: 'rsvp-A-201',
-    buildingId: 'A',
-    flatNumber: 'A-201',
-    residentName: 'Mr. Gaurav Chawla',
-    phone: '9822044556',
-    adultsCount: 2,
-    childrenCount: 1,
-    totalHeadcount: 3,
-    dietaryPreference: 'REGULAR',
-    timeSlot: '8:00 PM - 9:00 PM',
-    isVolunteering: false,
-    notes: '',
-    createdAt: '2026-08-21T11:30:00Z',
-    updatedAt: '2026-08-21T11:30:00Z',
-  },
-  {
-    id: 'rsvp-A-304',
-    buildingId: 'A',
-    flatNumber: 'A-304',
-    residentName: 'Mr. Vinit Sharma',
-    phone: '9822077889',
-    adultsCount: 4,
-    childrenCount: 0,
-    totalHeadcount: 4,
-    dietaryPreference: 'JAIN',
-    timeSlot: '8:00 PM - 9:00 PM',
-    isVolunteering: true,
-    notes: 'Jain food requested for 4 members',
-    createdAt: '2026-08-22T09:15:00Z',
-    updatedAt: '2026-08-22T09:15:00Z',
-  },
-  {
-    id: 'rsvp-B-102',
-    buildingId: 'B',
-    flatNumber: 'B-102',
-    residentName: 'Mr. Mahesh Patil',
-    phone: '9890123456',
-    adultsCount: 2,
-    childrenCount: 2,
-    totalHeadcount: 4,
-    dietaryPreference: 'REGULAR',
-    timeSlot: '9:00 PM - 10:00 PM',
-    isVolunteering: true,
-    notes: 'Ready for Prasad serving',
-    createdAt: '2026-08-22T14:20:00Z',
-    updatedAt: '2026-08-22T14:20:00Z',
-  },
-  {
-    id: 'rsvp-B-305',
-    buildingId: 'B',
-    flatNumber: 'B-305',
-    residentName: 'Mrs. Rekha Deshmukh',
-    phone: '9890987654',
-    adultsCount: 3,
-    childrenCount: 0,
-    totalHeadcount: 3,
-    dietaryPreference: 'REGULAR',
-    timeSlot: '8:00 PM - 9:00 PM',
-    isVolunteering: false,
-    notes: '',
-    createdAt: '2026-08-23T16:45:00Z',
-    updatedAt: '2026-08-23T16:45:00Z',
-  },
-  {
-    id: 'rsvp-C-202',
-    buildingId: 'C',
-    flatNumber: 'C-202',
-    residentName: 'Mr. Sachin Kulkarni',
-    phone: '9765432100',
-    adultsCount: 2,
-    childrenCount: 1,
-    totalHeadcount: 3,
-    dietaryPreference: 'REGULAR',
-    timeSlot: '9:00 PM - 10:00 PM',
-    isVolunteering: true,
-    notes: 'Will assist senior citizens',
-    createdAt: '2026-08-24T18:00:00Z',
-    updatedAt: '2026-08-24T18:00:00Z',
-  },
-];
+/**
+ * Automatically enrolls all flats who paid the Rs. 1,500 contribution
+ * with an initial headcount of 2 people per family (8:00 PM - 10:00 PM).
+ */
+export function generateSeedMahaPrasadRSVPs(): MahaPrasadRSVP[] {
+  const rsvps: MahaPrasadRSVP[] = [];
+
+  // 1. Wing A Paid Flats (2 people per family)
+  REAL_A_BUILDING_RESIDENTS.filter((item) => item.status === 'PAID').forEach((item) => {
+    rsvps.push({
+      id: `rsvp-A-${item.flat}`,
+      buildingId: 'A',
+      flatNumber: `A-${item.flat}`,
+      residentName: item.name,
+      phone: '',
+      adultsCount: 2,
+      childrenCount: 0,
+      totalHeadcount: 2,
+      dietaryPreference: 'REGULAR',
+      timeSlot: '8:00 PM - 9:00 PM',
+      isVolunteering: false,
+      notes: '',
+      createdAt: '2026-08-20T10:00:00Z',
+      updatedAt: '2026-08-20T10:00:00Z',
+    });
+  });
+
+  // 2. Wing B Paid Flats (2 people per family)
+  REAL_B_BUILDING_RESIDENTS.filter((item) => item.status === 'PAID').forEach((item) => {
+    rsvps.push({
+      id: `rsvp-B-${item.flat}`,
+      buildingId: 'B',
+      flatNumber: `B-${item.flat}`,
+      residentName: item.name,
+      phone: '',
+      adultsCount: 2,
+      childrenCount: 0,
+      totalHeadcount: 2,
+      dietaryPreference: 'REGULAR',
+      timeSlot: '8:00 PM - 9:00 PM',
+      isVolunteering: false,
+      notes: '',
+      createdAt: '2026-08-20T10:00:00Z',
+      updatedAt: '2026-08-20T10:00:00Z',
+    });
+  });
+
+  // 3. Wing C Paid Flats (2 people per family)
+  REAL_C_BUILDING_RESIDENTS.filter((item) => item.status === 'PAID').forEach((item) => {
+    rsvps.push({
+      id: `rsvp-C-${item.flat}`,
+      buildingId: 'C',
+      flatNumber: `C-${item.flat}`,
+      residentName: item.name,
+      phone: '',
+      adultsCount: 2,
+      childrenCount: 0,
+      totalHeadcount: 2,
+      dietaryPreference: 'REGULAR',
+      timeSlot: '8:00 PM - 9:00 PM',
+      isVolunteering: false,
+      notes: '',
+      createdAt: '2026-08-20T10:00:00Z',
+      updatedAt: '2026-08-20T10:00:00Z',
+    });
+  });
+
+  return rsvps;
+}
+
+export const INITIAL_MAHA_PRASAD_RSVPS: MahaPrasadRSVP[] = generateSeedMahaPrasadRSVPs();
 
