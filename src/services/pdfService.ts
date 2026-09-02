@@ -5,9 +5,16 @@ import type { PrasadSlot, PrasadBooking, Contribution, KalakritiEntry, Expense, 
 async function getImageDataUrl(src: string): Promise<string | null> {
   try {
     return await new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        resolve(null);
+      }, 500);
+
       const img = new Image();
-      img.crossOrigin = 'Anonymous';
+      if (src.startsWith('http://') || src.startsWith('https://')) {
+        img.crossOrigin = 'Anonymous';
+      }
       img.onload = () => {
+        clearTimeout(timer);
         try {
           const canvas = document.createElement('canvas');
           canvas.width = img.naturalWidth || img.width;
@@ -15,15 +22,19 @@ async function getImageDataUrl(src: string): Promise<string | null> {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/png'));
+            const data = canvas.toDataURL('image/png');
+            resolve(data);
             return;
           }
         } catch {
-          // ignore
+          // ignore canvas extraction error
         }
         resolve(null);
       };
-      img.onerror = () => resolve(null);
+      img.onerror = () => {
+        clearTimeout(timer);
+        resolve(null);
+      };
       img.src = src;
     });
   } catch {
@@ -248,22 +259,30 @@ export const pdfService = {
 
     // Embed Euriska Logo on Left
     if (logoData) {
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(18, 18, 28, 28, 4, 4, 'F');
-      doc.setDrawColor(254, 215, 170);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(18, 18, 28, 28, 4, 4, 'D');
-      doc.addImage(logoData, 'PNG', 19.5, 19.5, 25, 25);
+      try {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(18, 18, 28, 28, 4, 4, 'F');
+        doc.setDrawColor(254, 215, 170);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(18, 18, 28, 28, 4, 4, 'D');
+        doc.addImage(logoData, 'PNG', 19.5, 19.5, 25, 25);
+      } catch (err) {
+        console.warn('Could not render logo in PDF:', err);
+      }
     }
 
     // Embed Dagdusheth Ganesh Idol on Right
     if (ganeshData) {
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(164, 18, 28, 28, 4, 4, 'F');
-      doc.setDrawColor(254, 215, 170);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(164, 18, 28, 28, 4, 4, 'D');
-      doc.addImage(ganeshData, 'JPEG', 165.5, 19.5, 25, 25);
+      try {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(164, 18, 28, 28, 4, 4, 'F');
+        doc.setDrawColor(254, 215, 170);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(164, 18, 28, 28, 4, 4, 'D');
+        doc.addImage(ganeshData, 'JPEG', 165.5, 19.5, 25, 25);
+      } catch (err) {
+        console.warn('Could not render ganesh idol in PDF:', err);
+      }
     }
 
     // Center Header Text
