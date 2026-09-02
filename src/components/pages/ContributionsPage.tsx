@@ -118,6 +118,7 @@ export const ContributionsPage: React.FC = () => {
       {/* Building Summary Card */}
       <BuildingSummary
         building={currentBuilding}
+        buildings={buildings}
         totalCollected={totalCollected}
         totalPending={totalPending}
         selectedBuilding={selectedBuilding}
