@@ -81,7 +81,7 @@ export const RSVPSummaryCards: React.FC<RSVPSummaryCardsProps> = ({
           </div>
         </div>
 
-        {/* Dietary Preferences */}
+        {/* Pure Satvik Maha Prasad */}
         <div
           style={{
             background: 'linear-gradient(135deg, #fefce8, #fef08a)',
@@ -93,17 +93,17 @@ export const RSVPSummaryCards: React.FC<RSVPSummaryCardsProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#854d0e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Dietary Preference
+              Feast Type
             </span>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ca8a04', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <UtensilsCrossed size={18} />
             </div>
           </div>
           <div style={{ fontSize: 22, fontWeight: 900, color: '#854d0e', lineHeight: 1.2 }}>
-            {summary.regularCount} <span style={{ fontSize: 13, fontWeight: 600 }}>Satvik</span>
+            Satvik Maha Prasad
           </div>
-          <div style={{ fontSize: 12, color: '#a16207', marginTop: 2, fontWeight: 700 }}>
-            🥗 {summary.jainCount} Jain (No Onion/Garlic)
+          <div style={{ fontSize: 12, color: '#a16207', marginTop: 4, fontWeight: 700 }}>
+            🍲 100% Pure Vegetarian Community Feast
           </div>
         </div>
 

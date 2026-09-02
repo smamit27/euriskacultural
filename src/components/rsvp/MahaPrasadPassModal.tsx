@@ -24,7 +24,7 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
       `📍 *Flat:* ${rsvp.flatNumber}\n` +
       `👤 *Family:* ${rsvp.residentName}\n` +
       `👥 *Headcount:* ${rsvp.totalHeadcount} Members (${rsvp.adultsCount} Adults, ${rsvp.childrenCount} Kids)\n` +
-      `🥗 *Dietary:* ${rsvp.dietaryPreference === 'JAIN' ? 'JAIN (Satvik)' : 'REGULAR SATVIK'}\n` +
+      `🍲 *Feast:* Pure Satvik Maha Prasad\n` +
       `📅 *Date:* Thursday, 24th September 2026\n` +
       `⏰ *Timing:* 8:00 PM – 10:00 PM\n` +
       `🏛️ *Venue:* Club House Podium & Party Lawn\n\n` +
@@ -190,9 +190,9 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
             </div>
 
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Dietary</div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: rsvp.dietaryPreference === 'JAIN' ? '#ca8a04' : '#047857', marginTop: 2 }}>
-                {rsvp.dietaryPreference === 'JAIN' ? '🥗 Jain (No Onion/Garlic)' : '🍲 Regular Satvik'}
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Feast Type</div>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#047857', marginTop: 2 }}>
+                🍲 Satvik Maha Prasad
               </div>
             </div>
 

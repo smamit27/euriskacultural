@@ -25,7 +25,7 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [wingFilter, setWingFilter] = useState<'ALL' | 'A' | 'B' | 'C'>('ALL');
-  const [dietFilter, setDietFilter] = useState<'ALL' | 'REGULAR' | 'JAIN'>('ALL');
+  const [volunteerOnly, setVolunteerOnly] = useState(false);
 
   const filtered = rsvps.filter((item) => {
     const matchesSearch =
@@ -38,10 +38,9 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
       item.buildingId === wingFilter ||
       item.flatNumber.startsWith(`${wingFilter}-`);
 
-    const matchesDiet =
-      dietFilter === 'ALL' || item.dietaryPreference === dietFilter;
+    const matchesVolunteer = !volunteerOnly || Boolean(item.isVolunteering);
 
-    return matchesSearch && matchesWing && matchesDiet;
+    return matchesSearch && matchesWing && matchesVolunteer;
   });
 
   return (
@@ -196,10 +195,10 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
           ))}
         </div>
 
-        {/* Dietary Filters */}
+        {/* Volunteer Filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <button
-            onClick={() => setDietFilter('ALL')}
+            onClick={() => setVolunteerOnly(false)}
             style={{
               padding: '5px 10px',
               borderRadius: 6,
@@ -207,14 +206,14 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
               fontSize: 11.5,
               fontWeight: 700,
               cursor: 'pointer',
-              background: dietFilter === 'ALL' ? '#0f172a' : '#ffffff',
-              color: dietFilter === 'ALL' ? '#ffffff' : '#64748b',
+              background: !volunteerOnly ? '#0f172a' : '#ffffff',
+              color: !volunteerOnly ? '#ffffff' : '#64748b',
             }}
           >
-            All Diets
+            All Devotees
           </button>
           <button
-            onClick={() => setDietFilter('REGULAR')}
+            onClick={() => setVolunteerOnly(true)}
             style={{
               padding: '5px 10px',
               borderRadius: 6,
@@ -222,26 +221,11 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
               fontSize: 11.5,
               fontWeight: 700,
               cursor: 'pointer',
-              background: dietFilter === 'REGULAR' ? '#059669' : '#ffffff',
-              color: dietFilter === 'REGULAR' ? '#ffffff' : '#64748b',
+              background: volunteerOnly ? '#2563eb' : '#ffffff',
+              color: volunteerOnly ? '#ffffff' : '#64748b',
             }}
           >
-            Satvik
-          </button>
-          <button
-            onClick={() => setDietFilter('JAIN')}
-            style={{
-              padding: '5px 10px',
-              borderRadius: 6,
-              border: '1px solid #e2e8f0',
-              fontSize: 11.5,
-              fontWeight: 700,
-              cursor: 'pointer',
-              background: dietFilter === 'JAIN' ? '#ca8a04' : '#ffffff',
-              color: dietFilter === 'JAIN' ? '#ffffff' : '#64748b',
-            }}
-          >
-            🥗 Jain
+            🙋‍♂️ Volunteers Only
           </button>
         </div>
       </div>
@@ -254,7 +238,7 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Flat</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Devotee / Family</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569', textAlign: 'center' }}>Headcount</th>
-              <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Dietary</th>
+              <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Feast Type</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Time Slot</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Volunteer</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569', textAlign: 'right' }}>Actions</th>
@@ -331,40 +315,24 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
                     </div>
                   </td>
 
-                  {/* Dietary Badge */}
+                  {/* Feast Type Badge */}
                   <td style={{ padding: '10px 12px' }}>
-                    {r.dietaryPreference === 'JAIN' ? (
-                      <span
-                        style={{
-                          background: '#fefce8',
-                          color: '#854d0e',
-                          border: '1px solid #fde047',
-                          fontWeight: 700,
-                          fontSize: 11.5,
-                          padding: '2px 8px',
-                          borderRadius: 6,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 3,
-                        }}
-                      >
-                        🥗 Jain
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          background: '#f0fdf4',
-                          color: '#166534',
-                          border: '1px solid #bbf7d0',
-                          fontWeight: 700,
-                          fontSize: 11.5,
-                          padding: '2px 8px',
-                          borderRadius: 6,
-                        }}
-                      >
-                        🍲 Satvik
-                      </span>
-                    )}
+                    <span
+                      style={{
+                        background: '#fffbeb',
+                        color: '#92400e',
+                        border: '1px solid #fde68a',
+                        fontWeight: 700,
+                        fontSize: 11.5,
+                        padding: '2px 8px',
+                        borderRadius: 6,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      🍲 Satvik Maha Prasad
+                    </span>
                   </td>
 
                   {/* Time Slot */}

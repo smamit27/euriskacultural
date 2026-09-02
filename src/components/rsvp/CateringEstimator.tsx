@@ -3,12 +3,10 @@ import { ChefHat, ChevronDown, ChevronUp, Sparkles, Scale } from 'lucide-react';
 
 interface CateringEstimatorProps {
   totalHeadcount: number;
-  jainCount: number;
 }
 
 export const CateringEstimator: React.FC<CateringEstimatorProps> = ({
   totalHeadcount,
-  jainCount,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -115,7 +113,6 @@ export const CateringEstimator: React.FC<CateringEstimatorProps> = ({
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
               Estimated preparation requirements for{' '}
               <strong style={{ color: '#ea580c' }}>{totalHeadcount} RSVP Devotees</strong> (+10% safety buffer: {countWithBuffer} servings)
-              {jainCount > 0 && <span> • 🥗 Separate {jainCount} Jain portions</span>}
             </div>
           </div>
         </div>
@@ -192,7 +189,7 @@ export const CateringEstimator: React.FC<CateringEstimatorProps> = ({
               lineHeight: 1.5,
             }}
           >
-            💡 <strong>Note for Catering Committee:</strong> Quantities include standard 10% safety buffer for walk-ins. Separate stainless steel containers should be reserved for the {jainCount} Jain meals without root vegetables, onion, or garlic.
+            💡 <strong>Note for Catering Committee:</strong> All preparations are 100% Pure Satvik Maha Prasad. Quantities include a standard 10% safety buffer for walk-ins and guest devotees.
           </div>
         </div>
       )}

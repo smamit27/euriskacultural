@@ -13,7 +13,7 @@ interface RSVPModalProps {
     phone: string;
     adultsCount: number;
     childrenCount: number;
-    dietaryPreference: 'REGULAR' | 'JAIN';
+    dietaryPreference?: string;
     timeSlot?: string;
     isVolunteering?: boolean;
     notes?: string;
@@ -33,7 +33,7 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({
   const [phone, setPhone] = useState('');
   const [adultsCount, setAdultsCount] = useState<number>(2);
   const [childrenCount, setChildrenCount] = useState<number>(1);
-  const [dietaryPreference, setDietaryPreference] = useState<'REGULAR' | 'JAIN'>('REGULAR');
+  const [dietaryPreference] = useState<string>('SATVIK');
   const [timeSlot, setTimeSlot] = useState<string>('8:00 PM - 9:00 PM');
   const [isVolunteering, setIsVolunteering] = useState<boolean>(false);
   const [notes, setNotes] = useState('');
@@ -50,7 +50,6 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({
       setPhone(existingRSVP.phone || '');
       setAdultsCount(existingRSVP.adultsCount || 2);
       setChildrenCount(existingRSVP.childrenCount || 0);
-      setDietaryPreference(existingRSVP.dietaryPreference || 'REGULAR');
       setTimeSlot(existingRSVP.timeSlot || '8:00 PM - 9:00 PM');
       setIsVolunteering(Boolean(existingRSVP.isVolunteering));
       setNotes(existingRSVP.notes || '');
@@ -61,7 +60,6 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({
       setPhone('');
       setAdultsCount(2);
       setChildrenCount(1);
-      setDietaryPreference('REGULAR');
       setTimeSlot('8:00 PM - 9:00 PM');
       setIsVolunteering(false);
       setNotes('');
@@ -437,56 +435,40 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({
             </div>
           </div>
 
-          {/* Dietary Preference (Regular Satvik vs Jain) */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
-              Dietary Preference *
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div
-                onClick={() => setDietaryPreference('REGULAR')}
-                style={{
-                  border: `2px solid ${dietaryPreference === 'REGULAR' ? '#ea580c' : '#e2e8f0'}`,
-                  background: dietaryPreference === 'REGULAR' ? '#fff7ed' : '#ffffff',
-                  borderRadius: 12,
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <Utensils size={18} color={dietaryPreference === 'REGULAR' ? '#ea580c' : '#64748b'} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: dietaryPreference === 'REGULAR' ? '#9a3412' : '#334155' }}>
-                    Regular Satvik
-                  </div>
-                  <div style={{ fontSize: 11, color: '#64748b' }}>Traditional Feast</div>
-                </div>
+          {/* Satvik Maha Prasad Feast Note */}
+          <div
+            style={{
+              marginBottom: 16,
+              background: '#fffbeb',
+              border: '1.5px solid #fde68a',
+              borderRadius: 12,
+              padding: '12px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                background: '#fef08a',
+                color: '#854d0e',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Utensils size={18} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
+                Pure Satvik Maha Prasad
               </div>
-
-              <div
-                onClick={() => setDietaryPreference('JAIN')}
-                style={{
-                  border: `2px solid ${dietaryPreference === 'JAIN' ? '#ca8a04' : '#e2e8f0'}`,
-                  background: dietaryPreference === 'JAIN' ? '#fefce8' : '#ffffff',
-                  borderRadius: 12,
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span style={{ fontSize: 18 }}>🥗</span>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: dietaryPreference === 'JAIN' ? '#854d0e' : '#334155' }}>
-                    Jain Satvik
-                  </div>
-                  <div style={{ fontSize: 11, color: '#64748b' }}>No Onion / Garlic / Root</div>
-                </div>
+              <div style={{ fontSize: 11.5, color: '#78350f', marginTop: 1 }}>
+                100% purely vegetarian holy feast prepared for all devotee families.
               </div>
             </div>
           </div>

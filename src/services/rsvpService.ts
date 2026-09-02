@@ -212,12 +212,6 @@ export const rsvpService = {
     const totalChildren = list.reduce((acc, r) => acc + (r.childrenCount || 0), 0);
     const totalHeadcount = totalAdults + totalChildren;
     const totalFamilies = list.length;
-
-    const jainCount = list
-      .filter((r) => r.dietaryPreference === 'JAIN')
-      .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0);
-
-    const regularCount = totalHeadcount - jainCount;
     const volunteersCount = list.filter((r) => r.isVolunteering).length;
 
     const buildingBreakdown = {
@@ -246,8 +240,7 @@ export const rsvpService = {
       totalAdults,
       totalChildren,
       totalFamilies,
-      jainCount,
-      regularCount,
+      satvikCount: totalHeadcount,
       volunteersCount,
       buildingBreakdown,
     };
@@ -269,17 +262,16 @@ export const rsvpService = {
     lines.push(`"Total Registered Families",${summary.totalFamilies}`);
     lines.push(`"Adults Count",${summary.totalAdults}`);
     lines.push(`"Children Count (<12 yrs)",${summary.totalChildren}`);
-    lines.push(`"Jain Meal Headcount",${summary.jainCount}`);
-    lines.push(`"Regular Satvik Headcount",${summary.regularCount}`);
+    lines.push(`"Feast Type","Pure Satvik Maha Prasad"`);
     lines.push(`"Volunteer Helpers",${summary.volunteersCount}`);
     lines.push('');
 
     lines.push('"DETAILED RESIDENT RSVP LIST"');
-    lines.push('"#","Wing","Flat No","Resident Name","Phone","Adults","Children","Total Headcount","Dietary Preference","Time Slot","Volunteering?","Notes"');
+    lines.push('"#","Wing","Flat No","Resident Name","Phone","Adults","Children","Total Headcount","Feast Type","Time Slot","Volunteering?","Notes"');
 
     rsvps.forEach((r, idx) => {
       lines.push(
-        `${idx + 1},"${r.buildingId}","${r.flatNumber}","${r.residentName}","${r.phone || ''}",${r.adultsCount},${r.childrenCount},${r.totalHeadcount},"${r.dietaryPreference === 'JAIN' ? 'JAIN (No Onion/Garlic)' : 'REGULAR SATVIK'}","${r.timeSlot || '8-10 PM'}","${r.isVolunteering ? 'YES (Volunteer)' : 'No'}","${(r.notes || '').replace(/"/g, '""')}"`
+        `${idx + 1},"${r.buildingId}","${r.flatNumber}","${r.residentName}","${r.phone || ''}",${r.adultsCount},${r.childrenCount},${r.totalHeadcount},"Satvik Maha Prasad","${r.timeSlot || '8:00 PM - 10:00 PM'}","${r.isVolunteering ? 'YES (Volunteer)' : 'No'}","${(r.notes || '').replace(/"/g, '""')}"`
       );
     });
 

@@ -349,8 +349,8 @@ export interface MahaPrasadRSVP {
   adultsCount: number;           // e.g. 2
   childrenCount: number;         // e.g. 1 (<12 yrs)
   totalHeadcount: number;        // adultsCount + childrenCount
-  dietaryPreference: 'REGULAR' | 'JAIN'; // Regular Satvik or Jain (No Onion/Garlic)
-  timeSlot?: string;             // e.g. '8:00 PM - 9:00 PM', '9:00 PM - 10:00 PM', or 'Anytime (8-10 PM)'
+  dietaryPreference?: string;    // 'SATVIK' / 'MAHAPRASAD'
+  timeSlot?: string;             // e.g. '8:00 PM - 9:00 PM', '9:00 PM - 10:00 PM', or '8:00 PM - 10:00 PM'
   isVolunteering?: boolean;      // Ready to help in prasad distribution
   notes?: string;
   createdAt: string;
@@ -362,8 +362,7 @@ export interface MahaPrasadSummary {
   totalAdults: number;
   totalChildren: number;
   totalFamilies: number;
-  jainCount: number;
-  regularCount: number;
+  satvikCount: number;
   volunteersCount: number;
   buildingBreakdown: {
     A: { families: number; headcount: number };

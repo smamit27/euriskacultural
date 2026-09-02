@@ -1149,7 +1149,7 @@ export const pdfService = {
       ['Flat Number:', cleanPdfText(rsvp.flatNumber) || 'N/A'],
       ['Family / Devotee Name:', cleanPdfText(rsvp.residentName) || 'Resident Family'],
       ['Total Headcount:', `${rsvp.totalHeadcount} Members (${rsvp.adultsCount} Adults, ${rsvp.childrenCount} Kids)`],
-      ['Dietary Preference:', rsvp.dietaryPreference === 'JAIN' ? 'JAIN (Satvik - No Onion/Garlic)' : 'REGULAR SATVIK FEAST'],
+      ['Feast Type:', 'Pure Satvik Maha Prasad (100% Vegetarian)'],
       ['Meal Timing Window:', cleanPdfText(rsvp.timeSlot) || '8:00 PM - 10:00 PM'],
       ['Contact Phone:', cleanPdfText(rsvp.phone) || 'Registered Society Devotee'],
       ['Volunteer Status:', rsvp.isVolunteering ? 'YES - Assisting in Prasad Distribution' : 'Family Devotee Guest'],
@@ -1243,9 +1243,6 @@ export const pdfService = {
     const totalHeadcount = rsvps.reduce((acc, r) => acc + (r.totalHeadcount || 0), 0);
     const totalAdults = rsvps.reduce((acc, r) => acc + (r.adultsCount || 0), 0);
     const totalKids = rsvps.reduce((acc, r) => acc + (r.childrenCount || 0), 0);
-    const jainCount = rsvps
-      .filter((r) => r.dietaryPreference === 'JAIN')
-      .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0);
 
     // Header Background
     doc.setFillColor(154, 52, 18);
@@ -1260,7 +1257,7 @@ export const pdfService = {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(254, 215, 170);
     doc.text(
-      `Event Date: 24th September 2026 (8:00 PM - 10:00 PM) | Total Headcount: ${totalHeadcount} (${totalAdults} Adults, ${totalKids} Kids, ${jainCount} Jain) | Families: ${rsvps.length}`,
+      `Event Date: 24th September 2026 (8:00 PM - 10:00 PM) | Total Headcount: ${totalHeadcount} (${totalAdults} Adults, ${totalKids} Kids) | Feast: Pure Satvik Maha Prasad | Families: ${rsvps.length}`,
       14,
       20
     );
@@ -1274,7 +1271,7 @@ export const pdfService = {
       'Adults',
       'Kids',
       'Total',
-      'Dietary Preference',
+      'Feast Type',
       'Time Slot',
       'Volunteer?',
       'Special Requests',
@@ -1289,7 +1286,7 @@ export const pdfService = {
       r.adultsCount,
       r.childrenCount,
       r.totalHeadcount,
-      r.dietaryPreference === 'JAIN' ? 'JAIN' : 'REGULAR',
+      'Satvik Maha Prasad',
       cleanPdfText(r.timeSlot) || '8-10 PM',
       r.isVolunteering ? 'YES' : 'No',
       cleanPdfText(r.notes) || '-',
@@ -1328,10 +1325,6 @@ export const pdfService = {
       },
       didParseCell: (data) => {
         if (data.section === 'body') {
-          if (data.column.index === 8 && data.cell.raw === 'JAIN') {
-            data.cell.styles.textColor = [194, 65, 12];
-            data.cell.styles.fontStyle = 'bold';
-          }
           if (data.column.index === 10 && data.cell.raw === 'YES') {
             data.cell.styles.textColor = [5, 150, 105];
             data.cell.styles.fontStyle = 'bold';

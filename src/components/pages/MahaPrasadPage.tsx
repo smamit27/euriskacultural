@@ -18,8 +18,7 @@ export const MahaPrasadPage: React.FC = () => {
     totalAdults: 0,
     totalChildren: 0,
     totalFamilies: 0,
-    jainCount: 0,
-    regularCount: 0,
+    satvikCount: 0,
     volunteersCount: 0,
     buildingBreakdown: {
       A: { families: 0, headcount: 0 },
@@ -191,7 +190,7 @@ export const MahaPrasadPage: React.FC = () => {
       <RSVPSummaryCards summary={summary} totalSocietyFlats={231} />
 
       {/* Catering Raw Material Estimator */}
-      <CateringEstimator totalHeadcount={summary.totalHeadcount} jainCount={summary.jainCount} />
+      <CateringEstimator totalHeadcount={summary.totalHeadcount} />
 
       {/* Registered Devotees Table */}
       <RSVPTable
