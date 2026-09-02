@@ -107,6 +107,35 @@ export const RSVPSummaryCards: React.FC<RSVPSummaryCardsProps> = ({
           </div>
         </div>
 
+        {/* Gate Check-In & Redemption */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+            border: '1.5px solid #86efac',
+            borderRadius: 16,
+            padding: '16px 18px',
+            boxShadow: '0 2px 8px rgba(22, 101, 52, 0.06)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Gate Check-In
+            </span>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#15803d', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <UserCheck size={18} />
+            </div>
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: '#166534', lineHeight: 1.1 }}>
+            {summary.redeemedCount || 0}
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#15803d', marginLeft: 4 }}>
+              / {summary.totalHeadcount} Served
+            </span>
+          </div>
+          <div style={{ fontSize: 12, color: '#166534', marginTop: 4, fontWeight: 700 }}>
+            {summary.redeemedFamiliesCount || 0} Families Scanned &amp; Served
+          </div>
+        </div>
+
         {/* Seva Volunteers */}
         <div
           style={{

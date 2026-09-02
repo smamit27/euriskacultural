@@ -1,5 +1,6 @@
-import React from 'react';
-import { X, Download, Share2, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Download, Share2, Users, CheckCircle2, AlertTriangle, QrCode } from 'lucide-react';
+import QRCode from 'qrcode';
 import type { MahaPrasadRSVP } from '../../types';
 import euriskaLogo from '/euriska_logo.png';
 import ganeshImage from '/ganesh_bhagwan.jpg';
@@ -17,7 +18,35 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
   rsvp,
   onDownloadPDF,
 }) => {
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (rsvp) {
+      // Generate QR Code containing verification payload
+      const qrPayload = JSON.stringify({
+        token: `EUR-MAHA-PASS:${rsvp.flatNumber}`,
+        flat: rsvp.flatNumber,
+        name: rsvp.residentName,
+        headcount: rsvp.totalHeadcount,
+        id: rsvp.id,
+      });
+
+      QRCode.toDataURL(qrPayload, {
+        width: 220,
+        margin: 1.5,
+        color: {
+          dark: '#1e293b',
+          light: '#ffffff',
+        },
+      })
+        .then(setQrDataUrl)
+        .catch((err) => console.error('QR generation error:', err));
+    }
+  }, [rsvp]);
+
   if (!isOpen || !rsvp) return null;
+
+  const isExpired = Boolean(rsvp.isRedeemed);
 
   const handleShare = async () => {
     const text = `🍲 *EURISKA MAHA PRASAD SEVA PASS*\n\n` +
@@ -29,6 +58,7 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
       `⏰ *Timing:* 8:00 PM – 10:00 PM\n` +
       `🏛️ *Venue:* Club House Podium & Party Lawn\n\n` +
       `*Token ID:* EUR-MAHA-${rsvp.flatNumber}\n` +
+      `*Status:* ${isExpired ? 'EXPIRED (Already Redeemed)' : 'ACTIVE (Valid for Entry)'}\n` +
       `Ganpati Bappa Morya! 🙏`;
 
     if (navigator.share) {
@@ -52,8 +82,8 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(15, 23, 42, 0.7)',
-        backdropFilter: 'blur(5px)',
+        background: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(6px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -68,20 +98,25 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
           borderRadius: 24,
           maxWidth: 440,
           width: '100%',
-          overflow: 'hidden',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
           border: '2px solid #fed7aa',
+          position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Pass Top Ribbon */}
         <div
           style={{
-            background: 'linear-gradient(135deg, #9a3412, #c2410c)',
+            background: isExpired
+              ? 'linear-gradient(135deg, #475569, #334155)'
+              : 'linear-gradient(135deg, #9a3412, #c2410c)',
             padding: '20px 20px 16px 20px',
             color: '#ffffff',
             position: 'relative',
             textAlign: 'center',
+            transition: 'background 0.3s ease',
           }}
         >
           <button
@@ -122,15 +157,45 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
           </div>
 
           <h3 style={{ fontSize: 18, fontWeight: 900, margin: '2px 0', color: '#ffffff' }}>
-            MAHA PRASAD ENTRY TOKEN
+            MAHA PRASAD ENTRY PASS
           </h3>
           <p style={{ fontSize: 11.5, color: '#fed7aa', margin: 0 }}>
-            Community Feast Invitation Pass
+            Thursday, 24th Sep 2026 • 8:00 PM – 10:00 PM
           </p>
         </div>
 
         {/* Pass Content */}
         <div style={{ padding: '18px 20px' }}>
+          {/* Active vs Expired Status Banner */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '8px 14px',
+              borderRadius: 12,
+              marginBottom: 14,
+              background: isExpired ? '#fef2f2' : '#f0fdf4',
+              border: `1.5px solid ${isExpired ? '#fca5a5' : '#86efac'}`,
+              color: isExpired ? '#991b1b' : '#166534',
+              fontWeight: 800,
+              fontSize: 12.5,
+            }}
+          >
+            {isExpired ? (
+              <>
+                <AlertTriangle size={17} color="#dc2626" />
+                <span>EXPIRED / REDEEMED AT GATE</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={17} color="#16a34a" />
+                <span>🟢 VALID ENTRY PASS</span>
+              </>
+            )}
+          </div>
+
           {/* Main Flat & Headcount Badge */}
           <div
             style={{
@@ -139,16 +204,16 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
               borderRadius: 16,
               padding: '14px',
               textAlign: 'center',
-              marginBottom: 16,
+              marginBottom: 14,
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#9a3412', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Reserved for Flat
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Wing {rsvp.buildingId} • Registered Flat
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#c2410c', lineHeight: 1.2 }}>
-              {rsvp.flatNumber}
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#9a3412', margin: '2px 0' }}>
+              Flat {rsvp.flatNumber}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#334155' }}>
               {rsvp.residentName}
             </div>
 
@@ -167,58 +232,92 @@ export const MahaPrasadPassModal: React.FC<MahaPrasadPassModalProps> = ({
               }}
             >
               <Users size={14} />
-              <span>
-                {rsvp.totalHeadcount} Members ({rsvp.adultsCount} Adults, {rsvp.childrenCount} Kids)
-              </span>
+              <span>{rsvp.totalHeadcount} Total Members ({rsvp.adultsCount} Adults, {rsvp.childrenCount} Kids)</span>
             </div>
           </div>
 
-          {/* Details Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Event Date</div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a', marginTop: 2 }}>
-                Thu, 24 Sep 2026
+          {/* QR Code Card */}
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: 16,
+              padding: '12px',
+              textAlign: 'center',
+              marginBottom: 14,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              position: 'relative',
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <QrCode size={13} />
+              <span>Scan QR Code at Gate Entry</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
+              {qrDataUrl ? (
+                <img
+                  src={qrDataUrl}
+                  alt={`QR Pass for ${rsvp.flatNumber}`}
+                  style={{
+                    width: 140,
+                    height: 140,
+                    borderRadius: 10,
+                    border: '1px solid #cbd5e1',
+                    filter: isExpired ? 'grayscale(100%) opacity(40%)' : 'none',
+                  }}
+                />
+              ) : (
+                <div style={{ width: 140, height: 140, background: '#f1f5f9', borderRadius: 10 }} />
+              )}
+
+              {/* Expired Watermark Stamp */}
+              {isExpired && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%) rotate(-15deg)',
+                    border: '3px solid #dc2626',
+                    color: '#dc2626',
+                    borderRadius: 8,
+                    padding: '4px 10px',
+                    fontWeight: 900,
+                    fontSize: 14,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    boxShadow: '0 4px 10px rgba(220, 38, 38, 0.2)',
+                  }}
+                >
+                  REDEEMED
+                </div>
+              )}
+            </div>
+
+            <div style={{ fontSize: 11, color: isExpired ? '#dc2626' : '#64748b', fontWeight: 600, marginTop: 6 }}>
+              {isExpired
+                ? `Scanned: ${new Date(rsvp.redeemedAt || rsvp.updatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                : `Token: EUR-MAHA-${rsvp.flatNumber}`}
+            </div>
+          </div>
+
+          {/* Quick Details Strip */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '8px 10px' }}>
+              <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>Date & Time</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginTop: 2 }}>
+                24 Sep • 8-10 PM
               </div>
             </div>
 
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Timing</div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a', marginTop: 2 }}>
-                8:00 PM – 10:00 PM
-              </div>
-            </div>
-
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Feast Type</div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#047857', marginTop: 2 }}>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '8px 10px' }}>
+              <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>Feast Type</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#047857', marginTop: 2 }}>
                 🍲 Satvik Maha Prasad
               </div>
             </div>
-
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Venue</div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a', marginTop: 2 }}>
-                Club House Podium
-              </div>
-            </div>
-          </div>
-
-          {/* Token Tag */}
-          <div
-            style={{
-              background: '#f1f5f9',
-              border: '1px dashed #cbd5e1',
-              borderRadius: 12,
-              padding: '8px 12px',
-              textAlign: 'center',
-              marginBottom: 18,
-            }}
-          >
-            <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>TOKEN NUMBER: </span>
-            <span style={{ fontSize: 13, fontWeight: 900, color: '#1e293b' }}>
-              EUR-MAHA-{rsvp.flatNumber}
-            </span>
           </div>
 
           {/* Action Buttons */}

@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { PrasadSlot, PrasadBooking, Contribution, KalakritiEntry, Expense, FinancialReportData } from '../types';
+import QRCode from 'qrcode';
+import type { PrasadSlot, PrasadBooking, Contribution, KalakritiEntry, Expense, FinancialReportData, MahaPrasadRSVP } from '../types';
 
 /**
  * Strips and replaces non-ASCII/Unicode glyphs (em-dashes, en-dashes, special quotes, emojis, etc.)
@@ -1046,44 +1047,39 @@ export const pdfService = {
         `${idx + 1},"${e.expenseDate}","${cleanPdfText(e.category)}","${cleanPdfText(e.vendor)}","${cleanPdfText(e.description)}",${e.amount},"${e.paymentMode || ''}","${e.invoiceNumber || ''}"`
       );
     });
-
     downloadFile(lines.join('\n'), 'Euriska_Complete_Financial_Statement_2026.csv', 'text/csv;charset=utf-8;');
   },
 
   /**
-   * Export Single Devotee Maha Prasad Meal Token / Pass PDF
+   * Export Single Devotee Maha Prasad Meal Token / Pass
    */
-  async exportMahaPrasadPassPDF(rsvp: import('../types').MahaPrasadRSVP) {
+  async exportMahaPrasadPassPDF(rsvp: MahaPrasadRSVP): Promise<void> {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
     });
 
-    // Outer Decorative Double Border Frame
-    doc.setDrawColor(194, 65, 12); // Saffron #c2410c
-    doc.setLineWidth(1.4);
-    doc.roundedRect(10, 10, 190, 277, 5, 5, 'D');
+    // Outer Decorative Border
+    doc.setDrawColor(234, 88, 12);
+    doc.setLineWidth(1.5);
+    doc.rect(7, 7, 196, 283);
 
-    doc.setDrawColor(245, 158, 11); // Gold trim #f59e0b
-    doc.setLineWidth(0.6);
-    doc.roundedRect(12.5, 12.5, 185, 272, 4, 4, 'D');
+    doc.setDrawColor(251, 191, 36);
+    doc.setLineWidth(0.5);
+    doc.rect(9, 9, 192, 279);
 
-    // Header Background Fill
-    doc.setFillColor(154, 52, 18); // Deep festive maroon #9a3412
-    doc.roundedRect(14, 14, 182, 44, 3, 3, 'F');
+    // Header Background
+    doc.setFillColor(154, 52, 18);
+    doc.rect(10, 10, 190, 48, 'F');
 
-    // Gold accent divider in header
-    doc.setFillColor(251, 191, 36);
-    doc.rect(14, 56, 182, 2, 'F');
-
-    // Embed Logos safely
+    // Add Logo or Icon
     try {
       const logoData = await getImageDataUrl('/euriska_logo.png');
       if (logoData) {
         doc.setFillColor(255, 255, 255);
-        doc.roundedRect(18, 18, 28, 28, 4, 4, 'F');
-        doc.addImage(logoData, 'PNG', 19.5, 19.5, 25, 25);
+        doc.roundedRect(16, 15, 20, 20, 3, 3, 'F');
+        doc.addImage(logoData, 'PNG', 17, 16, 18, 18);
       }
     } catch {
       // ignore
@@ -1093,8 +1089,8 @@ export const pdfService = {
       const ganeshData = await getImageDataUrl('/ganesh_bhagwan.jpg');
       if (ganeshData) {
         doc.setFillColor(255, 255, 255);
-        doc.roundedRect(164, 18, 28, 28, 4, 4, 'F');
-        doc.addImage(ganeshData, 'JPEG', 165.5, 19.5, 25, 25);
+        doc.roundedRect(174, 15, 20, 20, 3, 3, 'F');
+        doc.addImage(ganeshData, 'JPEG', 175, 16, 18, 18);
       }
     } catch {
       // ignore
@@ -1117,7 +1113,7 @@ export const pdfService = {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(255, 237, 213);
-    doc.text('Official Devotee Family Meal Invitation & Entry Token', 105, 45, { align: 'center' });
+    doc.text('Official Devotee Family Meal Invitation & Gate Entry Pass', 105, 45, { align: 'center' });
 
     // Date & Time Ribbon
     doc.setFillColor(254, 243, 199);
@@ -1138,7 +1134,7 @@ export const pdfService = {
     doc.setFontSize(9.5);
     doc.setTextColor(154, 52, 18);
     doc.text(
-      'Venue: Club House Podium & Lawn  |  Traditional Maharashtrian Feast',
+      'Venue: Club House Podium & Lawn  |  Pure Satvik Community Feast',
       105,
       77,
       { align: 'center' }
@@ -1188,24 +1184,72 @@ export const pdfService = {
       margin: { left: 14, right: 14 },
     });
 
-    const endY = (doc as any).lastAutoTable.finalY || 160;
+    const endY = (doc as any).lastAutoTable.finalY || 155;
+
+    // Generate & Embed Scannable QR Code
+    const qrBoxY = endY + 8;
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(14, qrBoxY, 182, 48, 3, 3, 'FD');
+
+    try {
+      const qrPayload = JSON.stringify({
+        token: `EUR-MAHA-PASS:${rsvp.flatNumber}`,
+        flat: rsvp.flatNumber,
+        name: rsvp.residentName,
+        headcount: rsvp.totalHeadcount,
+        id: rsvp.id,
+      });
+
+      const qrDataUrl = await QRCode.toDataURL(qrPayload, {
+        width: 180,
+        margin: 1,
+        color: { dark: '#0f172a', light: '#ffffff' },
+      });
+
+      doc.addImage(qrDataUrl, 'PNG', 20, qrBoxY + 4, 40, 40);
+
+      // QR Instruction Box
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('OFFICIAL GATE VERIFICATION QR CODE', 68, qrBoxY + 12);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Present this QR Code at the Club House Entry Gate for scanning.', 68, qrBoxY + 18);
+      doc.text('Gate volunteers will scan and verify devotee headcount automatically.', 68, qrBoxY + 23);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(194, 65, 12);
+      doc.text(`TOKEN NUMBER: EUR-MAHA-${cleanPdfText(rsvp.flatNumber)}`, 68, qrBoxY + 31);
+
+      doc.setFontSize(8);
+      doc.setTextColor(5, 150, 105);
+      doc.text('STATUS: 100% VERIFIED SOCIETY PASS (VALID FOR ENTRY)', 68, qrBoxY + 38);
+    } catch (e) {
+      console.warn('QR Code PDF generation failed:', e);
+    }
 
     // Festive Blessing Banner
-    const blessingY = endY + 14;
+    const blessingY = qrBoxY + 54;
     doc.setFillColor(255, 247, 237);
     doc.setDrawColor(251, 146, 60);
     doc.setLineWidth(0.8);
-    doc.roundedRect(14, blessingY, 182, 18, 3, 3, 'FD');
+    doc.roundedRect(14, blessingY, 182, 14, 3, 3, 'FD');
 
     doc.setTextColor(194, 65, 12);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('* GANPATI BAPPA MORYA *', 105, blessingY + 11.5, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('* GANPATI BAPPA MORYA *', 105, blessingY + 9.5, { align: 'center' });
 
-    // Official Pass Footer & Verification Badge
-    const footerY = blessingY + 30;
+    // Official Pass Footer
+    const footerY = blessingY + 22;
 
-    doc.setFontSize(8.5);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 23, 42);
     doc.text('EURISKA CULTURAL & FESTIVE COMMITTEE 2026-27', 16, footerY);
@@ -1214,18 +1258,7 @@ export const pdfService = {
     doc.setFontSize(7.5);
     doc.setTextColor(100, 116, 139);
     const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    doc.text(`Digital Verification Pass | Generated on: ${dateStr}`, 16, footerY + 5);
-
-    // Pass Reference Tag on Right
-    doc.setFillColor(241, 245, 249);
-    doc.setDrawColor(203, 213, 225);
-    doc.roundedRect(125, footerY - 5, 71, 12, 2, 2, 'FD');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(30, 41, 59);
-    const passRef = `EUR-MAHA-${cleanPdfText(rsvp.flatNumber) || 'TOKEN'}`;
-    doc.text(`MEAL TOKEN: ${passRef}`, 160, footerY + 2.5, { align: 'center' });
+    doc.text(`Digital Verification Pass | Generated on: ${dateStr}`, 16, footerY + 4.5);
 
     doc.save(`Euriska_Maha_Prasad_Pass_${cleanPdfText(rsvp.flatNumber) || 'Token'}_24Sep2026.pdf`);
   },

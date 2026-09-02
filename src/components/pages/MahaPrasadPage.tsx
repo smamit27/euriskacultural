@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Clock, MapPin, Calendar } from 'lucide-react';
+import { Plus, Clock, MapPin, Calendar, Camera } from 'lucide-react';
 import { rsvpService } from '../../services/rsvpService';
 import { pdfService } from '../../services/pdfService';
 import { RSVPSummaryCards } from '../rsvp/RSVPSummaryCards';
@@ -7,6 +7,7 @@ import { CateringEstimator } from '../rsvp/CateringEstimator';
 import { RSVPTable } from '../rsvp/RSVPTable';
 import { RSVPModal } from '../rsvp/RSVPModal';
 import { MahaPrasadPassModal } from '../rsvp/MahaPrasadPassModal';
+import { RSVPScannerModal } from '../rsvp/RSVPScannerModal';
 import { useToast } from '../../context/ToastContext';
 import type { MahaPrasadRSVP, MahaPrasadSummary } from '../../types';
 
@@ -20,6 +21,8 @@ export const MahaPrasadPage: React.FC = () => {
     totalFamilies: 0,
     satvikCount: 0,
     volunteersCount: 0,
+    redeemedCount: 0,
+    redeemedFamiliesCount: 0,
     buildingBreakdown: {
       A: { families: 0, headcount: 0 },
       B: { families: 0, headcount: 0 },
@@ -28,6 +31,7 @@ export const MahaPrasadPage: React.FC = () => {
   });
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [editingRSVP, setEditingRSVP] = useState<MahaPrasadRSVP | null>(null);
   const [selectedPassRSVP, setSelectedPassRSVP] = useState<MahaPrasadRSVP | null>(null);
 
@@ -70,6 +74,22 @@ export const MahaPrasadPage: React.FC = () => {
     } catch (err) {
       console.error(err);
       showToast('Failed to delete RSVP.', 'error');
+    }
+  };
+
+  const handleToggleRedeem = async (rsvp: MahaPrasadRSVP) => {
+    try {
+      if (rsvp.isRedeemed) {
+        await rsvpService.resetRedemption(rsvp.id);
+        showToast(`Reset check-in for Flat ${rsvp.flatNumber}. Pass is now ACTIVE.`, 'info');
+      } else {
+        await rsvpService.redeemRSVP(rsvp.flatNumber, 'Admin Manual Check-In');
+        showToast(`✅ Flat ${rsvp.flatNumber} marked as Checked In & Redeemed!`, 'success');
+      }
+      loadData();
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to update redemption status.', 'error');
     }
   };
 
@@ -158,7 +178,28 @@ export const MahaPrasadPage: React.FC = () => {
             </div>
           </div>
 
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setIsScannerOpen(true)}
+              style={{
+                background: '#0f172a',
+                color: '#ffffff',
+                border: '1.5px solid rgba(255,255,255,0.2)',
+                borderRadius: 14,
+                padding: '12px 18px',
+                fontSize: 14,
+                fontWeight: 900,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+              }}
+            >
+              <Camera size={18} color="#fb923c" />
+              <span>📷 Gate Scanner</span>
+            </button>
+
             <button
               onClick={() => {
                 setEditingRSVP(null);
@@ -169,8 +210,8 @@ export const MahaPrasadPage: React.FC = () => {
                 color: '#c2410c',
                 border: 'none',
                 borderRadius: 14,
-                padding: '12px 22px',
-                fontSize: 15,
+                padding: '12px 20px',
+                fontSize: 14,
                 fontWeight: 900,
                 cursor: 'pointer',
                 display: 'flex',
@@ -180,7 +221,7 @@ export const MahaPrasadPage: React.FC = () => {
               }}
             >
               <Plus size={18} />
-              <span>RSVP Your Family</span>
+              <span>RSVP Family</span>
             </button>
           </div>
         </div>
@@ -199,6 +240,8 @@ export const MahaPrasadPage: React.FC = () => {
           setEditingRSVP(null);
           setIsAddModalOpen(true);
         }}
+        onOpenScanner={() => setIsScannerOpen(true)}
+        onToggleRedeem={handleToggleRedeem}
         onEdit={(rsvp) => {
           setEditingRSVP(rsvp);
           setIsAddModalOpen(true);
@@ -227,6 +270,15 @@ export const MahaPrasadPage: React.FC = () => {
         onClose={() => setSelectedPassRSVP(null)}
         rsvp={selectedPassRSVP}
         onDownloadPDF={handleDownloadSinglePDF}
+      />
+
+      {/* QR Gate Scanner Modal */}
+      <RSVPScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onRSVPUpdated={() => {
+          loadData();
+        }}
       />
     </div>
   );

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Search, Download, Plus, Edit2, Trash2, FileText, HeartHandshake, Eye } from 'lucide-react';
+import { Search, Download, Plus, Edit2, Trash2, FileText, HeartHandshake, Eye, Camera, CheckCircle2, RotateCcw } from 'lucide-react';
 import type { MahaPrasadRSVP } from '../../types';
 
 interface RSVPTableProps {
   rsvps: MahaPrasadRSVP[];
   onOpenAddModal: () => void;
+  onOpenScanner: () => void;
+  onToggleRedeem: (rsvp: MahaPrasadRSVP) => void;
   onEdit: (rsvp: MahaPrasadRSVP) => void;
   onDelete: (id: string, flatNumber: string) => void;
   onViewPass: (rsvp: MahaPrasadRSVP) => void;
@@ -16,6 +18,8 @@ interface RSVPTableProps {
 export const RSVPTable: React.FC<RSVPTableProps> = ({
   rsvps,
   onOpenAddModal,
+  onOpenScanner,
+  onToggleRedeem,
   onEdit,
   onDelete,
   onViewPass,
@@ -25,6 +29,7 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [wingFilter, setWingFilter] = useState<'ALL' | 'A' | 'B' | 'C'>('ALL');
+  const [checkInFilter, setCheckInFilter] = useState<'ALL' | 'ACTIVE' | 'REDEEMED'>('ALL');
   const [volunteerOnly, setVolunteerOnly] = useState(false);
 
   const filtered = rsvps.filter((item) => {
@@ -40,7 +45,12 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
 
     const matchesVolunteer = !volunteerOnly || Boolean(item.isVolunteering);
 
-    return matchesSearch && matchesWing && matchesVolunteer;
+    const matchesCheckIn =
+      checkInFilter === 'ALL' ||
+      (checkInFilter === 'REDEEMED' && Boolean(item.isRedeemed)) ||
+      (checkInFilter === 'ACTIVE' && !item.isRedeemed);
+
+    return matchesSearch && matchesWing && matchesVolunteer && matchesCheckIn;
   });
 
   return (
@@ -69,11 +79,32 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
             Registered Society Families ({filtered.length} Flats)
           </h3>
           <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
-            Real-time headcount roster for Maha Prasad (24 Sep 2026, 8-10 PM).
+            Real-time Maha Prasad headcount, QR pass generator &amp; gate check-in tracker
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            onClick={onOpenScanner}
+            style={{
+              background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 10,
+              padding: '9px 15px',
+              fontSize: 12.5,
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)',
+            }}
+          >
+            <Camera size={16} color="#fb923c" />
+            <span>📷 Scan Devotee QR Pass</span>
+          </button>
+
           <button
             onClick={onOpenAddModal}
             style={{
@@ -81,39 +112,18 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
               color: '#ffffff',
               border: 'none',
               borderRadius: 10,
-              padding: '8px 14px',
-              fontSize: 13,
+              padding: '9px 14px',
+              fontSize: 12.5,
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
-              gap: 5,
+              gap: 6,
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
+              boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)',
             }}
           >
             <Plus size={16} />
-            <span>+ Add Family RSVP</span>
-          </button>
-
-          <button
-            onClick={onExportRosterPDF}
-            style={{
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              borderRadius: 10,
-              padding: '8px 12px',
-              fontSize: 12.5,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              cursor: 'pointer',
-            }}
-            title="Download Roster PDF"
-          >
-            <FileText size={14} color="#ea580c" />
-            <span>PDF Roster</span>
+            <span>Add Family RSVP</span>
           </button>
 
           <button
@@ -135,6 +145,27 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
           >
             <Download size={14} color="#059669" />
             <span>CSV / Excel</span>
+          </button>
+
+          <button
+            onClick={onExportRosterPDF}
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              color: '#334155',
+              borderRadius: 10,
+              padding: '8px 12px',
+              fontSize: 12.5,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              cursor: 'pointer',
+            }}
+            title="Download Roster PDF"
+          >
+            <FileText size={14} color="#ea580c" />
+            <span>Roster PDF</span>
           </button>
         </div>
       </div>
@@ -195,6 +226,55 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
           ))}
         </div>
 
+        {/* Check-In Status Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button
+            onClick={() => setCheckInFilter('ALL')}
+            style={{
+              padding: '5px 10px',
+              borderRadius: 6,
+              border: '1px solid #e2e8f0',
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: checkInFilter === 'ALL' ? '#0f172a' : '#ffffff',
+              color: checkInFilter === 'ALL' ? '#ffffff' : '#64748b',
+            }}
+          >
+            All Status
+          </button>
+          <button
+            onClick={() => setCheckInFilter('ACTIVE')}
+            style={{
+              padding: '5px 10px',
+              borderRadius: 6,
+              border: '1px solid #e2e8f0',
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: checkInFilter === 'ACTIVE' ? '#16a34a' : '#ffffff',
+              color: checkInFilter === 'ACTIVE' ? '#ffffff' : '#64748b',
+            }}
+          >
+            🟢 Unscanned
+          </button>
+          <button
+            onClick={() => setCheckInFilter('REDEEMED')}
+            style={{
+              padding: '5px 10px',
+              borderRadius: 6,
+              border: '1px solid #e2e8f0',
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: checkInFilter === 'REDEEMED' ? '#dc2626' : '#ffffff',
+              color: checkInFilter === 'REDEEMED' ? '#ffffff' : '#64748b',
+            }}
+          >
+            🔴 Checked In
+          </button>
+        </div>
+
         {/* Volunteer Filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <button
@@ -225,7 +305,7 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
               color: volunteerOnly ? '#ffffff' : '#64748b',
             }}
           >
-            🙋‍♂️ Volunteers Only
+            🙋‍♂️ Volunteers
           </button>
         </div>
       </div>
@@ -239,7 +319,7 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Devotee / Family</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569', textAlign: 'center' }}>Headcount</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Feast Type</th>
-              <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Time Slot</th>
+              <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Gate Status</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569' }}>Volunteer</th>
               <th style={{ padding: '10px 12px', fontSize: 12, fontWeight: 800, color: '#475569', textAlign: 'right' }}>Actions</th>
             </tr>
@@ -335,9 +415,68 @@ export const RSVPTable: React.FC<RSVPTableProps> = ({
                     </span>
                   </td>
 
-                  {/* Time Slot */}
-                  <td style={{ padding: '10px 12px', fontSize: 12, color: '#475569', fontWeight: 600 }}>
-                    {r.timeSlot || '8:00 PM - 10:00 PM'}
+                  {/* Gate Status Cell */}
+                  <td style={{ padding: '10px 12px' }}>
+                    {r.isRedeemed ? (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span
+                          style={{
+                            background: '#fef2f2',
+                            color: '#991b1b',
+                            border: '1px solid #fca5a5',
+                            fontWeight: 800,
+                            fontSize: 11,
+                            padding: '3px 7px',
+                            borderRadius: 6,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 3,
+                          }}
+                        >
+                          <CheckCircle2 size={12} color="#dc2626" />
+                          <span>Redeemed</span>
+                        </span>
+                        <button
+                          onClick={() => onToggleRedeem(r)}
+                          title="Undo / Reset Check-In"
+                          style={{
+                            background: '#ffffff',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: 4,
+                            padding: '2px 5px',
+                            color: '#64748b',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2,
+                          }}
+                        >
+                          <RotateCcw size={10} />
+                          <span>Undo</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => onToggleRedeem(r)}
+                        style={{
+                          background: '#f0fdf4',
+                          color: '#166534',
+                          border: '1px solid #86efac',
+                          fontWeight: 800,
+                          fontSize: 11,
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3,
+                        }}
+                      >
+                        <span>🟢 Check In</span>
+                      </button>
+                    )}
                   </td>
 
                   {/* Volunteer Badge */}

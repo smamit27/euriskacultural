@@ -353,6 +353,9 @@ export interface MahaPrasadRSVP {
   timeSlot?: string;             // e.g. '8:00 PM - 9:00 PM', '9:00 PM - 10:00 PM', or '8:00 PM - 10:00 PM'
   isVolunteering?: boolean;      // Ready to help in prasad distribution
   notes?: string;
+  isRedeemed?: boolean;          // true when gate scanned/served
+  redeemedAt?: string;           // ISO timestamp of gate scan
+  redeemedBy?: string;           // Volunteer / Admin who checked in
   createdAt: string;
   updatedAt: string;
 }
@@ -364,10 +367,12 @@ export interface MahaPrasadSummary {
   totalFamilies: number;
   satvikCount: number;
   volunteersCount: number;
+  redeemedCount: number;         // Total devotees checked in / served
+  redeemedFamiliesCount: number; // Total families checked in
   buildingBreakdown: {
-    A: { families: number; headcount: number };
-    B: { families: number; headcount: number };
-    C: { families: number; headcount: number };
+    A: { families: number; headcount: number; redeemedHeadcount?: number };
+    B: { families: number; headcount: number; redeemedHeadcount?: number };
+    C: { families: number; headcount: number; redeemedHeadcount?: number };
   };
 }
 

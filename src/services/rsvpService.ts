@@ -205,6 +205,94 @@ export const rsvpService = {
   },
 
   /**
+   * Scan & Redeem a Maha Prasad Pass
+   */
+  async redeemRSVP(
+    tokenOrFlat: string,
+    redeemedBy: string = 'Admin / Gate Volunteer'
+  ): Promise<{ success: boolean; rsvp?: MahaPrasadRSVP; alreadyRedeemed?: boolean; error?: string }> {
+    const list = await this.getRSVPs();
+    const cleanToken = tokenOrFlat.trim().toUpperCase();
+
+    // Find by exact id, flat number, or token format EUR-MAHA-PASS:FLAT:ID
+    const found = list.find(
+      (r) =>
+        r.id.toUpperCase() === cleanToken ||
+        r.flatNumber.toUpperCase() === cleanToken ||
+        cleanToken.includes(r.flatNumber.toUpperCase()) ||
+        cleanToken.includes(r.id.toUpperCase())
+    );
+
+    if (!found) {
+      return {
+        success: false,
+        error: `Devotee flat (${cleanToken}) not found in RSVP list. Please register family first.`,
+      };
+    }
+
+    if (found.isRedeemed) {
+      return {
+        success: false,
+        alreadyRedeemed: true,
+        rsvp: found,
+        error: `Pass already EXPIRED / REDEEMED at ${new Date(found.redeemedAt || found.updatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. Duplicate scan prevented.`,
+      };
+    }
+
+    const now = new Date().toISOString();
+    found.isRedeemed = true;
+    found.redeemedAt = now;
+    found.redeemedBy = redeemedBy;
+    found.updatedAt = now;
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch {
+      // ignore
+    }
+
+    try {
+      await writeDocument(COLLECTION_NAME, found);
+    } catch (e) {
+      console.warn('Firestore update failed for redemption:', e);
+    }
+
+    return {
+      success: true,
+      rsvp: found,
+    };
+  },
+
+  /**
+   * Reset pass redemption (undo check-in)
+   */
+  async resetRedemption(id: string): Promise<boolean> {
+    const list = await this.getRSVPs();
+    const found = list.find((r) => r.id === id);
+    if (!found) return false;
+
+    const now = new Date().toISOString();
+    found.isRedeemed = false;
+    found.redeemedAt = undefined;
+    found.redeemedBy = undefined;
+    found.updatedAt = now;
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch {
+      // ignore
+    }
+
+    try {
+      await writeDocument(COLLECTION_NAME, found);
+    } catch (e) {
+      console.warn('Firestore update failed for reset redemption:', e);
+    }
+
+    return true;
+  },
+
+  /**
    * Calculate aggregated summary metrics
    */
   calculateSummary(list: MahaPrasadRSVP[]): MahaPrasadSummary {
@@ -214,11 +302,18 @@ export const rsvpService = {
     const totalFamilies = list.length;
     const volunteersCount = list.filter((r) => r.isVolunteering).length;
 
+    const redeemedEntries = list.filter((r) => r.isRedeemed);
+    const redeemedCount = redeemedEntries.reduce((acc, r) => acc + (r.totalHeadcount || 0), 0);
+    const redeemedFamiliesCount = redeemedEntries.length;
+
     const buildingBreakdown = {
       A: {
         families: list.filter((r) => r.buildingId === 'A' || r.flatNumber.startsWith('A-')).length,
         headcount: list
           .filter((r) => r.buildingId === 'A' || r.flatNumber.startsWith('A-'))
+          .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0),
+        redeemedHeadcount: list
+          .filter((r) => (r.buildingId === 'A' || r.flatNumber.startsWith('A-')) && r.isRedeemed)
           .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0),
       },
       B: {
@@ -226,11 +321,17 @@ export const rsvpService = {
         headcount: list
           .filter((r) => r.buildingId === 'B' || r.flatNumber.startsWith('B-'))
           .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0),
+        redeemedHeadcount: list
+          .filter((r) => (r.buildingId === 'B' || r.flatNumber.startsWith('B-')) && r.isRedeemed)
+          .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0),
       },
       C: {
         families: list.filter((r) => r.buildingId === 'C' || r.flatNumber.startsWith('C-')).length,
         headcount: list
           .filter((r) => r.buildingId === 'C' || r.flatNumber.startsWith('C-'))
+          .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0),
+        redeemedHeadcount: list
+          .filter((r) => (r.buildingId === 'C' || r.flatNumber.startsWith('C-')) && r.isRedeemed)
           .reduce((acc, r) => acc + (r.totalHeadcount || 0), 0),
       },
     };
@@ -242,6 +343,8 @@ export const rsvpService = {
       totalFamilies,
       satvikCount: totalHeadcount,
       volunteersCount,
+      redeemedCount,
+      redeemedFamiliesCount,
       buildingBreakdown,
     };
   },
