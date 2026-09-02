@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  Calendar, Image, Mic, Handshake, Users, ClipboardList, BarChart3, Settings, LogIn, LogOut, PartyPopper, Palette, Flame,
+  Calendar, Image, Mic, Handshake, Users, ClipboardList, BarChart3, Settings, LogIn, LogOut, PartyPopper, Palette, Flame, UtensilsCrossed,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
-type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad';
+type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad' | 'mahaprasad';
 
 interface MoreMenuProps {
   onNavigate: (page: SubPage) => void;
@@ -13,6 +13,7 @@ interface MoreMenuProps {
 }
 
 const MENU_ITEMS: { page: SubPage; icon: React.ReactNode; label: string; desc: string; adminOnly?: boolean }[] = [
+  { page: 'mahaprasad', icon: <UtensilsCrossed size={22} color="#c2410c" />, label: '🍲 Maha Prasad RSVP (24 Sep)', desc: 'Community feast headcount & meal token (8:00 PM – 10:00 PM)' },
   { page: 'prasad', icon: <Flame size={22} color="#ea580c" />, label: '🪔 Ganpati Prasad Seva', desc: 'Book evening Aarti (8 PM) prasad slots' },
   { page: 'kalakriti', icon: <Palette size={22} color="#ea580c" />, label: '🎨 Kalakriti', desc: 'Activity matrix & resident registrations' },
   { page: 'events', icon: <PartyPopper size={22} color="#d97706" />, label: '🎉 Cultural Calendar', desc: 'Festive events 2026–27' },

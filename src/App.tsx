@@ -21,6 +21,7 @@ import { FirebaseSyncUtil } from './components/admin/FirebaseSyncUtil';
 import { EventsCalendarPage } from './components/pages/EventsCalendarPage';
 import { KalakritiPage } from './components/pages/KalakritiPage';
 import { PrasadPage } from './components/pages/PrasadPage';
+import { MahaPrasadPage } from './components/pages/MahaPrasadPage';
 import { FinancialReportPage } from './components/pages/FinancialReportPage';
 import { AdminLoginModal } from './components/auth/AdminLoginModal';
 import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
@@ -32,11 +33,12 @@ import { expenseService } from './services/expenseService';
 import { useToast } from './context/ToastContext';
 import euriskaLogo from '/euriska_logo.png';
 
-type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad';
+type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad' | 'mahaprasad';
 
 const PAGE_TITLES: Record<string, string> = {
   home: 'Dashboard',
   prasad: 'Ganpati Prasad Seva (8:00 PM Aarti)',
+  mahaprasad: 'Maha Prasad RSVP (24 Sep, 8-10 PM)',
   kalakriti: 'Kalakriti Activity Board',
   contributions: 'Contributions',
   expenses: 'Expenses',
@@ -340,6 +342,7 @@ function AppContent() {
     if (subPage === 'events') return <EventsCalendarPage />;
     if (subPage === 'kalakriti') return <KalakritiPage />;
     if (subPage === 'prasad') return <PrasadPage />;
+    if (subPage === 'mahaprasad') return <MahaPrasadPage />;
 
     // Main tabs
     switch (activeTab) {
@@ -360,6 +363,8 @@ function AppContent() {
         );
       case 'prasad':
         return <PrasadPage />;
+      case 'mahaprasad':
+        return <MahaPrasadPage />;
       case 'kalakriti':
         return <KalakritiPage />;
       case 'report':

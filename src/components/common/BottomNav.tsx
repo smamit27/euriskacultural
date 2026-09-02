@@ -1,7 +1,7 @@
 import React from 'react';
-import { Home, Palette, Flame, IndianRupee, ReceiptText, Grid, LogIn, LogOut, BarChart3 } from 'lucide-react';
+import { Home, Palette, Flame, IndianRupee, ReceiptText, Grid, LogIn, LogOut, BarChart3, UtensilsCrossed } from 'lucide-react';
 
-export type TabType = 'home' | 'prasad' | 'kalakriti' | 'report' | 'contributions' | 'expenses' | 'more';
+export type TabType = 'home' | 'prasad' | 'mahaprasad' | 'kalakriti' | 'report' | 'contributions' | 'expenses' | 'more';
 
 interface BottomNavProps {
   activeTab: TabType;
@@ -19,6 +19,7 @@ const NAV_ITEMS: {
 }[] = [
   { tab: 'home', label: () => 'Home', icon: <Home size={22} /> },
   { tab: 'prasad', label: () => 'Prasad Seva', icon: <Flame size={22} /> },
+  { tab: 'mahaprasad', label: () => 'Maha Prasad', icon: <UtensilsCrossed size={22} /> },
   { tab: 'kalakriti', label: () => 'Kalakriti', icon: <Palette size={22} /> },
   {
     tab: 'report',
