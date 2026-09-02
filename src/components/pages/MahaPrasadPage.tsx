@@ -47,19 +47,26 @@ export const MahaPrasadPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData();
+    const unsubscribe = rsvpService.subscribeRSVPs((liveList) => {
+      setRsvps(liveList);
+      setSummary(rsvpService.calculateSummary(liveList));
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const handleSaveRSVP = async (data: any) => {
     try {
       const saved = await rsvpService.saveRSVP(data);
-      showToast(`🍲 RSVP confirmed for Flat ${saved.flatNumber}! (${saved.totalHeadcount} Members)`, 'success');
-      loadData();
-      // Automatically show the digital pass modal on successful RSVP
+      showToast(`🍲 Flat ${saved.flatNumber} saved! (${saved.totalHeadcount} Members: ${saved.adultsCount} Adults, ${saved.childrenCount} Kids)`, 'success');
       setSelectedPassRSVP(saved);
     } catch (err) {
       console.error(err);
-      showToast('Failed to save RSVP.', 'error');
+      showToast('Failed to save RSVP to Firebase.', 'error');
     }
   };
 

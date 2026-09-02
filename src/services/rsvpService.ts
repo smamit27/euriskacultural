@@ -1,28 +1,121 @@
-import { readCollection, writeDocument, deleteDocument } from './firestoreService';
+import { readCollection, writeDocument, deleteDocument, subscribeCollection, writeBatchDocuments } from './firestoreService';
 import { contributionService } from './contributionService';
 import { INITIAL_MAHA_PRASAD_RSVPS } from './seedData';
+import { COLLECTIONS } from '../firebase/collections';
 import type { MahaPrasadRSVP, MahaPrasadSummary } from '../types';
 
-const STORAGE_KEY = 'euriska_maha_prasad_rsvp';
-const COLLECTION_NAME = 'maha_prasad_rsvp';
+const STORAGE_KEY = 'euriska_maha_prasad_rsvp_v3';
+const COLLECTION_NAME = COLLECTIONS.MAHA_PRASAD_RSVPS || 'maha_prasad_rsvps';
+
+function normalizeFlatId(flatNumber: string): string {
+  const clean = flatNumber.trim().toUpperCase().replace(/[^A-Z0-9]/g, '-');
+  return `rsvp-${clean}`;
+}
 
 export const rsvpService = {
   /**
-   * Fetch all Maha Prasad RSVPs (Dynamically synchronized with Paid Contributions & Firestore)
+   * Real-time subscription to Maha Prasad RSVP roster
    */
-  async getRSVPs(): Promise<MahaPrasadRSVP[]> {
-    // 1. Load local cache
-    let local: MahaPrasadRSVP[] = [];
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        local = JSON.parse(stored);
+  subscribeRSVPs(callback: (rsvps: MahaPrasadRSVP[]) => void): () => void {
+    // 1. Send initial memory/local data immediately
+    this.getRSVPs().then((initial) => {
+      callback(initial);
+    });
+
+    // 2. Listen to real-time updates from Firestore
+    return subscribeCollection<MahaPrasadRSVP>(COLLECTION_NAME, async (remoteDocs) => {
+      if (!remoteDocs || remoteDocs.length === 0) {
+        // If Firestore is empty, sync initial baseline to Firestore
+        await this.syncToFirebase();
+        const current = await this.getRSVPs();
+        callback(current);
+        return;
       }
-    } catch {
-      local = [];
+
+      // Merge Firestore remote documents with paid contribution flats
+      const merged = await this.mergeWithPaidFlats(remoteDocs);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      } catch {
+        // ignore
+      }
+      callback(merged);
+    });
+  },
+
+  /**
+   * Helper to merge a list of RSVPs with all paid contribution flats
+   */
+  async mergeWithPaidFlats(baseRSVPs: MahaPrasadRSVP[]): Promise<MahaPrasadRSVP[]> {
+    const rsvpMap = new Map<string, MahaPrasadRSVP>();
+
+    // Baseline from seed data
+    INITIAL_MAHA_PRASAD_RSVPS.forEach((item) => {
+      const cleanFlat = item.flatNumber.trim().toUpperCase();
+      rsvpMap.set(cleanFlat, {
+        ...item,
+        id: normalizeFlatId(cleanFlat),
+        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
+      });
+    });
+
+    // Merge base / remote entries (which have priority over seed)
+    baseRSVPs.forEach((item) => {
+      const cleanFlat = item.flatNumber.trim().toUpperCase();
+      rsvpMap.set(cleanFlat, {
+        ...item,
+        id: normalizeFlatId(cleanFlat),
+        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
+      });
+    });
+
+    // Ensure all paid flats from contributionService are enrolled
+    try {
+      const contributions = await contributionService.getContributions();
+      const paidFlats = contributions.filter((c) => c.status === 'PAID' && (c.paidAmount || 0) > 0);
+
+      paidFlats.forEach((paid) => {
+        const cleanFlat = paid.flatNumber.trim().toUpperCase();
+        if (!rsvpMap.has(cleanFlat)) {
+          const now = '2026-08-20T10:00:00Z';
+          rsvpMap.set(cleanFlat, {
+            id: normalizeFlatId(cleanFlat),
+            buildingId: paid.buildingId as 'A' | 'B' | 'C',
+            flatNumber: cleanFlat,
+            residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : paid.residentName,
+            phone: '',
+            adultsCount: 2,
+            childrenCount: 0,
+            totalHeadcount: 2,
+            dietaryPreference: 'SATVIK',
+            timeSlot: '8:00 PM - 10:00 PM',
+            isVolunteering: false,
+            notes: '',
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      });
+    } catch (err) {
+      console.warn('Could not sync paid flats:', err);
     }
 
-    // 2. Fetch remote Firestore entries
+    const result = Array.from(rsvpMap.values());
+    result.sort((a, b) => {
+      if (a.buildingId !== b.buildingId) return a.buildingId.localeCompare(b.buildingId);
+      const numA = parseInt(a.flatNumber.replace(/\D/g, ''), 10) || 0;
+      const numB = parseInt(b.flatNumber.replace(/\D/g, ''), 10) || 0;
+      return numA - numB;
+    });
+
+    return result;
+  },
+
+  /**
+   * Fetch all Maha Prasad RSVPs
+   */
+  async getRSVPs(): Promise<MahaPrasadRSVP[]> {
+    // 1. Fetch remote Firestore entries first
     let remote: MahaPrasadRSVP[] = [];
     try {
       const remoteData = await readCollection<MahaPrasadRSVP>(COLLECTION_NAME);
@@ -33,95 +126,45 @@ export const rsvpService = {
       console.warn('Could not load RSVPs from Firestore:', err);
     }
 
-    // 3. Fetch all paid contributions directly from contributionService
-    let paidFlats: { buildingId: 'A' | 'B' | 'C'; flatNumber: string; residentName: string; phone?: string }[] = [];
-    try {
-      const contributions = await contributionService.getContributions();
-      paidFlats = contributions
-        .filter((c) => c.status === 'PAID' && (c.paidAmount || 0) > 0)
-        .map((c) => ({
-          buildingId: c.buildingId as 'A' | 'B' | 'C',
-          flatNumber: c.flatNumber,
-          residentName: c.flatNumber === 'A-1007' || c.id === 'contrib-A-1007' ? 'Mr. Amit Singh' : c.residentName,
-        }));
-    } catch (err) {
-      console.warn('Could not fetch contributions for RSVP sync:', err);
+    // 2. Fetch local storage if remote empty
+    if (remote.length === 0) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          remote = JSON.parse(stored);
+        }
+      } catch {
+        remote = [];
+      }
     }
 
-    // Map existing records by clean flat number
-    const rsvpMap = new Map<string, MahaPrasadRSVP>();
-
-    // Baseline from seed data
-    INITIAL_MAHA_PRASAD_RSVPS.forEach((item) => {
-      const cleanFlat = item.flatNumber.trim().toUpperCase();
-      rsvpMap.set(cleanFlat, {
-        ...item,
-        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
-      });
-    });
-
-    // Merge local storage edits
-    local.forEach((item) => {
-      const cleanFlat = item.flatNumber.trim().toUpperCase();
-      rsvpMap.set(cleanFlat, {
-        ...item,
-        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
-      });
-    });
-
-    // Merge remote Firestore edits
-    remote.forEach((item) => {
-      const cleanFlat = item.flatNumber.trim().toUpperCase();
-      rsvpMap.set(cleanFlat, {
-        ...item,
-        residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : item.residentName,
-      });
-    });
-
-    // Ensure EVERY single paid flat is present in rsvpMap
-    paidFlats.forEach((paid) => {
-      const cleanFlat = paid.flatNumber.trim().toUpperCase();
-      if (!rsvpMap.has(cleanFlat)) {
-        rsvpMap.set(cleanFlat, {
-          id: `rsvp-${cleanFlat.replace(/[^A-Z0-9]/g, '-')}`,
-          buildingId: paid.buildingId,
-          flatNumber: cleanFlat,
-          residentName: paid.residentName,
-          phone: '',
-          adultsCount: 2,
-          childrenCount: 0,
-          totalHeadcount: 2,
-          dietaryPreference: 'REGULAR',
-          timeSlot: '8:00 PM - 9:00 PM',
-          isVolunteering: false,
-          notes: '',
-          createdAt: '2026-08-20T10:00:00Z',
-          updatedAt: '2026-08-20T10:00:00Z',
-        });
-      }
-    });
-
-    const result = Array.from(rsvpMap.values());
-
-    // Sort by Wing (A, B, C) and Flat numerical value
-    result.sort((a, b) => {
-      if (a.buildingId !== b.buildingId) return a.buildingId.localeCompare(b.buildingId);
-      const numA = parseInt(a.flatNumber.replace(/\D/g, ''), 10) || 0;
-      const numB = parseInt(b.flatNumber.replace(/\D/g, ''), 10) || 0;
-      return numA - numB;
-    });
+    const merged = await this.mergeWithPaidFlats(remote);
 
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
     } catch {
       // ignore
     }
 
-    return result;
+    return merged;
   },
 
   /**
-   * Add or update an RSVP entry
+   * Sync all RSVP records directly into Firestore database
+   */
+  async syncToFirebase(): Promise<{ success: boolean; count: number }> {
+    try {
+      const rsvps = await this.getRSVPs();
+      await writeBatchDocuments(COLLECTION_NAME, rsvps);
+      return { success: true, count: rsvps.length };
+    } catch (err) {
+      console.error('Failed to sync RSVPs to Firebase:', err);
+      return { success: false, count: 0 };
+    }
+  },
+
+  /**
+   * Add or update an RSVP entry in Firestore & local state
    */
   async saveRSVP(data: {
     id?: string;
@@ -131,14 +174,13 @@ export const rsvpService = {
     phone: string;
     adultsCount: number;
     childrenCount: number;
-    dietaryPreference: 'REGULAR' | 'JAIN';
+    dietaryPreference?: string;
     timeSlot?: string;
     isVolunteering?: boolean;
     notes?: string;
   }): Promise<MahaPrasadRSVP> {
-    const list = await this.getRSVPs();
     const cleanFlat = data.flatNumber.trim().toUpperCase();
-    const id = data.id || `rsvp-${cleanFlat.replace(/[^A-Z0-9]/g, '-')}-${Date.now().toString(36)}`;
+    const id = normalizeFlatId(cleanFlat);
     const totalHeadcount = (Number(data.adultsCount) || 0) + (Number(data.childrenCount) || 0);
 
     const now = new Date().toISOString();
@@ -146,50 +188,54 @@ export const rsvpService = {
       id,
       buildingId: data.buildingId,
       flatNumber: cleanFlat,
-      residentName: data.residentName.trim(),
+      residentName: cleanFlat === 'A-1007' ? 'Mr. Amit Singh' : data.residentName.trim(),
       phone: data.phone.trim(),
       adultsCount: Number(data.adultsCount) || 0,
       childrenCount: Number(data.childrenCount) || 0,
       totalHeadcount,
-      dietaryPreference: data.dietaryPreference || 'REGULAR',
-      timeSlot: data.timeSlot || '8:00 PM - 9:00 PM',
+      dietaryPreference: 'SATVIK',
+      timeSlot: data.timeSlot || '8:00 PM - 10:00 PM',
       isVolunteering: Boolean(data.isVolunteering),
       notes: data.notes?.trim() || '',
       createdAt: now,
       updatedAt: now,
     };
 
-    const idx = list.findIndex((r) => r.id === id || r.flatNumber === cleanFlat);
-    if (idx !== -1) {
-      record.createdAt = list[idx].createdAt || now;
-      list[idx] = record;
-    } else {
-      list.push(record);
-    }
-
+    // Update local cache immediately
     try {
+      const list = await this.getRSVPs();
+      const idx = list.findIndex((r) => r.id === id || r.flatNumber === cleanFlat);
+      if (idx !== -1) {
+        record.createdAt = list[idx].createdAt || now;
+        record.isRedeemed = list[idx].isRedeemed;
+        record.redeemedAt = list[idx].redeemedAt;
+        record.redeemedBy = list[idx].redeemedBy;
+        list[idx] = record;
+      } else {
+        list.push(record);
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
 
+    // Write directly to Firestore document
     try {
       await writeDocument(COLLECTION_NAME, record);
     } catch (e) {
-      console.warn('Firestore write failed:', e);
+      console.warn('Firestore write failed for saveRSVP:', e);
     }
 
     return record;
   },
 
   /**
-   * Delete an RSVP entry
+   * Delete an RSVP entry from Firestore
    */
   async deleteRSVP(id: string): Promise<boolean> {
-    const list = await this.getRSVPs();
-    const filtered = list.filter((r) => r.id !== id);
-
     try {
+      const list = await this.getRSVPs();
+      const filtered = list.filter((r) => r.id !== id);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     } catch {
       // ignore

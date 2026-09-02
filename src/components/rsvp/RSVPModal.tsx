@@ -351,37 +351,55 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
                   Adults (12+ Years)
                 </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button
                     type="button"
-                    onClick={() => setAdultsCount(Math.max(1, adultsCount - 1))}
+                    onClick={() => setAdultsCount(Math.max(1, Number(adultsCount || 1) - 1))}
                     style={{
-                      width: 36,
-                      height: 36,
+                      width: 38,
+                      height: 38,
                       borderRadius: 8,
-                      border: '1px solid #cbd5e1',
+                      border: '1.5px solid #cbd5e1',
                       background: '#fff',
                       fontSize: 18,
-                      fontWeight: 800,
+                      fontWeight: 900,
+                      color: '#0f172a',
                       cursor: 'pointer',
                     }}
                   >
                     -
                   </button>
-                  <span style={{ fontSize: 16, fontWeight: 800, width: 28, textAlign: 'center', color: '#0f172a' }}>
-                    {adultsCount}
-                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={adultsCount}
+                    onChange={(e) => setAdultsCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    style={{
+                      width: 52,
+                      height: 38,
+                      padding: 0,
+                      textAlign: 'center',
+                      fontSize: 16,
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      border: '1.5px solid #cbd5e1',
+                      borderRadius: 8,
+                      outline: 'none',
+                    }}
+                  />
                   <button
                     type="button"
-                    onClick={() => setAdultsCount(adultsCount + 1)}
+                    onClick={() => setAdultsCount(Number(adultsCount || 0) + 1)}
                     style={{
-                      width: 36,
-                      height: 36,
+                      width: 38,
+                      height: 38,
                       borderRadius: 8,
-                      border: '1px solid #cbd5e1',
+                      border: '1.5px solid #cbd5e1',
                       background: '#fff',
                       fontSize: 18,
-                      fontWeight: 800,
+                      fontWeight: 900,
+                      color: '#0f172a',
                       cursor: 'pointer',
                     }}
                   >
@@ -394,37 +412,55 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
                   Kids (&lt;12 Years)
                 </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button
                     type="button"
-                    onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))}
+                    onClick={() => setChildrenCount(Math.max(0, Number(childrenCount || 0) - 1))}
                     style={{
-                      width: 36,
-                      height: 36,
+                      width: 38,
+                      height: 38,
                       borderRadius: 8,
-                      border: '1px solid #cbd5e1',
+                      border: '1.5px solid #cbd5e1',
                       background: '#fff',
                       fontSize: 18,
-                      fontWeight: 800,
+                      fontWeight: 900,
+                      color: '#0f172a',
                       cursor: 'pointer',
                     }}
                   >
                     -
                   </button>
-                  <span style={{ fontSize: 16, fontWeight: 800, width: 28, textAlign: 'center', color: '#0f172a' }}>
-                    {childrenCount}
-                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={50}
+                    value={childrenCount}
+                    onChange={(e) => setChildrenCount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                    style={{
+                      width: 52,
+                      height: 38,
+                      padding: 0,
+                      textAlign: 'center',
+                      fontSize: 16,
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      border: '1.5px solid #cbd5e1',
+                      borderRadius: 8,
+                      outline: 'none',
+                    }}
+                  />
                   <button
                     type="button"
-                    onClick={() => setChildrenCount(childrenCount + 1)}
+                    onClick={() => setChildrenCount(Number(childrenCount || 0) + 1)}
                     style={{
-                      width: 36,
-                      height: 36,
+                      width: 38,
+                      height: 38,
                       borderRadius: 8,
-                      border: '1px solid #cbd5e1',
+                      border: '1.5px solid #cbd5e1',
                       background: '#fff',
                       fontSize: 18,
-                      fontWeight: 800,
+                      fontWeight: 900,
+                      color: '#0f172a',
                       cursor: 'pointer',
                     }}
                   >

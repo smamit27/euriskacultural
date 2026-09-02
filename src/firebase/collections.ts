@@ -18,6 +18,7 @@ export const COLLECTIONS = {
   AUDIT_LOGS: 'auditLogs',
   KALAKRITI: 'kalakriti',
   OTHER_INCOME: 'other_income',
+  MAHA_PRASAD_RSVPS: 'maha_prasad_rsvps',
 } as const;
 
 export const DEFAULT_EVENT_ID = 'EURISKA-CULTURAL-2026';
