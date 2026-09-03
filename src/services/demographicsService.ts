@@ -28,20 +28,55 @@ export interface CommunityBreakdown {
 const CONFIDENTIAL_PASSKEY = '$05CeLRO';
 const DEMOGRAPHICS_AUTH_SESSION_KEY = 'euriska_demographics_auth_session';
 
+// Explicit flat-to-community overrides provided by committee
+const EXPLICIT_FLAT_COMMUNITY_MAP: Record<string, CommunityType> = {
+  // Wing A
+  'A-307': 'MUSLIM', // Mr. Qazi Munwwar Ali Mumtaz Ali
+  'A-403': 'MUSLIM', // Mr. Azim Haghighi
+  'A-404': 'MUSLIM', // Mr. Galib & Mrs. Afroza Parkar
+  'A-908': 'MUSLIM', // Miss. Sakina Fatawala
+  'A-1001': 'HINDU', // Mr. Ashish
+  'A-1003': 'MUSLIM', // Mrs. Shabnam Mirkar
+  'A-704': 'HINDU', // Mr. Sachin Nivrutti Savakhande
+
+  // Wing B
+  'B-302': 'CHRISTIAN', // Mr. Russell Nayak
+  'B-607': 'CHRISTIAN', // Mr. Rohan Uday Kavde
+  'B-701': 'MUSLIM', // Mrs. Samina Sajid Malik
+  'B-905': 'MUSLIM', // Mr. Yusuf Ampanwala
+  'B-1102': 'CHRISTIAN', // Agnelo Norman
+
+  // Wing C
+  'C-202': 'CHRISTIAN', // Ashley Carrasco
+  'C-204': 'MUSLIM', // Sufiyan Tamboli
+  'C-207': 'MUSLIM', // Nishad Mohandas
+  'C-301': 'MUSLIM', // Sameer Kaulagekar
+  'C-305': 'MUSLIM', // Abid S
+  'C-306': 'CHRISTIAN', // Mr. Rohan Kotkar
+  'C-503': 'CHRISTIAN', // Rachel
+  'C-604': 'MUSLIM', // Hasina S
+  'C-605': 'MUSLIM', // Tasneem Palodawala
+  'C-607': 'MUSLIM', // Husham
+};
+
 // Muslim Name identification keywords / surnames
 const MUSLIM_KEYWORDS = [
   'shaikh', 'sheikh', 'khan', 'syed', 'sayed', 'ansari', 'qureshi', 'ahmed', 'ahamed', 'alzahib',
   'javed', 'murtaza', 'ajdar', 'wasim', 'jamal', 'aliakbar', 'patrawala', 'farid', 'mannan',
   'abrar', 'shahebaz', 'mainuddin', 'rizwan', 'shakir', 'hussain', 'mohammad', 'mohd', 'shabana',
   'farhan', 'akhtar', 'asif', 'imran', 'zameer', 'salehi', 'shehnaz', 'shahnaz', 'mizba', 'dhamnekar',
-  'fakiruddin', 'mudasir', 'damji'
+  'fakiruddin', 'mudasir', 'damji', 'qazi', 'mumtaz', 'munwwar', 'azim', 'haghighi', 'galib', 'afroza',
+  'parkar', 'sakina', 'fatawala', 'mirkar', 'ampanwala', 'sufiyan', 'tamboli', 'abid', 'hasina',
+  'tasneem', 'palodawala', 'husham', 'malik', 'samina', 'sajid', 'saud', 'imrankhan', 'pathan'
 ];
 
 // Christian Name identification keywords / surnames
 const CHRISTIAN_KEYWORDS = [
   'fernandes', 'fernandez', 'd\'souza', 'dsouza', 'joseph', 'daniel', 'cedric', 'o\'neill', 'oneill',
   'belinda', 'lazarus', 'mascarenhas', 'pereira', 'noel', 'david', 'rodrigues', 'matthew', 'philip',
-  'anthony', 'alfred', 'xavier', 'robert', 'ashton', 'edwin', 'dominic', 'jude', 'francis'
+  'anthony', 'alfred', 'xavier', 'robert', 'ashton', 'edwin', 'dominic', 'jude', 'francis',
+  'russell', 'carrasco', 'rachel', 'agnelo', 'norman', 'glyniis', 'aubey', 'rayan', 'barretto',
+  'clinton', 'veronica'
 ];
 
 export const demographicsService = {
@@ -74,26 +109,33 @@ export const demographicsService = {
   },
 
   /**
-   * Detect Community from resident name
+   * Detect Community from flat number & resident name
    */
-  detectCommunity(name: string): CommunityType {
+  detectCommunity(flatNumber: string, name: string): CommunityType {
+    const cleanFlat = flatNumber.trim().toUpperCase();
+
+    // 1. Check explicit flat override first
+    if (EXPLICIT_FLAT_COMMUNITY_MAP[cleanFlat]) {
+      return EXPLICIT_FLAT_COMMUNITY_MAP[cleanFlat];
+    }
+
     const lower = name.toLowerCase().trim();
 
-    // Check Christian first
+    // 2. Check Christian keywords
     for (const kw of CHRISTIAN_KEYWORDS) {
       if (lower.includes(kw)) {
         return 'CHRISTIAN';
       }
     }
 
-    // Check Muslim
+    // 3. Check Muslim keywords
     for (const kw of MUSLIM_KEYWORDS) {
       if (lower.includes(kw)) {
         return 'MUSLIM';
       }
     }
 
-    // Default to Hindu
+    // 4. Default to Hindu
     return 'HINDU';
   },
 
@@ -105,8 +147,14 @@ export const demographicsService = {
 
     return contributions.map((c) => {
       const cleanFlat = c.flatNumber.trim().toUpperCase();
-      const residentName = cleanFlat === 'A-1007' || c.id === 'contrib-A-1007' ? 'Mr. Amit Singh' : c.residentName;
-      const community = this.detectCommunity(residentName);
+      let residentName = c.residentName;
+      if (cleanFlat === 'A-1007' || c.id === 'contrib-A-1007') {
+        residentName = 'Mr. Amit Singh';
+      } else if (cleanFlat === 'A-1001' || c.id === 'contrib-A-1001') {
+        residentName = 'Mr. Ashish';
+      }
+
+      const community = this.detectCommunity(cleanFlat, residentName);
 
       return {
         id: c.id,

@@ -139,7 +139,7 @@ export const REAL_A_BUILDING_RESIDENTS = [
   { flat: '906', name: 'Mr. Mandar Sunil Govalkar', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
   { flat: '907', name: 'Ms. Madhurima', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
   { flat: '908', name: 'Miss. Sakina Fatawala', amount: 0, status: 'PENDING' as const },
-  { flat: '1001', name: 'Mr. Khan Yasir Ahmed Nasir', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
+  { flat: '1001', name: 'Mr. Ashish', amount: 1500, mode: 'ONLINE' as const, status: 'PAID' as const },
   { flat: '1002', name: 'Bennett, Coleman & Co. Ltd.', amount: 0, status: 'PENDING' as const },
   { flat: '1003', name: 'Mrs. Shabnam Mirkar', amount: 0, status: 'PENDING' as const },
   { flat: '1004', name: 'Mr. Jagtap Sachin Ashok', amount: 0, status: 'PENDING' as const },
