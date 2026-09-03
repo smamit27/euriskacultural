@@ -31,6 +31,7 @@ const DEMOGRAPHICS_AUTH_SESSION_KEY = 'euriska_demographics_auth_session';
 // Explicit flat-to-community overrides provided by committee
 const EXPLICIT_FLAT_COMMUNITY_MAP: Record<string, CommunityType> = {
   // Wing A
+  'A-203': 'MUSLIM', // Mr. Maqsood Abdul Salam Baza
   'A-307': 'MUSLIM', // Mr. Qazi Munwwar Ali Mumtaz Ali
   'A-403': 'MUSLIM', // Mr. Azim Haghighi
   'A-404': 'MUSLIM', // Mr. Galib & Mrs. Afroza Parkar
@@ -49,6 +50,7 @@ const EXPLICIT_FLAT_COMMUNITY_MAP: Record<string, CommunityType> = {
   // Wing C
   'C-202': 'CHRISTIAN', // Ashley Carrasco
   'C-204': 'MUSLIM', // Sufiyan Tamboli
+  'C-205': 'MUSLIM', // Chetan Habib
   'C-207': 'MUSLIM', // Nishad Mohandas
   'C-301': 'MUSLIM', // Sameer Kaulagekar
   'C-305': 'MUSLIM', // Abid S
