@@ -9,7 +9,7 @@ import type {
   FinancialReportData,
 } from '../types';
 import { COLLECTIONS, DEFAULT_EVENT_ID } from '../firebase/collections';
-import { readCollection, writeDocument } from './firestoreService';
+import { readCollection, writeDocument, writeBatchDocuments } from './firestoreService';
 import { budgetService } from './budgetService';
 import { expenseService } from './expenseService';
 
@@ -285,24 +285,21 @@ export const contributionService = {
 
   async syncToFirebase(): Promise<{ success: number; failed: number; total: number }> {
     const contributions = await getStoredContributions();
-    let successCount = 0;
-    let failedCount = 0;
-
-    for (const contribution of contributions) {
-      try {
-        await writeDocument(COLLECTIONS.CONTRIBUTIONS, contribution);
-        successCount++;
-      } catch (error) {
-        console.error(`Failed to sync contribution ${contribution.id}:`, error);
-        failedCount++;
-      }
+    try {
+      await writeBatchDocuments(COLLECTIONS.CONTRIBUTIONS, contributions);
+      return {
+        success: contributions.length,
+        failed: 0,
+        total: contributions.length,
+      };
+    } catch (error) {
+      console.error('Failed to batch sync contributions:', error);
+      return {
+        success: 0,
+        failed: contributions.length,
+        total: contributions.length,
+      };
     }
-
-    return {
-      success: successCount,
-      failed: failedCount,
-      total: contributions.length,
-    };
   },
 };
 
