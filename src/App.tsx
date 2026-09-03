@@ -22,6 +22,7 @@ import { EventsCalendarPage } from './components/pages/EventsCalendarPage';
 import { KalakritiPage } from './components/pages/KalakritiPage';
 import { PrasadPage } from './components/pages/PrasadPage';
 import { MahaPrasadPage } from './components/pages/MahaPrasadPage';
+import { DemographicsPage } from './components/pages/DemographicsPage';
 import { FinancialReportPage } from './components/pages/FinancialReportPage';
 import { AdminLoginModal } from './components/auth/AdminLoginModal';
 import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
@@ -33,12 +34,13 @@ import { expenseService } from './services/expenseService';
 import { useToast } from './context/ToastContext';
 import euriskaLogo from '/euriska_logo.png';
 
-type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad' | 'mahaprasad';
+type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad' | 'mahaprasad' | 'demographics';
 
 const PAGE_TITLES: Record<string, string> = {
   home: 'Dashboard',
   prasad: 'Ganpati Prasad Seva (8:00 PM Aarti)',
   mahaprasad: 'Maha Prasad RSVP (24 Sep, 8-10 PM)',
+  demographics: 'Executive Demographics (Confidential)',
   kalakriti: 'Kalakriti Activity Board',
   contributions: 'Contributions',
   expenses: 'Expenses',
@@ -227,6 +229,15 @@ function AppContent() {
           setSubPage(null);
           setShowAdminLogin(true);
         }
+      } else if (path.includes('/demographics') || tabParam === 'demographics') {
+        if (isAdmin) {
+          setActiveTab('more');
+          setSubPage('demographics');
+        } else {
+          setActiveTab('home');
+          setSubPage(null);
+          setShowAdminLogin(true);
+        }
       } else if (path.includes('/prasad') || tabParam === 'prasad') {
         setActiveTab('prasad');
         setSubPage(null);
@@ -271,6 +282,16 @@ function AppContent() {
 
   const handleNavigate = (section: string) => {
     // Map certain sections to tabs
+    if (section === 'demographics') {
+      if (!isAdmin) {
+        showToast('🔒 Admin password required for Executive Demographics.', 'info');
+        setShowAdminLogin(true);
+        return;
+      }
+      setActiveTab('more');
+      setSubPage('demographics');
+      return;
+    }
     if (section === 'report' || section === 'reports') {
       if (!isAdmin) {
         showToast('🔒 Admin password required to view Financial Reports.', 'info');
@@ -302,7 +323,7 @@ function AppContent() {
     if (section === 'kalakriti') { handleTabChange('kalakriti'); return; }
     if (section === 'events') { setActiveTab('more'); setSubPage('events'); return; }
 
-    const subPages: SubPage[] = ['programs', 'performances', 'gallery', 'sponsors', 'volunteers', 'tasks', 'settings', 'kalakriti', 'prasad'];
+    const subPages: SubPage[] = ['programs', 'performances', 'gallery', 'sponsors', 'volunteers', 'tasks', 'settings', 'kalakriti', 'prasad', 'demographics'];
     if (subPages.includes(section as SubPage)) {
       setActiveTab('more');
       setSubPage(section as SubPage);
@@ -340,6 +361,7 @@ function AppContent() {
 
   const renderContent = () => {
     // Sub-pages from More menu
+    if (subPage === 'demographics') return isAdmin ? <DemographicsPage /> : <HomePage onNavigate={handleNavigate} onSelectBuilding={handleSelectBuilding} onShowAddContribution={() => {}} onShowAddExpense={() => {}} />;
     if (subPage === 'programs') return <ProgramTimeline onSelectProgram={() => {}} />;
     if (subPage === 'performances') return <PerformanceList onSelectPerformance={() => {}} />;
     if (subPage === 'gallery') return <GalleryGrid />;
