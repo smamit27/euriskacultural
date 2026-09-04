@@ -15,7 +15,7 @@ interface AdminLoginModalProps {
 }
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { loginAdmin, unlockAdminDirect } = useAuth();
+  const { isAdmin, loginAdmin, unlockAdminDirect } = useAuth();
   const { showToast } = useToast();
 
   // Mode state: QR_SCAN or PASSWORD
@@ -302,14 +302,16 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
             }}
           >
             <ShieldCheck size={12} />
-            <span>Admin Gateway</span>
+            <span>{isAdmin ? 'Mobile Pairing & Transfer' : 'Admin Gateway'}</span>
           </div>
 
           <h2 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: '4px 0 2px' }}>
-            Admin Access
+            {isAdmin ? 'Pair Mobile Device' : 'Admin Access'}
           </h2>
           <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
-            Scan with your authorized mobile phone or enter passcode.
+            {isAdmin
+              ? 'Scan this QR with your phone camera to instantly log in as Admin on mobile.'
+              : 'Scan with your authorized mobile phone or enter passcode.'}
           </p>
         </div>
 
