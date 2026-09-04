@@ -293,14 +293,41 @@ export const authService = {
   },
 
   /**
-   * 1-Tap Instant Approve Admin Scan Session (from an already authenticated Admin device)
+   * 1-Tap Instant Approve Admin Scan Session (Strict Same-Network Verification)
    */
   async approveAdminLoginSessionDirect(sessionId: string): Promise<{ success: boolean; message: string }> {
+    const session = await this.getAdminLoginSession(sessionId);
+    if (!session) {
+      return { success: false, message: 'Session expired or not found.' };
+    }
+
     let approverIp = 'Unknown IP';
     try {
       const netInfo = await fetchPublicIPAndLocation();
       approverIp = netInfo.ip;
     } catch {}
+
+    // Strict IP Match Check: Both creator and approver must have a valid IP, and they MUST match
+    if (!session.creatorIp || session.creatorIp === 'Unknown IP') {
+      return {
+        success: false,
+        message: '⛔ Unable to verify Desktop network IP. Please refresh the QR code on desktop.',
+      };
+    }
+
+    if (!approverIp || approverIp === 'Unknown IP') {
+      return {
+        success: false,
+        message: '⛔ Unable to verify Mobile network IP. Please check internet connection and retry.',
+      };
+    }
+
+    if (session.creatorIp !== approverIp) {
+      return {
+        success: false,
+        message: `⛔ Network Mismatch: Desktop is on Wi-Fi (${session.creatorIp}), but this phone is on (${approverIp}). Both devices must be on the same Wi-Fi. Pairing is strictly blocked.`,
+      };
+    }
 
     const updatePayload = {
       status: 'APPROVED' as const,

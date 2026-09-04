@@ -82,21 +82,41 @@ function parseDeviceInfo() {
 }
 
 export async function fetchPublicIPAndLocation(): Promise<{ ip: string; location?: string }> {
-  // Provider 1: ipapi.co (IP + City + State + Country)
+  // Provider 1: ipify (Fast & Reliable)
   try {
-    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
       const data = await res.json();
-      if (data.ip) {
-        const loc = [data.city, data.region, data.country_name].filter(Boolean).join(', ');
-        return { ip: data.ip, location: loc || undefined };
+      if (data.ip && data.ip !== '') {
+        try {
+          const locRes = await fetch(`https://ipwho.is/${data.ip}`, { signal: AbortSignal.timeout(1500) });
+          if (locRes.ok) {
+            const locData = await locRes.json();
+            const loc = [locData.city, locData.region, locData.country].filter(Boolean).join(', ');
+            return { ip: data.ip, location: loc || undefined };
+          }
+        } catch {}
+        return { ip: data.ip };
       }
     }
   } catch {}
 
-  // Provider 2: ipwho.is (CORS-friendly free lookup)
+  // Provider 2: Cloudflare Trace (Extremely reliable worldwide CDN)
   try {
-    const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(3000) });
+    const res = await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(2500) });
+    if (res.ok) {
+      const text = await res.text();
+      const ipMatch = text.match(/ip=([^\n]+)/);
+      const locMatch = text.match(/loc=([^\n]+)/);
+      if (ipMatch && ipMatch[1]) {
+        return { ip: ipMatch[1].trim(), location: locMatch ? locMatch[1].trim() : undefined };
+      }
+    }
+  } catch {}
+
+  // Provider 3: ipwho.is (CORS-friendly free lookup)
+  try {
+    const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
       const data = await res.json();
       if (data.ip) {
@@ -106,16 +126,19 @@ export async function fetchPublicIPAndLocation(): Promise<{ ip: string; location
     }
   } catch {}
 
-  // Provider 3: ipify
+  // Provider 4: ipapi.co (Fallback)
   try {
-    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
       const data = await res.json();
-      if (data.ip) return { ip: data.ip };
+      if (data.ip) {
+        const loc = [data.city, data.region, data.country_name].filter(Boolean).join(', ');
+        return { ip: data.ip, location: loc || undefined };
+      }
     }
   } catch {}
 
-  return { ip: 'Active Client Device' };
+  return { ip: 'Unknown IP' };
 }
 
 function getLocalLogs(): LoginLogEntry[] {

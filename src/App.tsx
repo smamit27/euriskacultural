@@ -25,6 +25,7 @@ import { MahaPrasadPage } from './components/pages/MahaPrasadPage';
 import { DemographicsPage } from './components/pages/DemographicsPage';
 import { FinancialReportPage } from './components/pages/FinancialReportPage';
 import { AdminLoginModal } from './components/auth/AdminLoginModal';
+import { PairDeviceModal } from './components/auth/PairDeviceModal';
 import { AdminScanApprovalModal } from './components/auth/AdminScanApprovalModal';
 import { DemographicsScanApprovalModal } from './components/auth/DemographicsScanApprovalModal';
 import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
@@ -65,6 +66,7 @@ function DesktopHeader({
   subPage,
   onBack,
   onOpenAdminLogin,
+  onOpenPairPhone,
   sessions = [],
   onOpenTrafficModal,
 }: {
@@ -72,6 +74,7 @@ function DesktopHeader({
   subPage: string | null;
   onBack: () => void;
   onOpenAdminLogin: () => void;
+  onOpenPairPhone?: () => void;
   sessions?: ActiveSession[];
   onOpenTrafficModal?: () => void;
 }) {
@@ -126,7 +129,7 @@ function DesktopHeader({
         {isAdmin ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
-              onClick={onOpenAdminLogin}
+              onClick={onOpenPairPhone || onOpenAdminLogin}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 background: '#ecfdf5', border: '1.5px solid #6ee7b7',
@@ -195,6 +198,7 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [subPage, setSubPage] = useState<SubPage | null>(null);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [showPairModal, setShowPairModal] = useState(false);
   const [sessions, setSessions] = useState<ActiveSession[]>([]);
   const [showTrafficModal, setShowTrafficModal] = useState(false);
 
@@ -442,6 +446,7 @@ function AppContent() {
         {/* Mobile Sticky Header (hidden on desktop via CSS) */}
         <Header
           onOpenAdminLogin={() => setShowAdminLogin(true)}
+          onOpenPairPhone={() => setShowPairModal(true)}
           sessions={sessions}
           onOpenTrafficModal={() => setShowTrafficModal(true)}
         />
@@ -463,6 +468,7 @@ function AppContent() {
             subPage={subPage}
             onBack={() => setSubPage(null)}
             onOpenAdminLogin={() => setShowAdminLogin(true)}
+            onOpenPairPhone={() => setShowPairModal(true)}
             sessions={sessions}
             onOpenTrafficModal={() => setShowTrafficModal(true)}
           />
@@ -511,6 +517,12 @@ function AppContent() {
         <AdminLoginModal
           isOpen={showAdminLogin}
           onClose={() => setShowAdminLogin(false)}
+        />
+
+        {/* Dedicated QR-Only Device Pairing Modal */}
+        <PairDeviceModal
+          isOpen={showPairModal}
+          onClose={() => setShowPairModal(false)}
         />
 
         {/* Real-time Admin QR Scan Mobile Approval Modal */}

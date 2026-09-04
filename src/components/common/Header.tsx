@@ -8,6 +8,7 @@ import euriskaLogo from '/euriska_logo.png';
 
 interface HeaderProps {
   onOpenAdminLogin: () => void;
+  onOpenPairPhone?: () => void;
   onOpenNotifications?: () => void;
   sessions?: ActiveSession[];
   onOpenTrafficModal?: () => void;
@@ -15,6 +16,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenAdminLogin,
+  onOpenPairPhone,
   onOpenNotifications,
   sessions = [],
   onOpenTrafficModal,
@@ -74,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
         {isAdmin ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <button
-              onClick={onOpenAdminLogin}
+              onClick={onOpenPairPhone || onOpenAdminLogin}
               className="role-tag"
               style={{
                 cursor: 'pointer',
