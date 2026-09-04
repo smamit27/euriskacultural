@@ -5,9 +5,19 @@ import {
   onAuthStateChanged,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auditService } from './auditService';
 import type { UserProfile, UserRole } from '../types';
+
+export interface AdminLoginSession {
+  sessionId: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+  createdAt: number;
+  expiresAt: number;
+  approvedAt?: number;
+  approvedDevice?: string;
+  userAgent?: string;
+}
 
 const DEMO_USERS: Record<UserRole, UserProfile> = {
   SUPER_ADMIN: {
@@ -168,6 +178,139 @@ export const authService = {
       await auditService.logAdminLogin('FAILED');
     } catch {}
     return false;
+  },
+
+  /**
+   * Unlock Admin mode directly (used by verified QR Scan Handshake)
+   */
+  async unlockAdminSessionDirect(): Promise<boolean> {
+    localStorage.setItem(ADMIN_AUTH_KEY, 'true');
+    this.setRole('SUPER_ADMIN');
+    try {
+      await auditService.logAdminLogin('SUCCESS');
+    } catch {}
+    return true;
+  },
+
+  /**
+   * Create a new real-time Admin Scan-to-Login session in Firestore
+   */
+  async createAdminLoginSession(): Promise<AdminLoginSession> {
+    const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const sessionId = `ADM-${Date.now().toString(36).toUpperCase()}-${randomSuffix}`;
+    const now = Date.now();
+    const session: AdminLoginSession = {
+      sessionId,
+      status: 'PENDING',
+      createdAt: now,
+      expiresAt: now + 3 * 60 * 1000,
+      userAgent: navigator.userAgent,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'admin_sessions', sessionId), session);
+      } catch (e) {
+        console.warn('Firestore admin session setDoc error:', e);
+      }
+    }
+
+    try {
+      localStorage.setItem(`adm_sess_${sessionId}`, JSON.stringify(session));
+    } catch {}
+
+    return session;
+  },
+
+  /**
+   * Listen to real-time status updates of an Admin Scan-to-Login session
+   */
+  subscribeAdminLoginSession(sessionId: string, onUpdate: (session: AdminLoginSession) => void): () => void {
+    if (isFirebaseConfigured && db) {
+      try {
+        const unsubscribe = onSnapshot(doc(db, 'admin_sessions', sessionId), (docSnap) => {
+          if (docSnap.exists()) {
+            onUpdate(docSnap.data() as AdminLoginSession);
+          }
+        }, (err) => {
+          console.warn('Admin session listener error:', err);
+        });
+        return unsubscribe;
+      } catch (err) {
+        console.warn('Could not establish admin session listener:', err);
+      }
+    }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === `adm_sess_${sessionId}` && e.newValue) {
+        try {
+          onUpdate(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  },
+
+  /**
+   * Approve an Admin Scan-to-Login session using password verification
+   */
+  async approveAdminLoginSession(sessionId: string, password: string): Promise<{ success: boolean; message: string }> {
+    const result = await this.verifyPassword(password);
+    if (!result.valid) {
+      return { success: false, message: 'Invalid Admin Password. Access denied.' };
+    }
+
+    const updatePayload = {
+      status: 'APPROVED' as const,
+      approvedAt: Date.now(),
+      approvedDevice: navigator.userAgent,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const docRef = doc(db, 'admin_sessions', sessionId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          await setDoc(docRef, {
+            sessionId,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 180000,
+            ...updatePayload,
+          });
+        } else {
+          await updateDoc(docRef, updatePayload);
+        }
+      } catch (err) {
+        console.error('Firestore admin approval update error:', err);
+      }
+    }
+
+    try {
+      const existing = localStorage.getItem(`adm_sess_${sessionId}`);
+      const base = existing ? JSON.parse(existing) : { sessionId, createdAt: Date.now() };
+      localStorage.setItem(`adm_sess_${sessionId}`, JSON.stringify({ ...base, ...updatePayload }));
+    } catch {}
+
+    try {
+      await auditService.logAdminLogin('SUCCESS');
+    } catch {}
+
+    return { success: true, message: 'Admin login approved successfully!' };
+  },
+
+  /**
+   * Reject an Admin Login session
+   */
+  async rejectAdminLoginSession(sessionId: string): Promise<void> {
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'admin_sessions', sessionId), {
+          status: 'REJECTED',
+          rejectedAt: Date.now(),
+        });
+      } catch {}
+    }
   },
 
   /**

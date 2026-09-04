@@ -9,6 +9,7 @@ interface AuthContextType {
   isTreasurer: boolean;
   isVolunteer: boolean;
   loginAdmin: (password: string) => Promise<boolean>;
+  unlockAdminDirect: () => void;
   logoutAdmin: () => void;
   switchRole: (newRole: UserRole) => void;
   loginWithGoogle: () => Promise<void>;
@@ -42,6 +43,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(authService.getCurrentUser());
     }
     return success;
+  };
+
+  const unlockAdminDirect = () => {
+    authService.unlockAdminSessionDirect();
+    setRoleState('SUPER_ADMIN');
+    setUser(authService.getCurrentUser());
   };
 
   const logoutAdmin = () => {
@@ -90,6 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isTreasurer,
         isVolunteer,
         loginAdmin,
+        unlockAdminDirect,
         logoutAdmin,
         switchRole,
         loginWithGoogle,
