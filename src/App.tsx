@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './index.css';
-import { Bell, ChevronLeft, Shield } from 'lucide-react';
+import { Bell, ChevronLeft, Shield, QrCode, LogOut } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { Header } from './components/common/Header';
@@ -122,31 +122,48 @@ function DesktopHeader({
         {/* Real-time active visitors badge */}
         <LivePresenceBadge sessions={sessions} onClick={onOpenTrafficModal} />
 
-        {/* Role toggle button */}
+        {/* Role toggle button & Pair Phone QR */}
         {isAdmin ? (
-          <button
-            onClick={handleAdminToggle}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: '#fef2f2', border: '1px solid #fecaca',
-              color: '#dc2626', borderRadius: 8, padding: '6px 12px',
-              cursor: 'pointer', fontSize: 12, fontWeight: 700,
-            }}
-            title="Click to Exit Admin"
-          >
-            <Shield size={14} />
-            <span>Admin Active (Click to Exit)</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={onOpenAdminLogin}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#ecfdf5', border: '1.5px solid #6ee7b7',
+                color: '#065f46', borderRadius: 8, padding: '7px 14px',
+                cursor: 'pointer', fontSize: 12.5, fontWeight: 800,
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)',
+              }}
+              title="Click to generate QR Code and Pair/Login on your Mobile Phone"
+            >
+              <QrCode size={15} color="#059669" />
+              <span>📱 Pair Phone (QR)</span>
+            </button>
+
+            <button
+              onClick={handleAdminToggle}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#fef2f2', border: '1px solid #fecaca',
+                color: '#dc2626', borderRadius: 8, padding: '7px 12px',
+                cursor: 'pointer', fontSize: 12, fontWeight: 700,
+              }}
+              title="Click to Exit Admin"
+            >
+              <LogOut size={14} />
+              <span>Exit Admin</span>
+            </button>
+          </div>
         ) : (
           <button
             onClick={handleAdminToggle}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)',
-              color: '#ea580c', borderRadius: 8, padding: '6px 12px',
-              cursor: 'pointer', fontSize: 12, fontWeight: 800,
+              color: '#ea580c', borderRadius: 8, padding: '7px 14px',
+              cursor: 'pointer', fontSize: 12.5, fontWeight: 800,
             }}
-            title="Enter password to access Admin features"
+            title="Enter passcode or scan QR to access Admin features"
           >
             <Shield size={14} />
             <span>👑 Admin Login</span>
