@@ -309,7 +309,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
             Admin Access
           </h2>
           <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
-            Scan with your authorized mobile phone or enter password.
+            Scan with your authorized mobile phone or enter passcode.
           </p>
         </div>
 
@@ -374,7 +374,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
             }}
           >
             <KeyRound size={15} color={authMode === 'PASSWORD' ? '#ea580c' : '#64748b'} />
-            <span>Password</span>
+            <span>Passcode / Password</span>
           </button>
         </div>
 
@@ -560,7 +560,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
                   ref={inputRef}
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Enter admin password..."
+                  placeholder="Enter passcode or password..."
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -614,7 +614,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
                   }}
                 >
                   <span>⚠️</span>
-                  <span>Incorrect password. Please try again.</span>
+                  <span>Invalid passcode or password. Please try again.</span>
                 </div>
               )}
             </div>
