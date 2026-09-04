@@ -50,6 +50,14 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Allow Admin & Demographics Pairing / Login Handshake Sessions
+    match /admin_sessions/{document=**} {
+      allow read, write: if true;
+    }
+    match /demographics_sessions/{document=**} {
+      allow read, write: if true;
+    }
+
     // Portal settings & security credentials
     match /settings/{document=**} {
       allow read, write: if true;

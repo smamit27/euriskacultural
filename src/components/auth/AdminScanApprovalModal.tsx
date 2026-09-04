@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, CheckCircle2, X, Sparkles, Ban, Wifi, AlertTriangle, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { authService, type AdminLoginSession } from '../../services/authService';
-import { fetchPublicIPAndLocation } from '../../services/auditService';
+import { fetchPublicIPAndLocation, isSameNetwork } from '../../services/auditService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import euriskaLogo from '/euriska_logo.png';
@@ -34,8 +34,9 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
     setCurrentIp(net.ip);
 
     if (sess && sess.creatorIp && net.ip && sess.creatorIp !== 'Unknown IP' && net.ip !== 'Unknown IP') {
-      if (sess.creatorIp === net.ip) {
+      if (isSameNetwork(sess.creatorIp, net.ip)) {
         setIpMatchStatus('MATCHED');
+        setErrorMessage('');
       } else {
         setIpMatchStatus('MISMATCH');
         setErrorMessage(`Network mismatch: Desktop is on ${sess.creatorIp}, but this phone is on ${net.ip}. Both devices must be on the same Wi-Fi.`);

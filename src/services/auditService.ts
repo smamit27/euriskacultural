@@ -81,10 +81,39 @@ function parseDeviceInfo() {
   return { deviceType, os, browser, deviceModel, screenSize };
 }
 
+export function isSameNetwork(ip1?: string, ip2?: string): boolean {
+  if (!ip1 || !ip2) return false;
+  const clean1 = ip1.trim();
+  const clean2 = ip2.trim();
+  if (clean1 === 'Unknown IP' || clean2 === 'Unknown IP' || !clean1 || !clean2) return false;
+
+  // Exact match
+  if (clean1 === clean2) return true;
+
+  // If both are IPv4 addresses (e.g., same /24 router NAT subnet on home Wi-Fi)
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+  const m1 = clean1.match(ipv4Regex);
+  const m2 = clean2.match(ipv4Regex);
+  if (m1 && m2) {
+    if (m1[1] === m2[1] && m1[2] === m2[2] && m1[3] === m2[3]) {
+      return true;
+    }
+  }
+
+  // If both are IPv6 addresses, compare /64 network prefix
+  if (clean1.includes(':') && clean2.includes(':')) {
+    const p1 = clean1.split(':').slice(0, 4).join(':');
+    const p2 = clean2.split(':').slice(0, 4).join(':');
+    if (p1 && p2 && p1 === p2) return true;
+  }
+
+  return false;
+}
+
 export async function fetchPublicIPAndLocation(): Promise<{ ip: string; location?: string }> {
-  // Provider 1: ipify (Fast & Reliable)
+  // Provider 1: ipify IPv4 (Forces consistent IPv4 format on all devices)
   try {
-    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
+    const res = await fetch('https://api4.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       const data = await res.json();
       if (data.ip && data.ip !== '') {
@@ -101,20 +130,28 @@ export async function fetchPublicIPAndLocation(): Promise<{ ip: string; location
     }
   } catch {}
 
-  // Provider 2: Cloudflare Trace (Extremely reliable worldwide CDN)
+  // Provider 2: api.ipify.org fallback
   try {
-    const res = await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(2500) });
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
-      const text = await res.text();
-      const ipMatch = text.match(/ip=([^\n]+)/);
-      const locMatch = text.match(/loc=([^\n]+)/);
-      if (ipMatch && ipMatch[1]) {
-        return { ip: ipMatch[1].trim(), location: locMatch ? locMatch[1].trim() : undefined };
+      const data = await res.json();
+      if (data.ip && data.ip !== '') {
+        return { ip: data.ip };
       }
     }
   } catch {}
 
-  // Provider 3: ipwho.is (CORS-friendly free lookup)
+  // Provider 3: icanhazip IPv4 plain text
+  try {
+    const res = await fetch('https://ipv4.icanhazip.com/', { signal: AbortSignal.timeout(2500) });
+    if (res.ok) {
+      const text = await res.text();
+      const ip = text.trim();
+      if (ip) return { ip };
+    }
+  } catch {}
+
+  // Provider 4: ipwho.is (CORS-friendly free lookup)
   try {
     const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
@@ -126,14 +163,15 @@ export async function fetchPublicIPAndLocation(): Promise<{ ip: string; location
     }
   } catch {}
 
-  // Provider 4: ipapi.co (Fallback)
+  // Provider 5: Cloudflare Trace
   try {
-    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(2500) });
+    const res = await fetch('https://www.cloudflare.com/cdn-cgi/trace', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
-      const data = await res.json();
-      if (data.ip) {
-        const loc = [data.city, data.region, data.country_name].filter(Boolean).join(', ');
-        return { ip: data.ip, location: loc || undefined };
+      const text = await res.text();
+      const ipMatch = text.match(/ip=([^\n]+)/);
+      const locMatch = text.match(/loc=([^\n]+)/);
+      if (ipMatch && ipMatch[1]) {
+        return { ip: ipMatch[1].trim(), location: locMatch ? locMatch[1].trim() : undefined };
       }
     }
   } catch {}

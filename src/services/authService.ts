@@ -6,7 +6,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { fetchPublicIPAndLocation, auditService } from './auditService';
+import { fetchPublicIPAndLocation, isSameNetwork, auditService } from './auditService';
 import type { UserProfile, UserRole } from '../types';
 
 export interface AdminLoginSession {
@@ -307,7 +307,7 @@ export const authService = {
       approverIp = netInfo.ip;
     } catch {}
 
-    // Strict IP Match Check: Both creator and approver must have a valid IP, and they MUST match
+    // Strict IP Match Check: Both creator and approver must be on the same network
     if (!session.creatorIp || session.creatorIp === 'Unknown IP') {
       return {
         success: false,
@@ -322,7 +322,7 @@ export const authService = {
       };
     }
 
-    if (session.creatorIp !== approverIp) {
+    if (!isSameNetwork(session.creatorIp, approverIp)) {
       return {
         success: false,
         message: `⛔ Network Mismatch: Desktop is on Wi-Fi (${session.creatorIp}), but this phone is on (${approverIp}). Both devices must be on the same Wi-Fi. Pairing is strictly blocked.`,
