@@ -1,5 +1,7 @@
 import { contributionService } from './contributionService';
 import type { Contribution } from '../types';
+import { db, isFirebaseConfigured } from '../firebase/config';
+import { doc, setDoc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 
 export type CommunityType = 'HINDU' | 'MUSLIM' | 'CHRISTIAN' | 'OTHER';
 
@@ -25,8 +27,15 @@ export interface CommunityBreakdown {
   totalCollected: number;
 }
 
-const CONFIDENTIAL_PASSKEY = '$05CeLRO';
-const DEMOGRAPHICS_AUTH_SESSION_KEY = 'euriska_demographics_auth_session';
+export interface DemographicsLoginSession {
+  sessionId: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+  createdAt: number;
+  expiresAt: number;
+  approvedAt?: number;
+  approvedByPasscode?: string;
+  userAgent?: string;
+}
 
 // Explicit flat-to-community overrides provided by committee
 const EXPLICIT_FLAT_COMMUNITY_MAP: Record<string, CommunityType> = {
@@ -81,12 +90,16 @@ const CHRISTIAN_KEYWORDS = [
   'clinton', 'veronica'
 ];
 
+const CONFIDENTIAL_PASSKEYS = ['$05CeLRO', '1111'];
+const DEMOGRAPHICS_AUTH_SESSION_KEY = 'euriska_demographics_auth_session';
+
 export const demographicsService = {
   /**
-   * Verify confidential passkey strictly
+   * Verify confidential passkey strictly (supports $05CeLRO and quick passcode 1111)
    */
   verifyPasskey(passkey: string): boolean {
-    return passkey.trim() === CONFIDENTIAL_PASSKEY;
+    const clean = passkey.trim();
+    return CONFIDENTIAL_PASSKEYS.includes(clean);
   },
 
   /**
@@ -108,6 +121,132 @@ export const demographicsService = {
    */
   lockSession(): void {
     sessionStorage.removeItem(DEMOGRAPHICS_AUTH_SESSION_KEY);
+  },
+
+  /**
+   * Create a new real-time Scan-to-Login session in Firestore
+   */
+  async createLoginSession(): Promise<DemographicsLoginSession> {
+    const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const sessionId = `DEMO-${Date.now().toString(36).toUpperCase()}-${randomSuffix}`;
+    const now = Date.now();
+    const session: DemographicsLoginSession = {
+      sessionId,
+      status: 'PENDING',
+      createdAt: now,
+      expiresAt: now + 3 * 60 * 1000, // 3 minutes validity
+      userAgent: navigator.userAgent,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'demographics_sessions', sessionId), session);
+      } catch (e) {
+        console.warn('Firestore setDoc failed, fallback to local memory', e);
+      }
+    }
+
+    // Also persist in localStorage for multi-tab fallback
+    try {
+      localStorage.setItem(`demo_sess_${sessionId}`, JSON.stringify(session));
+    } catch {
+      // ignore storage errors
+    }
+
+    return session;
+  },
+
+  /**
+   * Listen to real-time status updates of a Scan-to-Login session
+   */
+  subscribeLoginSession(sessionId: string, onUpdate: (session: DemographicsLoginSession) => void): () => void {
+    if (isFirebaseConfigured && db) {
+      try {
+        const unsubscribe = onSnapshot(doc(db, 'demographics_sessions', sessionId), (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data() as DemographicsLoginSession;
+            onUpdate(data);
+          }
+        }, (err) => {
+          console.warn('Demographics session Firestore listener error:', err);
+        });
+        return unsubscribe;
+      } catch (err) {
+        console.warn('Could not establish Firestore listener for demographics session:', err);
+      }
+    }
+
+    // LocalStorage storage event fallback for same browser / local testing
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `demo_sess_${sessionId}` && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue) as DemographicsLoginSession;
+          onUpdate(parsed);
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  },
+
+  /**
+   * Approve a Scan-to-Login session using passcode (1111 or $05CeLRO)
+   */
+  async approveLoginSession(sessionId: string, passcode: string): Promise<{ success: boolean; message: string }> {
+    if (!this.verifyPasskey(passcode)) {
+      return { success: false, message: 'Invalid Passcode. Enter 1111 or confidential passkey.' };
+    }
+
+    const updatePayload = {
+      status: 'APPROVED' as const,
+      approvedAt: Date.now(),
+      approvedByPasscode: passcode.trim(),
+      approvedDevice: navigator.userAgent,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const docRef = doc(db, 'demographics_sessions', sessionId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          // If doc didn't exist in Firestore, create it as approved
+          await setDoc(docRef, {
+            sessionId,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 180000,
+            ...updatePayload,
+          });
+        } else {
+          await updateDoc(docRef, updatePayload);
+        }
+      } catch (err) {
+        console.error('Firestore approval update failed:', err);
+      }
+    }
+
+    // Also update localStorage
+    try {
+      const existing = localStorage.getItem(`demo_sess_${sessionId}`);
+      const base = existing ? JSON.parse(existing) : { sessionId, createdAt: Date.now() };
+      const updated = { ...base, ...updatePayload };
+      localStorage.setItem(`demo_sess_${sessionId}`, JSON.stringify(updated));
+    } catch {}
+
+    return { success: true, message: 'Demographics Portal unlocked successfully!' };
+  },
+
+  /**
+   * Reject a session
+   */
+  async rejectLoginSession(sessionId: string): Promise<void> {
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'demographics_sessions', sessionId), {
+          status: 'REJECTED',
+          rejectedAt: Date.now(),
+        });
+      } catch {}
+    }
   },
 
   /**

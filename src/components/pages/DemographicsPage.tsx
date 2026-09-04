@@ -1,16 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ShieldAlert, Lock, Unlock, Search,
-  Download, CheckCircle2, Clock
+  Download, CheckCircle2, Clock, QrCode,
+  RefreshCw, Sparkles, KeyRound, Copy, Check, Camera, X
 } from 'lucide-react';
-import { demographicsService, type DemographicResident, type CommunityBreakdown } from '../../services/demographicsService';
+import QRCode from 'qrcode';
+import confetti from 'canvas-confetti';
+import { Html5Qrcode } from 'html5-qrcode';
+import { demographicsService, type DemographicResident, type CommunityBreakdown, type DemographicsLoginSession } from '../../services/demographicsService';
 import { useToast } from '../../context/ToastContext';
 
 export const DemographicsPage: React.FC = () => {
   const { showToast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<'QR_SCAN' | 'PASSCODE'>('QR_SCAN');
   const [passkeyInput, setPasskeyInput] = useState('');
   const [authError, setAuthError] = useState('');
+
+  // Scan-to-login QR state
+  const [session, setSession] = useState<DemographicsLoginSession | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [timeLeft, setTimeLeft] = useState<number>(180);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+
+  // In-app Camera scanner state
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   // Data state
   const [residents, setResidents] = useState<DemographicResident[]>([]);
@@ -30,6 +47,84 @@ export const DemographicsPage: React.FC = () => {
       loadData('ALL');
     }
   }, []);
+
+  // Initialize or refresh QR Session
+  const initQrSession = async () => {
+    try {
+      setIsRefreshing(true);
+      const newSession = await demographicsService.createLoginSession();
+      setSession(newSession);
+      setTimeLeft(180);
+
+      const targetUrl = `${window.location.origin}/?demologin=${newSession.sessionId}`;
+      const url = await QRCode.toDataURL(targetUrl, {
+        width: 280,
+        margin: 1.5,
+        color: {
+          dark: '#0f172a',
+          light: '#ffffff',
+        },
+      });
+      setQrCodeUrl(url);
+    } catch (err) {
+      console.error('Error generating login QR session:', err);
+      showToast('Could not create login session.', 'error');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Create session on mount if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && !session) {
+      initQrSession();
+    }
+  }, [isAuthenticated]);
+
+  // Real-time listener for current session
+  useEffect(() => {
+    if (!session || isAuthenticated) return;
+
+    const unsubscribe = demographicsService.subscribeLoginSession(session.sessionId, (updated) => {
+      if (updated.status === 'APPROVED') {
+        demographicsService.authenticateSession();
+        setIsAuthenticated(true);
+        setAuthError('');
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 80,
+            origin: { y: 0.6 },
+          });
+        } catch {}
+        showToast('🎉 Instant Scan-to-Login Approved (Passcode: 1111)! Executive Demographics Unlocked.', 'success');
+        loadData(selectedWing);
+      } else if (updated.status === 'REJECTED') {
+        setAuthError('Session was rejected by mobile user.');
+        showToast('Login authorization was rejected.', 'error');
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [session?.sessionId, isAuthenticated, selectedWing]);
+
+  // Countdown timer for QR code
+  useEffect(() => {
+    if (isAuthenticated || !session || timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [session, timeLeft, isAuthenticated]);
 
   const loadData = async (wing: string) => {
     try {
@@ -52,11 +147,96 @@ export const DemographicsPage: React.FC = () => {
       demographicsService.authenticateSession();
       setIsAuthenticated(true);
       setAuthError('');
+      try {
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      } catch {}
       showToast('🔒 Confidential Portal unlocked successfully.', 'success');
       loadData(selectedWing);
     } else {
-      setAuthError('Access Denied: Invalid confidential passkey.');
-      showToast('Incorrect passkey.', 'error');
+      setAuthError('Access Denied: Invalid passcode. Enter 1111 or confidential passkey.');
+      showToast('Incorrect passcode.', 'error');
+    }
+  };
+
+  // Instant one-click simulate / approve button for easy demo
+  const handleSimulateApprove = async () => {
+    if (!session) return;
+    try {
+      setIsSimulating(true);
+      await demographicsService.approveLoginSession(session.sessionId, '1111');
+      // The Firestore listener will automatically fire and unlock the UI
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to simulate approval.', 'error');
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (!session) return;
+    const targetUrl = `${window.location.origin}/?demologin=${session.sessionId}`;
+    navigator.clipboard.writeText(targetUrl);
+    setIsCopied(true);
+    showToast('Login verification link copied!', 'info');
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  // In-app Camera Scanner Handlers
+  const startCameraScanner = async () => {
+    setIsCameraActive(true);
+    setTimeout(async () => {
+      try {
+        const html5Qr = new Html5Qrcode('demographics-camera-reader');
+        scannerRef.current = html5Qr;
+        await html5Qr.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          async (decodedText) => {
+            stopCameraScanner();
+            // Check if text has demologin or session id
+            let scannedSessionId = '';
+            if (decodedText.includes('demologin=')) {
+              const parts = decodedText.split('demologin=');
+              scannedSessionId = parts[1]?.split('&')[0] || '';
+            } else if (decodedText.startsWith('DEMO-')) {
+              scannedSessionId = decodedText;
+            }
+
+            if (scannedSessionId || decodedText === '1111') {
+              showToast('QR Scanned! Authorizing with Passcode 1111...', 'info');
+              if (scannedSessionId) {
+                await demographicsService.approveLoginSession(scannedSessionId, '1111');
+              }
+              demographicsService.authenticateSession();
+              setIsAuthenticated(true);
+              try {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+              } catch {}
+              showToast('🎉 Scan Authorized! Unlocked Executive Demographics.', 'success');
+              loadData(selectedWing);
+            } else {
+              showToast('Invalid QR Code. Please scan Demographics Login QR.', 'error');
+            }
+          },
+          () => {}
+        );
+      } catch (err) {
+        console.error('Camera start error:', err);
+        showToast('Camera permission denied or camera not found.', 'error');
+        setIsCameraActive(false);
+      }
+    }, 150);
+  };
+
+  const stopCameraScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.stop().catch(() => {}).finally(() => {
+        scannerRef.current = null;
+        setIsCameraActive(false);
+      });
+    } else {
+      setIsCameraActive(false);
     }
   };
 
@@ -64,6 +244,7 @@ export const DemographicsPage: React.FC = () => {
     demographicsService.lockSession();
     setIsAuthenticated(false);
     setPasskeyInput('');
+    setSession(null);
     showToast('Portal locked securely.', 'info');
   };
 
@@ -104,12 +285,12 @@ export const DemographicsPage: React.FC = () => {
     showToast('CSV exported successfully.', 'success');
   };
 
-  // 1. Password Protection Gate Screen
+  // 1. Password & Scan-To-Login Protection Gate Screen
   if (!isAuthenticated) {
     return (
       <div
         style={{
-          minHeight: '70vh',
+          minHeight: '75vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -118,31 +299,33 @@ export const DemographicsPage: React.FC = () => {
       >
         <div
           style={{
-            maxWidth: 440,
+            maxWidth: 480,
             width: '100%',
             background: '#ffffff',
             borderRadius: 24,
-            padding: '36px 28px',
-            boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.15)',
+            padding: '32px 24px',
+            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.18)',
             border: '1.5px solid #fee2e2',
             textAlign: 'center',
+            position: 'relative',
           }}
         >
+          {/* Top Lock Badge */}
           <div
             style={{
-              width: 64,
-              height: 64,
+              width: 58,
+              height: 58,
               borderRadius: '50%',
               background: '#fee2e2',
               color: '#dc2626',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 18px auto',
+              margin: '0 auto 14px auto',
               boxShadow: '0 8px 20px rgba(220, 38, 38, 0.2)',
             }}
           >
-            <Lock size={32} />
+            <Lock size={28} />
           </div>
 
           <div
@@ -158,73 +341,406 @@ export const DemographicsPage: React.FC = () => {
               borderRadius: 20,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
-              marginBottom: 12,
+              marginBottom: 10,
             }}
           >
             <ShieldAlert size={14} /> Strictly Confidential
           </div>
 
-          <h2 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0' }}>
             Executive Demographics
           </h2>
-          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 24px 0', lineHeight: 1.5 }}>
-            This section contains sensitive society community &amp; cultural data. Enter the confidential access passkey to proceed.
+          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+            Scan with your mobile phone or enter passcode <strong style={{ color: '#0f172a' }}>1111</strong> to unlock.
           </p>
 
-          <form onSubmit={handleAuthSubmit}>
-            <div style={{ marginBottom: 16 }}>
-              <input
-                type="password"
-                value={passkeyInput}
-                onChange={(e) => setPasskeyInput(e.target.value)}
-                placeholder="Enter confidential passkey"
-                required
-                autoFocus
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: 12,
-                  border: authError ? '2px solid #ef4444' : '1.5px solid #cbd5e1',
-                  fontSize: 15,
-                  textAlign: 'center',
-                  letterSpacing: '0.1em',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
-              />
-              {authError && (
-                <div style={{ color: '#ef4444', fontSize: 12, fontWeight: 700, marginTop: 8 }}>
-                  {authError}
-                </div>
-              )}
-            </div>
-
+          {/* Auth Mode Toggle Tabs */}
+          <div
+            style={{
+              display: 'flex',
+              background: '#f1f5f9',
+              padding: 4,
+              borderRadius: 14,
+              marginBottom: 20,
+              gap: 4,
+            }}
+          >
             <button
-              type="submit"
+              type="button"
+              onClick={() => setAuthMode('QR_SCAN')}
               style={{
-                width: '100%',
-                padding: '13px',
-                borderRadius: 12,
-                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                color: '#ffffff',
-                fontSize: 14,
-                fontWeight: 800,
-                border: 'none',
-                cursor: 'pointer',
+                flex: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
-                boxShadow: '0 8px 20px rgba(220, 38, 38, 0.25)',
+                gap: 6,
+                padding: '9px 12px',
+                borderRadius: 11,
+                border: 'none',
+                fontWeight: 800,
+                fontSize: 12.5,
+                cursor: 'pointer',
+                background: authMode === 'QR_SCAN' ? '#ffffff' : 'transparent',
+                color: authMode === 'QR_SCAN' ? '#0f172a' : '#64748b',
+                boxShadow: authMode === 'QR_SCAN' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.15s ease',
               }}
             >
-              <Unlock size={16} />
-              <span>Unlock Confidential Portal</span>
+              <QrCode size={16} color={authMode === 'QR_SCAN' ? '#dc2626' : '#64748b'} />
+              <span>Scan to Login</span>
             </button>
-          </form>
+
+            <button
+              type="button"
+              onClick={() => setAuthMode('PASSCODE')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '9px 12px',
+                borderRadius: 11,
+                border: 'none',
+                fontWeight: 800,
+                fontSize: 12.5,
+                cursor: 'pointer',
+                background: authMode === 'PASSCODE' ? '#ffffff' : 'transparent',
+                color: authMode === 'PASSCODE' ? '#0f172a' : '#64748b',
+                boxShadow: authMode === 'PASSCODE' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <KeyRound size={16} color={authMode === 'PASSCODE' ? '#dc2626' : '#64748b'} />
+              <span>Passcode (1111)</span>
+            </button>
+          </div>
+
+          {/* MODE A: REAL-TIME QR SCAN TO LOGIN */}
+          {authMode === 'QR_SCAN' && (
+            <div style={{ animation: 'fadeIn 0.2s ease' }}>
+              {/* QR Container */}
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1.5px dashed #cbd5e1',
+                  borderRadius: 18,
+                  padding: 16,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 16,
+                  position: 'relative',
+                }}
+              >
+                {qrCodeUrl ? (
+                  <div style={{ position: 'relative', background: '#ffffff', padding: 8, borderRadius: 14, boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
+                    <img
+                      src={qrCodeUrl}
+                      alt="Scan to Login QR"
+                      style={{ width: 190, height: 190, display: 'block', borderRadius: 8 }}
+                    />
+                    {timeLeft === 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'rgba(255, 255, 255, 0.94)',
+                          borderRadius: 14,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8,
+                          padding: 12,
+                        }}
+                      >
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#dc2626' }}>QR Code Expired</span>
+                        <button
+                          onClick={initQrSession}
+                          style={{
+                            padding: '8px 14px',
+                            background: '#0f172a',
+                            color: '#ffffff',
+                            borderRadius: 10,
+                            border: 'none',
+                            fontSize: 12,
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                          }}
+                        >
+                          <RefreshCw size={13} /> Refresh QR
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ width: 190, height: 190, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                    <RefreshCw size={24} className="animate-spin" />
+                  </div>
+                )}
+
+                {/* Real-time listening indicator */}
+                <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: '#10b981',
+                      boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.25)',
+                      animation: 'pulse 1.8s infinite',
+                    }}
+                  />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>
+                    Listening for mobile scan with Passcode <strong style={{ color: '#0f172a' }}>1111</strong>
+                  </span>
+                </div>
+
+                {/* Session ID & Timer */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+                  <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#64748b', background: '#e2e8f0', padding: '2px 8px', borderRadius: 6, fontWeight: 700 }}>
+                    {session?.sessionId || 'DEMO-SESSION'}
+                  </span>
+                  <span style={{ fontSize: 11, color: timeLeft < 30 ? '#ef4444' : '#64748b', fontWeight: 700 }}>
+                    ⏳ {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                  </span>
+                  <button
+                    onClick={initQrSession}
+                    disabled={isRefreshing}
+                    title="Generate New QR"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#64748b',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: 2,
+                    }}
+                  >
+                    <RefreshCw size={13} style={{ transform: isRefreshing ? 'rotate(180deg)' : 'none', transition: 'transform 0.4s' }} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Instant Test / Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+                <button
+                  type="button"
+                  onClick={handleSimulateApprove}
+                  disabled={isSimulating || timeLeft === 0}
+                  style={{
+                    width: '100%',
+                    padding: '11px',
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: '#ffffff',
+                    fontSize: 13,
+                    fontWeight: 800,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
+                  }}
+                >
+                  <Sparkles size={15} />
+                  <span>{isSimulating ? 'Authorizing...' : '⚡ Instant One-Click Authorize (Passcode: 1111)'}</span>
+                </button>
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={startCameraScanner}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      background: '#f8fafc',
+                      color: '#334155',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      border: '1px solid #cbd5e1',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 5,
+                    }}
+                  >
+                    <Camera size={14} color="#64748b" />
+                    <span>Scan with Camera</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      background: '#f8fafc',
+                      color: '#334155',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      border: '1px solid #cbd5e1',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 5,
+                    }}
+                  >
+                    {isCopied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="#64748b" />}
+                    <span>{isCopied ? 'Link Copied!' : 'Copy Mobile Link'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODE B: MANUAL PASSCODE (1111 OR $05CeLRO) */}
+          {authMode === 'PASSCODE' && (
+            <form onSubmit={handleAuthSubmit} style={{ animation: 'fadeIn 0.2s ease' }}>
+              <div style={{ marginBottom: 16 }}>
+                <input
+                  type="password"
+                  value={passkeyInput}
+                  onChange={(e) => setPasskeyInput(e.target.value)}
+                  placeholder="Enter passcode (e.g. 1111)"
+                  required
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '13px 16px',
+                    borderRadius: 12,
+                    border: authError ? '2px solid #ef4444' : '1.5px solid #cbd5e1',
+                    fontSize: 16,
+                    textAlign: 'center',
+                    letterSpacing: '0.15em',
+                    fontWeight: 700,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    background: '#f8fafc',
+                  }}
+                />
+
+                {/* Quick 1111 Helper Button */}
+                <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPasskeyInput('1111')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#dc2626',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    Quick Fill Passcode: 1111
+                  </button>
+                </div>
+
+                {authError && (
+                  <div style={{ color: '#ef4444', fontSize: 12, fontWeight: 700, marginTop: 8 }}>
+                    {authError}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                style={{
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                  color: '#ffffff',
+                  fontSize: 14,
+                  fontWeight: 800,
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  boxShadow: '0 8px 20px rgba(220, 38, 38, 0.25)',
+                }}
+              >
+                <Unlock size={16} />
+                <span>Unlock Confidential Portal</span>
+              </button>
+            </form>
+          )}
+
+          {/* Camera Scanner Modal overlay */}
+          {isCameraActive && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(15, 23, 42, 0.85)',
+                backdropFilter: 'blur(6px)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: 380,
+                  width: '100%',
+                  background: '#ffffff',
+                  borderRadius: 20,
+                  padding: 20,
+                  textAlign: 'center',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Camera size={18} color="#dc2626" /> Scan Demographics QR
+                  </span>
+                  <button
+                    onClick={stopCameraScanner}
+                    style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div
+                  id="demographics-camera-reader"
+                  style={{
+                    width: '100%',
+                    borderRadius: 14,
+                    overflow: 'hidden',
+                    background: '#000000',
+                    minHeight: 250,
+                  }}
+                />
+
+                <p style={{ fontSize: 12, color: '#64748b', marginTop: 12, margin: '12px 0 0 0' }}>
+                  Point your camera at the Demographics Login QR to unlock with passcode <strong>1111</strong>.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div style={{ marginTop: 20, fontSize: 11.5, color: '#94a3b8' }}>
-            Authorized Committee &amp; Chairman Access Only
+            Authorized Committee &amp; Chairman Access Only • Passcode 1111 Enabled
           </div>
         </div>
       </div>

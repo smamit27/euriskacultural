@@ -25,6 +25,7 @@ import { MahaPrasadPage } from './components/pages/MahaPrasadPage';
 import { DemographicsPage } from './components/pages/DemographicsPage';
 import { FinancialReportPage } from './components/pages/FinancialReportPage';
 import { AdminLoginModal } from './components/auth/AdminLoginModal';
+import { DemographicsScanApprovalModal } from './components/auth/DemographicsScanApprovalModal';
 import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
 import { LivePresenceBadge } from './components/common/LivePresenceBadge';
 import { LiveTrafficModal } from './components/admin/LiveTrafficModal';
@@ -493,6 +494,9 @@ function AppContent() {
           isOpen={showAdminLogin}
           onClose={() => setShowAdminLogin(false)}
         />
+
+        {/* Real-time Demographics QR Scan Mobile Approval Modal */}
+        <DemographicsScanApprovalModal />
 
         {/* Global Add Contribution Sheet */}
         <AddContributionSheet
