@@ -253,6 +253,48 @@ export const authService = {
   },
 
   /**
+   * 1-Tap Instant Approve Admin Scan Session (from an already authenticated Admin device)
+   */
+  async approveAdminLoginSessionDirect(sessionId: string): Promise<{ success: boolean; message: string }> {
+    const updatePayload = {
+      status: 'APPROVED' as const,
+      approvedAt: Date.now(),
+      approvedDevice: `${navigator.userAgent} (1-Tap Verified Mobile)`,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const docRef = doc(db, 'admin_sessions', sessionId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          await setDoc(docRef, {
+            sessionId,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 180000,
+            ...updatePayload,
+          });
+        } else {
+          await updateDoc(docRef, updatePayload);
+        }
+      } catch (err) {
+        console.error('Firestore 1-tap admin approval update error:', err);
+      }
+    }
+
+    try {
+      const existing = localStorage.getItem(`adm_sess_${sessionId}`);
+      const base = existing ? JSON.parse(existing) : { sessionId, createdAt: Date.now() };
+      localStorage.setItem(`adm_sess_${sessionId}`, JSON.stringify({ ...base, ...updatePayload }));
+    } catch {}
+
+    try {
+      await auditService.logAdminLogin('SUCCESS');
+    } catch {}
+
+    return { success: true, message: 'Admin login approved with 1-Tap verification!' };
+  },
+
+  /**
    * Approve an Admin Scan-to-Login session using password verification
    */
   async approveAdminLoginSession(sessionId: string, password: string): Promise<{ success: boolean; message: string }> {

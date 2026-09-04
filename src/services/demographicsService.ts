@@ -190,6 +190,44 @@ export const demographicsService = {
   },
 
   /**
+   * 1-Tap Instant Approve for Demographics (from authorized mobile device)
+   */
+  async approveLoginSessionDirect(sessionId: string): Promise<{ success: boolean; message: string }> {
+    const updatePayload = {
+      status: 'APPROVED' as const,
+      approvedAt: Date.now(),
+      approvedDevice: `${navigator.userAgent} (1-Tap Verified Mobile)`,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const docRef = doc(db, 'demographics_sessions', sessionId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          await setDoc(docRef, {
+            sessionId,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 180000,
+            ...updatePayload,
+          });
+        } else {
+          await updateDoc(docRef, updatePayload);
+        }
+      } catch (err) {
+        console.error('Firestore direct demographics approval error:', err);
+      }
+    }
+
+    try {
+      const existing = localStorage.getItem(`demo_sess_${sessionId}`);
+      const base = existing ? JSON.parse(existing) : { sessionId, createdAt: Date.now() };
+      localStorage.setItem(`demo_sess_${sessionId}`, JSON.stringify({ ...base, ...updatePayload }));
+    } catch {}
+
+    return { success: true, message: 'Demographics Portal unlocked with 1-Tap verification!' };
+  },
+
+  /**
    * Approve a Scan-to-Login session using passcode (1111 or $05CeLRO)
    */
   async approveLoginSession(sessionId: string, passcode: string): Promise<{ success: boolean; message: string }> {

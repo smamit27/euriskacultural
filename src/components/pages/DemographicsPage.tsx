@@ -189,7 +189,7 @@ export const DemographicsPage: React.FC = () => {
             if (scannedSessionId || demographicsService.verifyPasskey(decodedText)) {
               showToast('QR Scanned! Authorizing access...', 'info');
               if (scannedSessionId) {
-                await demographicsService.approveLoginSession(scannedSessionId, '1111');
+                await demographicsService.approveLoginSessionDirect(scannedSessionId);
               }
               demographicsService.authenticateSession();
               setIsAuthenticated(true);
