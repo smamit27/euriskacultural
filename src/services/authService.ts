@@ -6,7 +6,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { auditService } from './auditService';
+import { fetchPublicIPAndLocation, auditService } from './auditService';
 import type { UserProfile, UserRole } from '../types';
 
 export interface AdminLoginSession {
@@ -14,8 +14,13 @@ export interface AdminLoginSession {
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
   createdAt: number;
   expiresAt: number;
+  creatorIp?: string;
+  creatorLocation?: string;
+  creatorDevice?: string;
   approvedAt?: number;
   approvedDevice?: string;
+  approvedIp?: string;
+  isPairingTransfer?: boolean;
   userAgent?: string;
 }
 
@@ -192,17 +197,31 @@ export const authService = {
   },
 
   /**
-   * Create a new real-time Admin Scan-to-Login session in Firestore
+   * Create a new real-time Admin Scan-to-Login session in Firestore with IP tracking
    */
-  async createAdminLoginSession(): Promise<AdminLoginSession> {
+  async createAdminLoginSession(isPairingTransfer: boolean = false): Promise<AdminLoginSession> {
     const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
     const sessionId = `ADM-${Date.now().toString(36).toUpperCase()}-${randomSuffix}`;
     const now = Date.now();
+
+    // Fetch creator IP & location
+    let creatorIp = 'Unknown IP';
+    let creatorLocation: string | undefined = undefined;
+    try {
+      const netInfo = await fetchPublicIPAndLocation();
+      creatorIp = netInfo.ip;
+      creatorLocation = netInfo.location;
+    } catch {}
+
     const session: AdminLoginSession = {
       sessionId,
       status: 'PENDING',
       createdAt: now,
       expiresAt: now + 3 * 60 * 1000,
+      creatorIp,
+      creatorLocation,
+      creatorDevice: navigator.userAgent,
+      isPairingTransfer,
       userAgent: navigator.userAgent,
     };
 
@@ -219,6 +238,28 @@ export const authService = {
     } catch {}
 
     return session;
+  },
+
+  /**
+   * Fetch an existing Admin session by ID
+   */
+  async getAdminLoginSession(sessionId: string): Promise<AdminLoginSession | null> {
+    if (isFirebaseConfigured && db) {
+      try {
+        const docSnap = await getDoc(doc(db, 'admin_sessions', sessionId));
+        if (docSnap.exists()) {
+          return docSnap.data() as AdminLoginSession;
+        }
+      } catch (err) {
+        console.warn('Admin session fetch error:', err);
+      }
+    }
+    try {
+      const existing = localStorage.getItem(`adm_sess_${sessionId}`);
+      return existing ? JSON.parse(existing) : null;
+    } catch {
+      return null;
+    }
   },
 
   /**
@@ -255,10 +296,17 @@ export const authService = {
    * 1-Tap Instant Approve Admin Scan Session (from an already authenticated Admin device)
    */
   async approveAdminLoginSessionDirect(sessionId: string): Promise<{ success: boolean; message: string }> {
+    let approverIp = 'Unknown IP';
+    try {
+      const netInfo = await fetchPublicIPAndLocation();
+      approverIp = netInfo.ip;
+    } catch {}
+
     const updatePayload = {
       status: 'APPROVED' as const,
       approvedAt: Date.now(),
-      approvedDevice: `${navigator.userAgent} (1-Tap Verified Mobile)`,
+      approvedDevice: `${navigator.userAgent} (1-Tap Verified)`,
+      approvedIp: approverIp,
     };
 
     if (isFirebaseConfigured && db) {
@@ -294,7 +342,7 @@ export const authService = {
   },
 
   /**
-   * Approve an Admin Scan-to-Login session using password verification
+   * Approve an Admin Scan-to-Login session using cryptographic hash verification
    */
   async approveAdminLoginSession(sessionId: string, password: string): Promise<{ success: boolean; message: string }> {
     const result = await this.verifyPassword(password);
@@ -302,10 +350,17 @@ export const authService = {
       return { success: false, message: 'Invalid Admin Password. Access denied.' };
     }
 
+    let approverIp = 'Unknown IP';
+    try {
+      const netInfo = await fetchPublicIPAndLocation();
+      approverIp = netInfo.ip;
+    } catch {}
+
     const updatePayload = {
       status: 'APPROVED' as const,
       approvedAt: Date.now(),
       approvedDevice: navigator.userAgent,
+      approvedIp: approverIp,
     };
 
     if (isFirebaseConfigured && db) {

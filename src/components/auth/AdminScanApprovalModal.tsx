@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, CheckCircle2, Lock, X, Sparkles, KeyRound, Ban, Zap } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Lock, X, Sparkles, KeyRound, Ban, Zap, Wifi, AlertTriangle } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { authService } from '../../services/authService';
+import { authService, type AdminLoginSession } from '../../services/authService';
+import { fetchPublicIPAndLocation } from '../../services/auditService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import euriskaLogo from '/euriska_logo.png';
@@ -11,9 +12,12 @@ interface Props {
 }
 
 export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, unlockAdminDirect } = useAuth();
   const { showToast } = useToast();
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<AdminLoginSession | null>(null);
+  const [currentIp, setCurrentIp] = useState<string>('Detecting...');
+  const [ipMatchStatus, setIpMatchStatus] = useState<'MATCHED' | 'MISMATCH' | 'CHECKING'>('CHECKING');
   const [authMethod, setAuthMethod] = useState<'ONE_TAP' | 'PASSWORD'>('ONE_TAP');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,12 +30,33 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
     const loginSession = params.get('admin_login') || params.get('admin_auth');
     if (loginSession) {
       setSessionId(loginSession);
+      // Fetch session data & current IP
+      (async () => {
+        const [sess, net] = await Promise.all([
+          authService.getAdminLoginSession(loginSession),
+          fetchPublicIPAndLocation(),
+        ]);
+        if (sess) setSessionData(sess);
+        setCurrentIp(net.ip);
+
+        if (sess && sess.creatorIp && net.ip) {
+          if (sess.creatorIp === net.ip || net.ip === 'Active Client Device') {
+            setIpMatchStatus('MATCHED');
+            setAuthMethod('ONE_TAP');
+          } else {
+            setIpMatchStatus('MISMATCH');
+            setAuthMethod('PASSWORD');
+          }
+        } else {
+          setIpMatchStatus('MATCHED');
+        }
+      })();
     }
   }, []);
 
   if (!sessionId) return null;
 
-  // Option A: 1-Tap Instant Approval (WhatsApp Style)
+  // Option A: 1-Tap Instant Approval
   const handleOneTapApprove = async () => {
     setIsSubmitting(true);
     setErrorMessage('');
@@ -39,6 +64,8 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
       const res = await authService.approveAdminLoginSessionDirect(sessionId);
       if (res.success) {
         setIsApproved(true);
+        // Also unlock admin privileges on current mobile device
+        unlockAdminDirect();
         try {
           confetti({
             particleCount: 110,
@@ -46,7 +73,7 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
             origin: { y: 0.6 },
           });
         } catch {}
-        showToast('👑 1-Tap Super Admin Login Approved! Desktop unlocked.', 'success');
+        showToast('👑 Super Admin Login Approved! Desktop & Phone Unlocked.', 'success');
         if (onApproved) onApproved();
 
         const url = new URL(window.location.href);
@@ -66,7 +93,7 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
     }
   };
 
-  // Option B: Password Verification Approval
+  // Option B: Password / Passcode Verification Approval
   const handlePasswordApprove = async () => {
     if (!password.trim()) return;
     setIsSubmitting(true);
@@ -75,6 +102,8 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
       const res = await authService.approveAdminLoginSession(sessionId, password.trim());
       if (res.success) {
         setIsApproved(true);
+        // Also unlock admin privileges on current mobile device
+        unlockAdminDirect();
         try {
           confetti({
             particleCount: 110,
@@ -82,7 +111,7 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
             origin: { y: 0.6 },
           });
         } catch {}
-        showToast('👑 Admin Login Approved with Password! Desktop unlocked.', 'success');
+        showToast('👑 Admin Login Approved with Passcode! Both Devices Unlocked.', 'success');
         if (onApproved) onApproved();
 
         const url = new URL(window.location.href);
@@ -282,28 +311,56 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
               Approve instant desktop access for session:
             </p>
 
-            {/* Session ID Card with device indicator */}
-            <div
-              style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: 12,
-                padding: '10px 14px',
-                marginBottom: 16,
-                textAlign: 'left',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <span style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600 }}>Session Token:</span>
-                <span style={{ fontSize: 11.5, fontFamily: 'monospace', fontWeight: 800, color: '#0f172a' }}>
-                  {sessionId}
-                </span>
+            {/* IP Verification Status Card */}
+            {ipMatchStatus === 'MATCHED' ? (
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1.5px solid #86efac',
+                  borderRadius: 12,
+                  padding: '9px 12px',
+                  marginBottom: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  textAlign: 'left',
+                }}
+              >
+                <Wifi size={16} color="#16a34a" style={{ flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d' }}>
+                    ✅ Same Network / Wi-Fi Verified
+                  </div>
+                  <div style={{ fontSize: 10.5, color: '#166534' }}>
+                    Client IP: <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{currentIp}</span> • Trusted Device Pair
+                  </div>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#059669', fontWeight: 700 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-                <span>Encrypted TLS 1.3 • Single-Use Verified Nonce</span>
+            ) : ipMatchStatus === 'MISMATCH' ? (
+              <div
+                style={{
+                  background: '#fffbeb',
+                  border: '1.5px solid #fde68a',
+                  borderRadius: 12,
+                  padding: '9px 12px',
+                  marginBottom: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  textAlign: 'left',
+                }}
+              >
+                <AlertTriangle size={16} color="#d97706" style={{ flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#b45309' }}>
+                    ⚠️ Different Network (Passcode Required)
+                  </div>
+                  <div style={{ fontSize: 10.5, color: '#92400e' }}>
+                    Phone ({currentIp}) ≠ Desktop ({sessionData?.creatorIp || 'Original'})
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : null}
 
             {/* Verification Mode Selector */}
             <div

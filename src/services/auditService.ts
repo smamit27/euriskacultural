@@ -81,7 +81,7 @@ function parseDeviceInfo() {
   return { deviceType, os, browser, deviceModel, screenSize };
 }
 
-async function fetchPublicIPAndLocation(): Promise<{ ip: string; location?: string }> {
+export async function fetchPublicIPAndLocation(): Promise<{ ip: string; location?: string }> {
   // Provider 1: ipapi.co (IP + City + State + Country)
   try {
     const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
