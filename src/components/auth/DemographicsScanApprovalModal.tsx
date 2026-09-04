@@ -11,7 +11,7 @@ interface Props {
 export const DemographicsScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
   const { showToast } = useToast();
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [passcode, setPasscode] = useState('1111');
+  const [passcode, setPasscode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -40,7 +40,7 @@ export const DemographicsScanApprovalModal: React.FC<Props> = ({ onApproved }) =
             origin: { y: 0.6 },
           });
         } catch {}
-        showToast('🎉 Login Approved with Passcode 1111! Desktop unlocked.', 'success');
+        showToast('🎉 Login Approved! Desktop unlocked.', 'success');
         if (onApproved) onApproved();
 
         // Clear query param from address bar cleanly
@@ -226,22 +226,23 @@ export const DemographicsScanApprovalModal: React.FC<Props> = ({ onApproved }) =
             {/* Passcode input field */}
             <div style={{ marginBottom: 16, textAlign: 'left' }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
-                Approval Passcode:
+                Enter Confidential Passkey:
               </label>
               <input
-                type="text"
+                type="password"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                placeholder="1111"
+                placeholder="••••"
+                autoFocus
                 style={{
                   width: '100%',
                   padding: '12px 14px',
                   borderRadius: 10,
                   border: errorMessage ? '2px solid #ef4444' : '1.5px solid #cbd5e1',
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: 800,
                   textAlign: 'center',
-                  letterSpacing: '0.2em',
+                  letterSpacing: '0.25em',
                   outline: 'none',
                   boxSizing: 'border-box',
                 }}
@@ -256,26 +257,26 @@ export const DemographicsScanApprovalModal: React.FC<Props> = ({ onApproved }) =
             {/* Approve Button */}
             <button
               onClick={handleApprove}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !passcode.trim()}
               style={{
                 width: '100%',
                 padding: '13px',
                 borderRadius: 12,
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                background: passcode.trim() ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#cbd5e1',
                 color: '#ffffff',
                 fontSize: 14,
                 fontWeight: 800,
                 border: 'none',
-                cursor: 'pointer',
+                cursor: passcode.trim() ? 'pointer' : 'not-allowed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
-                boxShadow: '0 8px 20px rgba(16, 185, 129, 0.25)',
+                boxShadow: passcode.trim() ? '0 8px 20px rgba(16, 185, 129, 0.25)' : 'none',
               }}
             >
               <Sparkles size={16} />
-              <span>{isSubmitting ? 'Verifying & Unlocking...' : 'Approve & Unlock Desktop (1111)'}</span>
+              <span>{isSubmitting ? 'Verifying & Unlocking...' : 'Approve & Unlock Desktop'}</span>
             </button>
           </div>
         )}

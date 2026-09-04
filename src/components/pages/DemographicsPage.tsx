@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   ShieldAlert, Lock, Unlock, Search,
   Download, CheckCircle2, Clock, QrCode,
-  RefreshCw, Sparkles, KeyRound, Copy, Check, Camera, X
+  RefreshCw, KeyRound, Copy, Check, Camera, X
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
@@ -23,7 +23,6 @@ export const DemographicsPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<number>(180);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
-  const [isSimulating, setIsSimulating] = useState<boolean>(false);
 
   // In-app Camera scanner state
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
@@ -97,7 +96,7 @@ export const DemographicsPage: React.FC = () => {
             origin: { y: 0.6 },
           });
         } catch {}
-        showToast('🎉 Instant Scan-to-Login Approved (Passcode: 1111)! Executive Demographics Unlocked.', 'success');
+        showToast('🎉 Instant Scan-to-Login Approved! Executive Demographics Unlocked.', 'success');
         loadData(selectedWing);
       } else if (updated.status === 'REJECTED') {
         setAuthError('Session was rejected by mobile user.');
@@ -153,23 +152,8 @@ export const DemographicsPage: React.FC = () => {
       showToast('🔒 Confidential Portal unlocked successfully.', 'success');
       loadData(selectedWing);
     } else {
-      setAuthError('Access Denied: Invalid passcode. Enter 1111 or confidential passkey.');
-      showToast('Incorrect passcode.', 'error');
-    }
-  };
-
-  // Instant one-click simulate / approve button for easy demo
-  const handleSimulateApprove = async () => {
-    if (!session) return;
-    try {
-      setIsSimulating(true);
-      await demographicsService.approveLoginSession(session.sessionId, '1111');
-      // The Firestore listener will automatically fire and unlock the UI
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to simulate approval.', 'error');
-    } finally {
-      setIsSimulating(false);
+      setAuthError('Access Denied: Invalid passkey.');
+      showToast('Incorrect passkey.', 'error');
     }
   };
 
@@ -194,7 +178,6 @@ export const DemographicsPage: React.FC = () => {
           { fps: 10, qrbox: { width: 250, height: 250 } },
           async (decodedText) => {
             stopCameraScanner();
-            // Check if text has demologin or session id
             let scannedSessionId = '';
             if (decodedText.includes('demologin=')) {
               const parts = decodedText.split('demologin=');
@@ -203,8 +186,8 @@ export const DemographicsPage: React.FC = () => {
               scannedSessionId = decodedText;
             }
 
-            if (scannedSessionId || decodedText === '1111') {
-              showToast('QR Scanned! Authorizing with Passcode 1111...', 'info');
+            if (scannedSessionId || demographicsService.verifyPasskey(decodedText)) {
+              showToast('QR Scanned! Authorizing access...', 'info');
               if (scannedSessionId) {
                 await demographicsService.approveLoginSession(scannedSessionId, '1111');
               }
@@ -351,7 +334,7 @@ export const DemographicsPage: React.FC = () => {
             Executive Demographics
           </h2>
           <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 20px 0', lineHeight: 1.5 }}>
-            Scan with your mobile phone or enter passcode <strong style={{ color: '#0f172a' }}>1111</strong> to unlock.
+            Scan with your authorized mobile phone or enter confidential passkey to proceed.
           </p>
 
           {/* Auth Mode Toggle Tabs */}
@@ -412,7 +395,7 @@ export const DemographicsPage: React.FC = () => {
               }}
             >
               <KeyRound size={16} color={authMode === 'PASSCODE' ? '#dc2626' : '#64748b'} />
-              <span>Passcode (1111)</span>
+              <span>Enter Passkey</span>
             </button>
           </div>
 
@@ -497,7 +480,7 @@ export const DemographicsPage: React.FC = () => {
                     }}
                   />
                   <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>
-                    Listening for mobile scan with Passcode <strong style={{ color: '#0f172a' }}>1111</strong>
+                    Waiting for authorized mobile scan...
                   </span>
                 </div>
 
@@ -528,85 +511,58 @@ export const DemographicsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Instant Test / Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                 <button
                   type="button"
-                  onClick={handleSimulateApprove}
-                  disabled={isSimulating || timeLeft === 0}
+                  onClick={startCameraScanner}
                   style={{
-                    width: '100%',
-                    padding: '11px',
-                    borderRadius: 12,
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: '#ffffff',
-                    fontSize: 13,
-                    fontWeight: 800,
-                    border: 'none',
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: '#f8fafc',
+                    color: '#334155',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    border: '1px solid #cbd5e1',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 6,
-                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
                   }}
                 >
-                  <Sparkles size={15} />
-                  <span>{isSimulating ? 'Authorizing...' : '⚡ Instant One-Click Authorize (Passcode: 1111)'}</span>
+                  <Camera size={14} color="#64748b" />
+                  <span>Scan with Camera</span>
                 </button>
 
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={startCameraScanner}
-                    style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      borderRadius: 10,
-                      background: '#f8fafc',
-                      color: '#334155',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      border: '1px solid #cbd5e1',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 5,
-                    }}
-                  >
-                    <Camera size={14} color="#64748b" />
-                    <span>Scan with Camera</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleCopyLink}
-                    style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      borderRadius: 10,
-                      background: '#f8fafc',
-                      color: '#334155',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      border: '1px solid #cbd5e1',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 5,
-                    }}
-                  >
-                    {isCopied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="#64748b" />}
-                    <span>{isCopied ? 'Link Copied!' : 'Copy Mobile Link'}</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  style={{
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: '#f8fafc',
+                    color: '#334155',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    border: '1px solid #cbd5e1',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {isCopied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="#64748b" />}
+                  <span>{isCopied ? 'Link Copied!' : 'Copy Mobile Link'}</span>
+                </button>
               </div>
             </div>
           )}
 
-          {/* MODE B: MANUAL PASSCODE (1111 OR $05CeLRO) */}
+          {/* MODE B: MANUAL PASSCODE */}
           {authMode === 'PASSCODE' && (
             <form onSubmit={handleAuthSubmit} style={{ animation: 'fadeIn 0.2s ease' }}>
               <div style={{ marginBottom: 16 }}>
@@ -614,7 +570,7 @@ export const DemographicsPage: React.FC = () => {
                   type="password"
                   value={passkeyInput}
                   onChange={(e) => setPasskeyInput(e.target.value)}
-                  placeholder="Enter passcode (e.g. 1111)"
+                  placeholder="Enter confidential passkey"
                   required
                   autoFocus
                   style={{
@@ -631,25 +587,6 @@ export const DemographicsPage: React.FC = () => {
                     background: '#f8fafc',
                   }}
                 />
-
-                {/* Quick 1111 Helper Button */}
-                <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
-                  <button
-                    type="button"
-                    onClick={() => setPasskeyInput('1111')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#dc2626',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    Quick Fill Passcode: 1111
-                  </button>
-                </div>
 
                 {authError && (
                   <div style={{ color: '#ef4444', fontSize: 12, fontWeight: 700, marginTop: 8 }}>
@@ -733,14 +670,14 @@ export const DemographicsPage: React.FC = () => {
                 />
 
                 <p style={{ fontSize: 12, color: '#64748b', marginTop: 12, margin: '12px 0 0 0' }}>
-                  Point your camera at the Demographics Login QR to unlock with passcode <strong>1111</strong>.
+                  Point your camera at the Demographics Login QR to unlock.
                 </p>
               </div>
             </div>
           )}
 
           <div style={{ marginTop: 20, fontSize: 11.5, color: '#94a3b8' }}>
-            Authorized Committee &amp; Chairman Access Only • Passcode 1111 Enabled
+            Authorized Committee &amp; Chairman Access Only • Confidential
           </div>
         </div>
       </div>

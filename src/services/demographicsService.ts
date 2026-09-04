@@ -194,7 +194,7 @@ export const demographicsService = {
    */
   async approveLoginSession(sessionId: string, passcode: string): Promise<{ success: boolean; message: string }> {
     if (!this.verifyPasskey(passcode)) {
-      return { success: false, message: 'Invalid Passcode. Enter 1111 or confidential passkey.' };
+      return { success: false, message: 'Invalid passkey. Access denied.' };
     }
 
     const updatePayload = {
