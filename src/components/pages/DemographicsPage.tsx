@@ -140,9 +140,10 @@ export const DemographicsPage: React.FC = () => {
     }
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (demographicsService.verifyPasskey(passkeyInput)) {
+    const isValid = await demographicsService.verifyPasskey(passkeyInput);
+    if (isValid) {
       demographicsService.authenticateSession();
       setIsAuthenticated(true);
       setAuthError('');
@@ -186,7 +187,8 @@ export const DemographicsPage: React.FC = () => {
               scannedSessionId = decodedText;
             }
 
-            if (scannedSessionId || demographicsService.verifyPasskey(decodedText)) {
+            const isValidPass = await demographicsService.verifyPasskey(decodedText);
+            if (scannedSessionId || isValidPass) {
               showToast('QR Scanned! Authorizing access...', 'info');
               if (scannedSessionId) {
                 await demographicsService.approveLoginSessionDirect(scannedSessionId);

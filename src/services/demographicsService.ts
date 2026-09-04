@@ -90,16 +90,16 @@ const CHRISTIAN_KEYWORDS = [
   'clinton', 'veronica'
 ];
 
-const CONFIDENTIAL_PASSKEYS = ['$05CeLRO', '1111'];
+import { verifyCredentialHash } from '../utils/cryptoUtils';
+
 const DEMOGRAPHICS_AUTH_SESSION_KEY = 'euriska_demographics_auth_session';
 
 export const demographicsService = {
   /**
-   * Verify confidential passkey strictly (supports $05CeLRO and quick passcode 1111)
+   * Verify confidential passkey via one-way cryptographic SHA-256 hash check
    */
-  verifyPasskey(passkey: string): boolean {
-    const clean = passkey.trim();
-    return CONFIDENTIAL_PASSKEYS.includes(clean);
+  async verifyPasskey(passkey: string): Promise<boolean> {
+    return verifyCredentialHash(passkey);
   },
 
   /**
@@ -228,17 +228,18 @@ export const demographicsService = {
   },
 
   /**
-   * Approve a Scan-to-Login session using passcode (1111 or $05CeLRO)
+   * Approve a Scan-to-Login session using cryptographic hash verification
    */
   async approveLoginSession(sessionId: string, passcode: string): Promise<{ success: boolean; message: string }> {
-    if (!this.verifyPasskey(passcode)) {
+    const isValid = await this.verifyPasskey(passcode);
+    if (!isValid) {
       return { success: false, message: 'Invalid passkey. Access denied.' };
     }
 
     const updatePayload = {
       status: 'APPROVED' as const,
       approvedAt: Date.now(),
-      approvedByPasscode: passcode.trim(),
+      approvedMethod: 'SECURE_HASH_AUTHENTICATED',
       approvedDevice: navigator.userAgent,
     };
 

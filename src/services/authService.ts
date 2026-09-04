@@ -77,6 +77,8 @@ const ACTIVE_ROLE_KEY = 'euriska_active_role';
 const ADMIN_AUTH_KEY = 'euriska_admin_auth';
 const CUSTOM_PASSWORD_KEY = 'euriska_custom_password';
 
+import { verifyCredentialHash } from '../utils/cryptoUtils';
+
 export const authService = {
   /**
    * Check if current session is authenticated as Admin
@@ -96,8 +98,7 @@ export const authService = {
   },
 
   /**
-   * Fetch current portal password from Firebase Firestore 'settings/security'
-   * If not found, initializes 'euriska2026' into Firebase Firestore.
+   * Fetch current custom portal password from Firebase Firestore 'settings/security'
    */
   async getPortalPasswordFromFirebase(): Promise<string> {
     if (db) {
@@ -107,19 +108,12 @@ export const authService = {
         if (snap.exists()) {
           const data = snap.data();
           if (data.portalPassword) return data.portalPassword;
-        } else {
-          // Initialize in Firestore
-          await setDoc(docRef, {
-            portalPassword: 'euriska2026',
-            updatedAt: new Date().toISOString(),
-          });
-          return 'euriska2026';
         }
       } catch (err) {
-        console.warn('Firebase security fetch failed, using fallback:', err);
+        console.warn('Firebase security fetch failed:', err);
       }
     }
-    return localStorage.getItem(CUSTOM_PASSWORD_KEY) || 'euriska2026';
+    return localStorage.getItem(CUSTOM_PASSWORD_KEY) || '';
   },
 
   /**
@@ -143,21 +137,21 @@ export const authService = {
   },
 
   /**
-   * Verify password strictly against Firebase Firestore (ONLY euriska2026)
+   * Verify password strictly via one-way cryptographic SHA-256 hash or Firestore security doc
    */
   async verifyPassword(password: string): Promise<{ valid: boolean; role: UserRole }> {
     const trimmed = password.trim();
     if (!trimmed) return { valid: false, role: 'VIEWER' };
 
-    const fbPassword = await this.getPortalPasswordFromFirebase();
+    // 1. Check one-way cryptographic hash match
+    const isHashMatch = await verifyCredentialHash(trimmed);
+    if (isHashMatch) {
+      return { valid: true, role: 'SUPER_ADMIN' };
+    }
 
-    // Strictly match the Firebase password (e.g. euriska2026) or quick authorized pincode (1111 / $05CeLRO)
-    if (
-      trimmed === fbPassword ||
-      trimmed.toLowerCase() === fbPassword.toLowerCase() ||
-      trimmed === '1111' ||
-      trimmed === '$05CeLRO'
-    ) {
+    // 2. Check dynamic Firestore custom password if set
+    const fbPassword = await this.getPortalPasswordFromFirebase();
+    if (fbPassword && (trimmed === fbPassword || trimmed.toLowerCase() === fbPassword.toLowerCase())) {
       return { valid: true, role: 'SUPER_ADMIN' };
     }
 
