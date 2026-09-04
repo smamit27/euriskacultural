@@ -429,6 +429,12 @@ export const AdminScanApprovalModal: React.FC<Props> = ({ onApproved }) => {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && password.trim() && !isSubmitting) {
+                          e.preventDefault();
+                          handlePasswordApprove();
+                        }
+                      }}
                       placeholder="••••••••"
                       autoFocus
                       style={{

@@ -425,6 +425,12 @@ export const DemographicsScanApprovalModal: React.FC<Props> = ({ onApproved }) =
                       type="password"
                       value={passcode}
                       onChange={(e) => setPasscode(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && passcode.trim() && !isSubmitting) {
+                          e.preventDefault();
+                          handlePasswordApprove();
+                        }
+                      }}
                       placeholder="••••••••"
                       autoFocus
                       style={{

