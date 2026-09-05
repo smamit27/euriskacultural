@@ -154,7 +154,7 @@ export interface GalleryImage {
   likes?: number;
 }
 
-export type SponsorTier = 'Title' | 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Community';
+export type SponsorTier = 'Title' | 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Community' | 'Seva Patron';
 
 export interface Sponsor {
   id: string;
@@ -162,12 +162,16 @@ export interface Sponsor {
   name: string;
   tier: SponsorTier;
   amount: number;
-  logoUrl: string;
+  logoUrl?: string;
   paymentStatus: 'PAID' | 'PENDING';
-  contactPerson: string;
-  contactPhone: string;
+  contactPerson?: string;
+  contactPhone?: string;
   website?: string;
   description?: string;
+  flatNumber?: string;
+  buildingId?: string;
+  sevaType?: string;
+  sevaCategory?: string;
 }
 
 export interface Volunteer {

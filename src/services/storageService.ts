@@ -43,7 +43,7 @@ const STORAGE_KEYS = {
   MAHA_PRASAD_RSVP: 'euriska_maha_prasad_rsvp',
 };
 
-const CURRENT_SEED_VERSION = 'v14_amit_singh_a1007';
+const CURRENT_SEED_VERSION = 'v18_cleared_performances';
 
 class DataStore {
   private get<T>(key: string, defaultVal: T): T {

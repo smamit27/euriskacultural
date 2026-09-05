@@ -1377,5 +1377,364 @@ export const pdfService = {
 
     doc.save('Euriska_Maha_Prasad_Roster_24Sep2026.pdf');
   },
+
+  /**
+   * Export Official Devotee Seva Patron Certificate of Appreciation PDF
+   */
+  async exportSingleSponsorCertificatePDF(sponsor: {
+    devoteeName: string;
+    flat: string;
+    building?: string;
+    sevaTitle: string;
+    sevaCategory?: string;
+    description?: string;
+    highlights?: string[];
+    mantra?: string;
+    phone?: string;
+  }) {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    let logoData: string | null = null;
+    let ganeshData: string | null = null;
+    try {
+      logoData = await getImageDataUrl('/euriska_logo.png');
+      ganeshData = await getImageDataUrl('/ganesh_bhagwan.jpg');
+    } catch {
+      // ignore
+    }
+
+    // Outer Rich Royal Border Frame
+    doc.setDrawColor(194, 65, 12); // Deep saffron #c2410c
+    doc.setLineWidth(1.8);
+    doc.roundedRect(10, 10, 190, 277, 6, 6, 'D');
+
+    doc.setDrawColor(245, 158, 11); // Gold trim #f59e0b
+    doc.setLineWidth(0.8);
+    doc.roundedRect(13, 13, 184, 271, 4, 4, 'D');
+
+    // Header Background
+    doc.setFillColor(154, 52, 18); // Maroon #9a3412
+    doc.roundedRect(15, 15, 180, 46, 3, 3, 'F');
+
+    // Gold Accent Line
+    doc.setFillColor(251, 191, 36);
+    doc.rect(15, 59, 180, 2, 'F');
+
+    // Left Logo
+    if (logoData) {
+      try {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(19, 19, 28, 28, 4, 4, 'F');
+        doc.addImage(logoData, 'PNG', 20.5, 20.5, 25, 25);
+      } catch {
+        // ignore
+      }
+    }
+
+    // Right Ganesh Idol
+    if (ganeshData) {
+      try {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(163, 19, 28, 28, 4, 4, 'F');
+        doc.addImage(ganeshData, 'JPEG', 164.5, 20.5, 25, 25);
+      } catch {
+        // ignore
+      }
+    }
+
+    // Header Typography
+    doc.setTextColor(254, 215, 170);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('* SHRI GANESHAYA NAMAHA *', 105, 23, { align: 'center' });
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(17);
+    doc.text('MAJESTIQUE EURISKA CULTURAL UTSAV 2026', 105, 31, { align: 'center' });
+
+    doc.setTextColor(254, 240, 138);
+    doc.setFontSize(12);
+    doc.text('CERTIFICATE OF DEVOTEE SEVA PATRON', 105, 40, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 237, 213);
+    doc.text('Official Devotee Recognition & Appreciation Document', 105, 47, { align: 'center' });
+
+    // Ribbon Sub-Header
+    doc.setFillColor(254, 243, 199);
+    doc.setDrawColor(245, 158, 11);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(15, 65, 180, 16, 3, 3, 'FD');
+
+    doc.setTextColor(180, 83, 9);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(
+      cleanPdfText(`Seva: ${sponsor.sevaTitle.toUpperCase()} (Flat ${sponsor.flat})`),
+      105,
+      73.5,
+      { align: 'center' }
+    );
+
+    doc.setFontSize(8.5);
+    doc.setTextColor(154, 52, 18);
+    doc.text(
+      cleanPdfText(`Honoring Devotee Sponsor: ${sponsor.devoteeName} • ${sponsor.building || 'Euriska Society'}`),
+      105,
+      79,
+      { align: 'center' }
+    );
+
+    // Certificate Presentation Paragraph
+    doc.setTextColor(51, 65, 85);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    const appreciationText = cleanPdfText(
+      `This Certificate of Honor and Gratitude is proudly presented to ${sponsor.devoteeName} (Flat ${sponsor.flat}) for their benevolent sponsorship and dedicated contribution towards ${sponsor.sevaTitle} at the Majestique Euriska Cultural & Festive Celebrations 2026.`
+    );
+    const splitText = doc.splitTextToSize(appreciationText, 176);
+    doc.text(splitText, 17, 90);
+
+    // Devotee & Seva Specification Table
+    const tableData = [
+      ['Devotee Sponsor Name:', cleanPdfText(sponsor.devoteeName)],
+      ['Flat & Building:', `Flat ${cleanPdfText(sponsor.flat)} (${cleanPdfText(sponsor.building) || 'Majestique Euriska'})`],
+      ['Seva Dedication Category:', cleanPdfText(sponsor.sevaTitle)],
+      ['Festival Celebration:', 'Ganesh Chaturthi & Cultural Extravaganza 2026 (14-25 Sep 2026)'],
+      ['Contribution Significance:', cleanPdfText(sponsor.description || 'Major community seva partner bringing blessings to 231+ resident families.')],
+      ['Contact Reference:', cleanPdfText(sponsor.phone) || 'Registered Society Resident'],
+    ];
+
+    autoTable(doc, {
+      startY: 106,
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        fontSize: 9.5,
+        cellPadding: 4,
+        lineColor: [226, 232, 240],
+        lineWidth: 0.3,
+      },
+      alternateRowStyles: {
+        fillColor: [255, 251, 235],
+      },
+      columnStyles: {
+        0: {
+          fontStyle: 'bold',
+          textColor: [124, 45, 18],
+          cellWidth: 54,
+          fillColor: [254, 243, 199],
+        },
+        1: {
+          fontStyle: 'bold',
+          textColor: [15, 23, 42],
+          cellWidth: 126,
+        },
+      },
+      margin: { left: 15, right: 15 },
+    });
+
+    const endY = (doc as any).lastAutoTable.finalY || 165;
+
+    // Highlights Box if available
+    if (sponsor.highlights && sponsor.highlights.length > 0) {
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(15, endY + 8, 180, 24, 3, 3, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text('KEY SEVA HIGHLIGHTS & CONTRIBUTIONS:', 19, endY + 14);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      sponsor.highlights.forEach((h, idx) => {
+        doc.text(`[x] ${cleanPdfText(h)}`, 19, endY + 20 + idx * 4.5);
+      });
+    }
+
+    // Devotional Blessing Shloka Banner
+    const blessingY = endY + 38;
+    doc.setFillColor(255, 247, 237);
+    doc.setDrawColor(251, 146, 60);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(15, blessingY, 180, 16, 3, 3, 'FD');
+
+    doc.setTextColor(194, 65, 12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('* ॐ गं गणपतये नमः • GANPATI BAPPA MORYA *', 105, blessingY + 8, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.setTextColor(146, 64, 14);
+    doc.setFont('helvetica', 'normal');
+    doc.text('May Lord Ganesha shower supreme health, prosperity and happiness upon the sponsor family.', 105, blessingY + 13, { align: 'center' });
+
+    // Official Committee Signature Seals
+    const signY = blessingY + 26;
+
+    // Left Signature
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Sachin Singh / Amit Singh', 24, signY + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Cultural Committee Head', 24, signY + 12);
+    doc.text('Euriska Society, Pune', 24, signY + 16);
+
+    // Center Seal
+    doc.setFillColor(254, 243, 199);
+    doc.setDrawColor(245, 158, 11);
+    doc.roundedRect(82, signY + 2, 46, 18, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(180, 83, 9);
+    doc.text('OFFICIAL SEAL', 105, signY + 9, { align: 'center' });
+    doc.setFontSize(7.5);
+    doc.text('VERIFIED PATRON', 105, signY + 15, { align: 'center' });
+
+    // Right Signature
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Executive Committee', 148, signY + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Treasurer & Secretary', 148, signY + 12);
+    doc.text('Euriska Society, Pune', 148, signY + 16);
+
+    // Footer Tag
+    const footerY = signY + 26;
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    doc.text(`Digital Verification Certificate | Generated on: ${dateStr} | ID: EUR-SPON-${cleanPdfText(sponsor.flat)}`, 15, footerY);
+
+    doc.save(`Euriska_Seva_Certificate_${cleanPdfText(sponsor.devoteeName).replace(/\s+/g, '_')}_Flat${cleanPdfText(sponsor.flat)}.pdf`);
+  },
+
+  /**
+   * Export Full Seva Patrons & Sponsors Directory Roster PDF
+   */
+  async exportAllSponsorsPDF(sponsors: any[]) {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    let logoData: string | null = null;
+    try {
+      logoData = await getImageDataUrl('/euriska_logo.png');
+    } catch {
+      // ignore
+    }
+
+    // Header Background
+    doc.setFillColor(30, 27, 75); // Indigo-950 #1e1b4b
+    doc.rect(0, 0, 210, 36, 'F');
+
+    doc.setFillColor(249, 115, 22); // Orange strip
+    doc.rect(0, 34, 210, 2, 'F');
+
+    if (logoData) {
+      try {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(172, 5, 26, 26, 4, 4, 'F');
+        doc.addImage(logoData, 'PNG', 174, 7, 22, 22);
+      } catch {
+        // ignore
+      }
+    }
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('MAJESTIQUE EURISKA UTSAV 2026', 14, 14);
+
+    doc.setFontSize(12);
+    doc.setTextColor(254, 215, 170);
+    doc.text('OUR SPONSORS & SEVA PATRONS DIRECTORY', 14, 22);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(203, 213, 225);
+    const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    doc.text(`Official Directory of Seva Sponsors & Devotee Contributors | Generated: ${dateStr}`, 14, 29);
+
+    // Summary Card
+    doc.setFillColor(254, 243, 199);
+    doc.setDrawColor(245, 158, 11);
+    doc.roundedRect(14, 40, 182, 12, 2, 2, 'FD');
+
+    doc.setTextColor(146, 64, 14);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(
+      cleanPdfText(`Total Active Seva Patrons: ${sponsors.length} | 50% Murti Seva (B-307) | 50% Decoration Seva (A-505) | 100% Devotion`),
+      18,
+      47.5
+    );
+
+    const tableBody = sponsors.map((sp, idx) => [
+      idx + 1,
+      cleanPdfText(sp.devoteeName || sp.name),
+      `Flat ${cleanPdfText(sp.flat || sp.flatNumber)}`,
+      cleanPdfText(sp.building || (sp.buildingId ? `${sp.buildingId} Wing` : 'Euriska')),
+      cleanPdfText(sp.sevaTitle || sp.sevaCategory || 'Festival Seva'),
+      cleanPdfText(sp.description || 'Devotee Seva Sponsor'),
+      cleanPdfText(sp.phone || sp.contactPhone || 'Resident'),
+    ]);
+
+    autoTable(doc, {
+      startY: 56,
+      head: [['#', 'Devotee Name', 'Flat', 'Wing', 'Seva Dedication', 'Details & Purpose', 'Contact Phone']],
+      body: tableBody,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [49, 46, 129],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8.5,
+        halign: 'center',
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [15, 23, 42],
+        valign: 'middle',
+      },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 36, fontStyle: 'bold' },
+        2: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+        3: { cellWidth: 20, halign: 'center' },
+        4: { cellWidth: 38, fontStyle: 'bold', textColor: [194, 65, 12] },
+        5: { cellWidth: 36 },
+        6: { cellWidth: 22, halign: 'center' },
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Euriska Cultural Committee - Seva Patrons & Sponsors Roster | Page ${i} of ${pageCount}`, 14, 290);
+    }
+
+    doc.save('Euriska_Seva_Patrons_Directory_2026.pdf');
+  },
 };
+
 

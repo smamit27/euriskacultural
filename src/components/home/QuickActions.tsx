@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Image, Mic, Handshake, Palette, Flame, IndianRupee } from 'lucide-react';
+import { Calendar, Image, Mic, Palette, Flame, IndianRupee } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface QuickActionsProps {
@@ -101,21 +101,6 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onNavigate }) => {
         <div>
           <div className="quick-action-title">🎤 Perform</div>
           <div className="quick-action-desc">Artists & acts</div>
-        </div>
-      </div>
-
-      <div
-        className="quick-action-card"
-        onClick={() => onNavigate('sponsors')}
-        role="button"
-        tabIndex={0}
-      >
-        <div className="quick-action-icon icon-emerald">
-          <Handshake size={24} />
-        </div>
-        <div>
-          <div className="quick-action-title">🤝 Sponsors</div>
-          <div className="quick-action-desc">Partners & supporters</div>
         </div>
       </div>
     </div>

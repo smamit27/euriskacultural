@@ -4,6 +4,7 @@ import { QuickActions } from '../home/QuickActions';
 import { UpcomingPrograms } from '../home/UpcomingPrograms';
 import { AdminDashboardSummary } from '../home/AdminDashboardSummary';
 import { CulturalEventsSection } from '../home/CulturalEventsSection';
+import { HomeSponsorsSection } from '../home/HomeSponsorsSection';
 import { programService } from '../../services/programService';
 import { contributionService } from '../../services/contributionService';
 import { useAuth } from '../../context/AuthContext';
@@ -152,6 +153,11 @@ export const HomePage: React.FC<HomePageProps> = ({
           onNavigate={(section) => onNavigate(section)}
         />
       </div>
+
+      {/* Seva Patrons & Sponsors Showcase */}
+      <HomeSponsorsSection
+        onViewAllSponsors={() => onNavigate('sponsors')}
+      />
 
       {/* Upcoming Programs */}
       <UpcomingPrograms

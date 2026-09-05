@@ -21,7 +21,7 @@ const MENU_ITEMS: { page: SubPage; icon: React.ReactNode; label: string; desc: s
   { page: 'programs', icon: <Calendar size={22} color="#7e22ce" />, label: '🎭 Programs', desc: 'Full event schedule & timeline' },
   { page: 'performances', icon: <Mic size={22} color="#0e7490" />, label: '🎤 Performances', desc: 'Artists, acts & stage lineup' },
   { page: 'gallery', icon: <Image size={22} color="#c2410c" />, label: '📸 Gallery', desc: 'Photo albums & moments' },
-  { page: 'sponsors', icon: <Handshake size={22} color="#047857" />, label: '🤝 Sponsors', desc: 'Partners & supporters' },
+  { page: 'sponsors', icon: <Handshake size={22} color="#ea580c" />, label: '🌺 Sponsors & Seva Patrons', desc: 'Murti, Decor & Festival Devotee Sponsors' },
   { page: 'volunteers', icon: <Users size={22} color="#b45309" />, label: '👥 Volunteers', desc: 'Team members & shifts' },
   { page: 'tasks', icon: <ClipboardList size={22} color="#7c3aed" />, label: '📋 Tasks', desc: 'Kanban task board', adminOnly: true },
   { page: 'reports', icon: <BarChart3 size={22} color="#0369a1" />, label: '📊 Financial Transparency Report', desc: 'Infographic, expenses & collections', adminOnly: true },

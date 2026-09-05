@@ -804,12 +804,6 @@
    TABLET & DESKTOP COMPONENT OVERRIDES
    ============================================= */
 
-/* Hide mobile-only back button row on desktop (desktop has it in the desktop-header) */
-@media (min-width: 1024px) {
-  .mobile-back-btn-row {
-    display: none;
-  }
-}
 
 /* ── Tablet (768–899px) component tweaks ── */
 @media (min-width: 768px) and (max-width: 899px) {
@@ -1114,7 +1108,6 @@
   .desktop-header,
   .mobile-header,
   .bottom-nav,
-  .mobile-back-btn-row,
   .sidebar-brand,
   .sidebar-admin-footer,
   button {

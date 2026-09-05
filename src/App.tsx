@@ -28,6 +28,7 @@ import { AdminLoginModal } from './components/auth/AdminLoginModal';
 import { PairDeviceModal } from './components/auth/PairDeviceModal';
 import { AdminScanApprovalModal } from './components/auth/AdminScanApprovalModal';
 import { DemographicsScanApprovalModal } from './components/auth/DemographicsScanApprovalModal';
+import { GlossyMandapWelcomeModal } from './components/sponsors/GlossyMandapWelcomeModal';
 import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
 import { LivePresenceBadge } from './components/common/LivePresenceBadge';
 import { LiveTrafficModal } from './components/admin/LiveTrafficModal';
@@ -473,36 +474,6 @@ function AppContent() {
             onOpenTrafficModal={() => setShowTrafficModal(true)}
           />
 
-          {/* Sub-page back button — mobile only */}
-          {subPage && (
-            <div style={{
-              padding: '10px 14px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-              className="mobile-back-btn-row"
-            >
-              <button
-                onClick={() => setSubPage(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: 22,
-                  cursor: 'pointer',
-                  color: '#0f172a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontWeight: 700,
-                  padding: '4px 0',
-                }}
-              >
-                ← Back
-              </button>
-            </div>
-          )}
-
           {renderContent()}
         </main>
 
@@ -543,6 +514,14 @@ function AppContent() {
           isOpen={showAddExpense}
           onClose={() => setShowAddExpense(false)}
           onSave={handleSaveExpense}
+        />
+
+        {/* First-time visitor Glossy Decoration Seva Welcome Splash */}
+        <GlossyMandapWelcomeModal
+          onNavigateToSponsors={() => {
+            setActiveTab('more');
+            setSubPage('sponsors');
+          }}
         />
 
         {/* Firebase Sync Utility (Admin only) */}
