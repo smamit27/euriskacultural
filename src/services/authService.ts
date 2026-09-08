@@ -27,8 +27,8 @@ export interface AdminLoginSession {
 const DEMO_USERS: Record<UserRole, UserProfile> = {
   SUPER_ADMIN: {
     uid: 'demo-superadmin',
-    email: 'smamit27@gmail.com',
-    displayName: 'Amit (Super Admin)',
+    email: 'majestiqueeuriskacultural@gmail.com',
+    displayName: 'Committee Super Admin',
     role: 'SUPER_ADMIN',
     buildingId: 'A',
     flatNumber: 'A-203',
