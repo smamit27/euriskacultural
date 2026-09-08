@@ -22,13 +22,7 @@ export const KALAKRITI_ACTIVITIES: {
   badgeBg: string;
   color: string;
 }[] = [
-  { key: 'drawing', label: 'Drawing', shortLabel: 'Drawing', emoji: '🎨', badgeBg: '#fef3c7', color: '#b45309' },
-  { key: 'skit1', label: 'Skit 1', shortLabel: 'Skit 1', emoji: '🎭', badgeBg: '#ede9fe', color: '#6d28d9' },
-  { key: 'skit2', label: 'Skit 2', shortLabel: 'Skit 2', emoji: '🎬', badgeBg: '#f5f3ff', color: '#7c3aed' },
   { key: 'dance', label: 'Dance', shortLabel: 'Dance', emoji: '💃', badgeBg: '#fce7f3', color: '#be185d' },
-  { key: 'fashionShow', label: 'Fashion Show', shortLabel: 'Fashion', emoji: '✨', badgeBg: '#fae8ff', color: '#a21caf' },
-  { key: 'mimicry', label: 'Mimicry', shortLabel: 'Mimicry', emoji: '🎙️', badgeBg: '#e0f2fe', color: '#0369a1' },
-  { key: 'singing', label: 'Singing', shortLabel: 'Singing', emoji: '🎤', badgeBg: '#ecfdf5', color: '#047857' },
   { key: 'fancyDress', label: 'Fancy Dress', shortLabel: 'Fancy Dress', emoji: '👑', badgeBg: '#fff7ed', color: '#c2410c' },
 ];
 
@@ -187,23 +181,11 @@ class KalakritiService {
   async getActivityCounts(): Promise<Record<KalakritiActivityKey, number>> {
     const entries = await this.getEntries();
     const counts: Record<KalakritiActivityKey, number> = {
-      drawing: 0,
-      skit1: 0,
-      skit2: 0,
       dance: 0,
-      fashionShow: 0,
-      mimicry: 0,
-      singing: 0,
       fancyDress: 0,
     };
     entries.forEach((e) => {
-      if (e.drawing) counts.drawing++;
-      if (e.skit1) counts.skit1++;
-      if (e.skit2) counts.skit2++;
       if (e.dance) counts.dance++;
-      if (e.fashionShow) counts.fashionShow++;
-      if (e.mimicry) counts.mimicry++;
-      if (e.singing) counts.singing++;
       if (e.fancyDress) counts.fancyDress++;
     });
     return counts;

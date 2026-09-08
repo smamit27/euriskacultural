@@ -22,7 +22,7 @@ const EVENT_HERO_CONFIG: Record<string, {
     subtitle: 'Ganpati Bappa Morya! Join the community for 12 days of devotion, aarti, modak & grand immersion.',
     dateLabel: '14 Sep – 25 Sep 2026 • 6:00 PM Onwards',
     venue: 'Club house, Pune',
-    tag: 'GANESH CHATURTHI 2026',
+    tag: 'GANESHOTSAV 2026',
   },
   'evt-navratri-2026': {
     bg: 'url(https://images.unsplash.com/photo-1591604466107-ec97de577aff?auto=format&fit=crop&w=1000&q=80)',

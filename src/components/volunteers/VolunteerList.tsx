@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Users, FileDown, Phone } from 'lucide-react';
 import type { Volunteer } from '../../types';
 import { volunteerService } from '../../services/volunteerService';
+import { pdfService } from '../../services/pdfService';
 
 export const VolunteerList: React.FC = () => {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     volunteerService.getVolunteers().then((data) => {
@@ -14,11 +16,14 @@ export const VolunteerList: React.FC = () => {
     });
   }, []);
 
-  const getStatusIcon = (status: Volunteer['status']) => {
-    switch (status) {
-      case 'ON_DUTY': return <span style={{ color: '#059669', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}><CheckCircle2 size={13} /> ON DUTY</span>;
-      case 'ASSIGNED': return <span style={{ color: '#d97706', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={13} /> ASSIGNED</span>;
-      default: return <span style={{ color: '#94a3b8', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={13} /> AVAILABLE</span>;
+  const handleDownloadPDF = async () => {
+    try {
+      setDownloading(true);
+      await pdfService.exportVolunteersRosterPDF(volunteers);
+    } catch (error) {
+      console.error('Failed to export volunteers PDF:', error);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -26,50 +31,121 @@ export const VolunteerList: React.FC = () => {
 
   return (
     <div style={{ padding: '0 14px 20px' }}>
-      <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Volunteers</h1>
-        <p style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>{volunteers.length} members powering Euriska 2026</p>
+      <div style={{
+        marginBottom: 16,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+            <Users size={22} color="#ea580c" />
+            <span>Volunteers</span>
+          </h1>
+          <p style={{ fontSize: 13, color: '#64748b', marginTop: 4, marginBottom: 0 }}>{volunteers.length} members • Euriska 2026</p>
+        </div>
+
+        <button
+          onClick={handleDownloadPDF}
+          disabled={downloading || volunteers.length === 0}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: 10,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: downloading ? 'not-allowed' : 'pointer',
+            boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
+            opacity: downloading ? 0.7 : 1,
+            transition: 'transform 0.15s, opacity 0.15s',
+          }}
+        >
+          <FileDown size={16} />
+          <span>{downloading ? 'Generating PDF...' : 'Download PDF'}</span>
+        </button>
       </div>
 
-      <div className="volunteer-list-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {volunteers.map((vol) => (
-          <div key={vol.id} style={{
-            background: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: 14,
-            padding: '12px 14px',
-            boxShadow: 'var(--shadow-sm)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{vol.name}</div>
-                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginTop: 1 }}>{vol.role}</div>
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 16,
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+      }}>
+        {volunteers.map((vol, idx) => (
+          <div
+            key={vol.id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '14px 16px',
+              borderBottom: idx < volunteers.length - 1 ? '1px solid #f1f5f9' : 'none',
+              background: idx % 2 === 0 ? '#ffffff' : '#fafafa',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              <span style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                background: '#fff7ed',
+                color: '#ea580c',
+                fontSize: 12,
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid #fed7aa',
+                flexShrink: 0,
+              }}>
+                {idx + 1}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {vol.name}
+                </div>
+                {vol.phone && (
+                  <a
+                    href={`tel:${vol.phone.replace(/\s+/g, '')}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: '#0284c7',
+                      textDecoration: 'none',
+                      marginTop: 2,
+                    }}
+                  >
+                    <Phone size={12} />
+                    <span>{vol.phone}</span>
+                  </a>
+                )}
               </div>
-              {getStatusIcon(vol.status)}
             </div>
 
-            <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#475569', marginBottom: 10, flexWrap: 'wrap' }}>
-              <span style={{ background: '#f1f5f9', padding: '3px 8px', borderRadius: 6, fontWeight: 600 }}>
-                🏢 {vol.flatNumber}
-              </span>
-              <span style={{ background: '#f1f5f9', padding: '3px 8px', borderRadius: 6, fontWeight: 600 }}>
-                🕕 {vol.shiftTime}
-              </span>
-              {vol.tasksCount !== undefined && (
-                <span style={{ background: '#fff7ed', color: '#f97316', padding: '3px 8px', borderRadius: 6, fontWeight: 700 }}>
-                  📋 {vol.tasksCount} Tasks
-                </span>
-              )}
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              padding: '4px 12px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 800,
+              color: '#1e293b',
+              flexShrink: 0,
+            }}>
+              {vol.flatNumber}
             </div>
-
-            <a
-              href={`tel:${vol.phone}`}
-              className="btn btn-sm btn-outline"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, textDecoration: 'none', color: '#059669', borderColor: '#bbf7d0' }}
-            >
-              <Phone size={13} />
-              Call {vol.name.split(' ')[0]}
-            </a>
           </div>
         ))}
       </div>

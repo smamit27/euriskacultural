@@ -262,6 +262,7 @@ export const contributionService = {
     });
 
     const recentExpenses = expenses.slice(0, 5);
+    const sponsors = localStore.getSponsors();
 
     return {
       totalCollected,
@@ -280,6 +281,7 @@ export const contributionService = {
       categoryExpenses,
       buildingSummaries: buildings,
       recentExpenses,
+      sponsors,
     };
   },
 

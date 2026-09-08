@@ -724,22 +724,24 @@ export const PrasadPage: React.FC = () => {
                                 <Share2 size={12} />
                               </button>
 
-                              <button
-                                onClick={() => handleOpenBooking(slot, booking)}
-                                title="Edit this booking"
-                                style={{
-                                  background: '#ffedd5',
-                                  border: '1px solid #fed7aa',
-                                  borderRadius: 6,
-                                  padding: '3px 6px',
-                                  fontSize: 11,
-                                  fontWeight: 700,
-                                  color: '#c2410c',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                <Edit2 size={12} />
-                              </button>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleOpenBooking(slot, booking)}
+                                  title="Edit this booking"
+                                  style={{
+                                    background: '#ffedd5',
+                                    border: '1px solid #fed7aa',
+                                    borderRadius: 6,
+                                    padding: '3px 6px',
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    color: '#c2410c',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  <Edit2 size={12} />
+                                </button>
+                              )}
 
                               {isAdmin && (
                                 <button

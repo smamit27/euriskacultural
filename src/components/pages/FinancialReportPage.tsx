@@ -7,6 +7,7 @@ import { BudgetVsActualSection } from '../report/BudgetVsActualSection';
 import { MoneyFlowInfographic } from '../report/MoneyFlowInfographic';
 import { RecentExpensesFeed } from '../report/RecentExpensesFeed';
 import { DetailedLedgerTabs } from '../report/DetailedLedgerTabs';
+import { SponsorsReportSection } from '../report/SponsorsReportSection';
 import { ManageBudgetModal } from '../report/ManageBudgetModal';
 import { AddContributionSheet } from '../contributions/AddContributionSheet';
 import { AddExpenseSheet } from '../expenses/AddExpenseSheet';
@@ -283,7 +284,10 @@ export const FinancialReportPage: React.FC = () => {
         }}
       />
 
-      {/* 8. Detailed Filterable Ledgers & Sub-tabs */}
+      {/* 8. Our Sponsors & Seva Patrons Section */}
+      <SponsorsReportSection sponsors={reportData.sponsors || []} />
+
+      {/* 9. Detailed Filterable Ledgers & Sub-tabs */}
       <div id="detailed-ledgers-section">
         <DetailedLedgerTabs
           contributions={contributions}

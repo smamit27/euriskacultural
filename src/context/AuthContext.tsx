@@ -25,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    authService.ensureSecuritySettingsInFirebase().catch(() => {});
     const unsub = authService.onAuthStateChanged((profile) => {
       setUser(profile);
       if (profile) {

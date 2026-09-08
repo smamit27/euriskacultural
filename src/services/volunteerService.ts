@@ -8,7 +8,7 @@ export const volunteerService = {
     if (buildingId && buildingId !== 'ALL') {
       list = list.filter((v) => v.buildingId === buildingId);
     }
-    return list;
+    return list.sort((a, b) => a.name.localeCompare(b.name));
   },
 
   async addVolunteer(data: Omit<Volunteer, 'id'>): Promise<Volunteer> {

@@ -43,7 +43,7 @@ const STORAGE_KEYS = {
   MAHA_PRASAD_RSVP: 'euriska_maha_prasad_rsvp',
 };
 
-const CURRENT_SEED_VERSION = 'v18_cleared_performances';
+const CURRENT_SEED_VERSION = 'v27_kalakriti_admin_guard';
 
 class DataStore {
   private get<T>(key: string, defaultVal: T): T {
@@ -76,6 +76,8 @@ class DataStore {
         'euriska_dummy_expenses',
         'euriska_expenses_seed',
         'euriska_festival_budgets_2026_v2',
+        'euriska_gallery_images',
+        'euriska_albums',
       ];
       staleKeys.forEach((k) => {
         try {
@@ -149,11 +151,13 @@ class DataStore {
   }
 
   public getAlbums(): GalleryAlbum[] {
-    return this.get(STORAGE_KEYS.ALBUMS, INITIAL_ALBUMS);
+    const dummyAlbumIds = new Set(['album-1', 'album-2', 'album-3']);
+    return this.get(STORAGE_KEYS.ALBUMS, INITIAL_ALBUMS).filter((a) => !dummyAlbumIds.has(a.id));
   }
 
   public getGalleryImages(): GalleryImage[] {
-    return this.get(STORAGE_KEYS.GALLERY_IMAGES, INITIAL_GALLERY_IMAGES);
+    const dummyImgIds = new Set(['img-1', 'img-2', 'img-3', 'img-4', 'img-5', 'img-6']);
+    return this.get(STORAGE_KEYS.GALLERY_IMAGES, INITIAL_GALLERY_IMAGES).filter((img) => !dummyImgIds.has(img.id));
   }
 
   public saveGalleryImages(images: GalleryImage[]) {

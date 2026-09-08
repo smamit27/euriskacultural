@@ -681,29 +681,6 @@ export const SponsorShowcase: React.FC = () => {
                     {card.description}
                   </p>
 
-                  {/* Seva Highlights Box */}
-                  <div
-                    style={{
-                      background: '#f8fafc',
-                      borderRadius: 14,
-                      padding: '12px 14px',
-                      border: '1px solid #e2e8f0',
-                      marginBottom: 14,
-                    }}
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 }}>
-                      Seva Highlights
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {card.highlights.map((point, idx) => (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: '#1e293b' }}>
-                          <span style={{ color: card.badgeColor, fontSize: 14, fontWeight: 900 }}>✓</span>
-                          <span style={{ fontWeight: 600 }}>{point}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Devotional Mantra Blessing Box */}
                   <div
                     style={{

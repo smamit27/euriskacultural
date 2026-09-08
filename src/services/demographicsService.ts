@@ -48,6 +48,7 @@ const EXPLICIT_FLAT_COMMUNITY_MAP: Record<string, CommunityType> = {
   'A-1001': 'HINDU', // Mr. Ashish
   'A-1003': 'MUSLIM', // Mrs. Shabnam Mirkar
   'A-704': 'HINDU', // Mr. Sachin Nivrutti Savakhande
+  'A-707': 'HINDU', // Mr. Narayan Pandurang Dange
 
   // Wing B
   'B-302': 'CHRISTIAN', // Mr. Russell Nayak

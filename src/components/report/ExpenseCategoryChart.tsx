@@ -7,6 +7,7 @@ interface CategoryExpenseItem {
   percentage: number;
   budget?: number;
   difference?: number;
+  isOverBudget?: boolean;
 }
 
 interface ExpenseCategoryChartProps {
@@ -37,6 +38,15 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
 
+  const totalBudget = React.useMemo(() => {
+    return categoryExpenses.reduce((sum, c) => sum + (c.budget || 0), 0);
+  }, [categoryExpenses]);
+
+  const overallBudgetUtilization = React.useMemo(() => {
+    if (totalBudget <= 0) return '0';
+    return ((totalExpenses / totalBudget) * 100).toFixed(1).replace(/\.0$/, '');
+  }, [totalExpenses, totalBudget]);
+
   const slices = React.useMemo(() => {
     // Filter items with amount > 0 for chart, or fallback to uniform if 0
     const activeItems = categoryExpenses.filter((c) => c.amount > 0);
@@ -61,6 +71,11 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
     });
   }, [categoryExpenses, totalExpenses, circumference]);
 
+  const activeItem = activeCategory ? categoryExpenses.find((c) => c.category === activeCategory) : null;
+  const activeUtilization = activeItem && activeItem.budget && activeItem.budget > 0
+    ? ((activeItem.amount / activeItem.budget) * 100).toFixed(1).replace(/\.0$/, '')
+    : null;
+
   return (
     <div style={{
       background: '#ffffff',
@@ -81,10 +96,10 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
             gap: 8,
           }}>
             <PieChart size={20} color="#8b5cf6" />
-            <span>Expenses by Category</span>
+            <span>Expenses by Category & Budget Utilization</span>
           </h2>
           <p style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-            Complete breakdown across 6 cultural expenditure areas
+            Complete breakdown of spending and budget utilization across cultural areas
           </p>
         </div>
 
@@ -173,7 +188,8 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
             position: 'absolute',
             textAlign: 'center',
             pointerEvents: 'none',
-            maxWidth: 120,
+            maxWidth: 130,
+            padding: '0 4px',
           }}>
             <div style={{
               fontSize: 10,
@@ -181,6 +197,9 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
               color: '#64748b',
               textTransform: 'uppercase',
               letterSpacing: '0.8px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}>
               {activeCategory || 'TOTAL EXPENSES'}
             </div>
@@ -197,14 +216,21 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
               ).toLocaleString('en-IN')}
             </div>
             <div style={{
-              fontSize: 11,
+              fontSize: 10.5,
               fontWeight: 700,
               color: activeCategory ? '#8b5cf6' : '#059669',
               marginTop: 2,
+              lineHeight: 1.2,
             }}>
-              {activeCategory
-                ? `${categoryExpenses.find((c) => c.category === activeCategory)?.percentage || 0}% of Total`
-                : '100% Utilized'}
+              {activeCategory ? (
+                activeUtilization !== null ? (
+                  <span>{activeUtilization}% of Budget</span>
+                ) : (
+                  <span>{activeItem?.percentage || 0}% of Total</span>
+                )
+              ) : (
+                <span>{overallBudgetUtilization}% Budget Utilized</span>
+              )}
             </div>
           </div>
         </div>
@@ -213,12 +239,18 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
         <div style={{
           flex: '1 1 260px',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))',
           gap: 10,
         }}>
           {categoryExpenses.map((cat) => {
             const color = CATEGORY_COLORS[cat.category] || DEFAULT_COLOR;
             const isSelected = activeCategory === cat.category;
+            const hasBudget = cat.budget !== undefined && cat.budget > 0;
+            const utilizationPct = hasBudget
+              ? ((cat.amount / (cat.budget as number)) * 100).toFixed(1).replace(/\.0$/, '')
+              : null;
+            const isOver = hasBudget && cat.amount > (cat.budget as number);
+            const progressRatio = hasBudget ? Math.min(100, Math.max(0, (cat.amount / (cat.budget as number)) * 100)) : 0;
 
             return (
               <div
@@ -240,7 +272,7 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                     <span style={{
                       width: 10,
                       height: 10,
@@ -249,31 +281,62 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                       display: 'inline-block',
                       flexShrink: 0,
                     }} />
-                    <span style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a' }}>
+                    <span style={{
+                      fontSize: 12.5,
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
                       {cat.category}
                     </span>
                   </div>
+
+                  {/* Utilization Badge */}
                   <span style={{
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 900,
-                    color: color.text,
-                    background: '#fff',
-                    padding: '1px 6px',
+                    color: isOver ? '#dc2626' : (utilizationPct !== null && Number(utilizationPct) > 0) ? color.text : '#64748b',
+                    background: isOver ? '#fef2f2' : '#fff',
+                    padding: '2px 6px',
                     borderRadius: 6,
-                    border: '1px solid #e2e8f0',
+                    border: `1px solid ${isOver ? '#fecaca' : '#e2e8f0'}`,
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
                   }}>
-                    {cat.percentage}%
+                    {utilizationPct !== null ? `${utilizationPct}% used` : `${cat.percentage}%`}
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, fontWeight: 900, color: '#0f172a' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>
                   <span>₹{cat.amount.toLocaleString('en-IN')}</span>
-                  {cat.budget && (
+                  {hasBudget && (
                     <span style={{ fontSize: 10.5, fontWeight: 600, color: '#64748b' }}>
-                      Budget: ₹{cat.budget.toLocaleString('en-IN')}
+                      Budget: ₹{(cat.budget as number).toLocaleString('en-IN')}
                     </span>
                   )}
                 </div>
+
+                {/* Visual Progress Bar for Budget Utilization */}
+                {hasBudget && (
+                  <div style={{
+                    width: '100%',
+                    height: 4,
+                    background: '#e2e8f0',
+                    borderRadius: 2,
+                    marginTop: 6,
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      width: `${progressRatio}%`,
+                      height: '100%',
+                      background: isOver ? '#ef4444' : color.bg,
+                      borderRadius: 2,
+                      transition: 'width 0.3s ease',
+                    }} />
+                  </div>
+                )}
               </div>
             );
           })}

@@ -20,10 +20,12 @@ import {
 import { pdfService } from '../../services/pdfService';
 import { RegisterKalakritiModal } from '../kalakriti/RegisterKalakritiModal';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import type { KalakritiEntry, KalakritiActivityKey } from '../../types';
 
 export const KalakritiPage: React.FC = () => {
   const { showToast } = useToast();
+  const { isAdmin } = useAuth();
   const [entries, setEntries] = useState<KalakritiEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,13 +36,7 @@ export const KalakritiPage: React.FC = () => {
   const [quickFlat, setQuickFlat] = useState('');
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [activityCounts, setActivityCounts] = useState<Record<KalakritiActivityKey, number>>({
-    drawing: 0,
-    skit1: 0,
-    skit2: 0,
     dance: 0,
-    fashionShow: 0,
-    mimicry: 0,
-    singing: 0,
     fancyDress: 0,
   });
 
@@ -81,13 +77,7 @@ export const KalakritiPage: React.FC = () => {
     await kalakritiService.addEntry({
       name: quickName.trim(),
       flatNumber: quickFlat.trim() || undefined,
-      drawing: false,
-      skit1: false,
-      skit2: false,
       dance: false,
-      fashionShow: false,
-      mimicry: false,
-      singing: false,
       fancyDress: false,
     });
 
@@ -98,6 +88,10 @@ export const KalakritiPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string, name: string) => {
+    if (!isAdmin) {
+      showToast('Action not allowed. Admin privileges required.', 'error');
+      return;
+    }
     if (window.confirm(`Are you sure you want to remove ${name}?`)) {
       await kalakritiService.deleteEntry(id);
       showToast('Entry removed from database.', 'info');
@@ -106,6 +100,7 @@ export const KalakritiPage: React.FC = () => {
   };
 
   const handleToggleCell = async (id: string, actKey: KalakritiActivityKey) => {
+    if (!isAdmin) return;
     await kalakritiService.toggleActivity(id, actKey);
     loadData();
   };
@@ -126,18 +121,14 @@ export const KalakritiPage: React.FC = () => {
       showToast('No entries to export yet.', 'info');
       return;
     }
-    const headers = ['S.N', 'Name', 'Flat', 'Drawing', 'Skit 1', 'Skit 2', 'Dance', 'Fashion Show', 'Mimicry', 'Singing', 'Fancy Dress'];
+    const headers = ['S.N', 'Name', 'Flat', 'Age Category', 'Phone', 'Dance', 'Fancy Dress'];
     const rows = entries.map((e) => [
       e.sn,
       `"${e.name}"`,
       `"${e.flatNumber || ''}"`,
-      e.drawing ? 'YES' : 'NO',
-      e.skit1 ? 'YES' : 'NO',
-      e.skit2 ? 'YES' : 'NO',
+      `"${e.ageGroup || ''}"`,
+      `"${e.phone || ''}"`,
       e.dance ? 'YES' : 'NO',
-      e.fashionShow ? 'YES' : 'NO',
-      e.mimicry ? 'YES' : 'NO',
-      e.singing ? 'YES' : 'NO',
       e.fancyDress ? 'YES' : 'NO',
     ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -203,7 +194,7 @@ export const KalakritiPage: React.FC = () => {
             🎨 KALAKRITI
           </h1>
           <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: 1.4 }}>
-            Community talent participation matrix. Feed participant entries across Drawing, Skit 1, Skit 2, Dance, Fashion Show, Mimicry, Singing &amp; Fancy Dress.
+            Community talent participation matrix for Dance &amp; Fancy Dress events.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
@@ -244,100 +235,104 @@ export const KalakritiPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Add Row Toggle */}
-      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button
-          onClick={() => setShowQuickAdd(!showQuickAdd)}
-          style={{
-            background: showQuickAdd ? '#ede9fe' : '#f8fafc',
-            border: '1.5px solid #cbd5e1',
-            color: showQuickAdd ? '#6d28d9' : '#475569',
-            borderRadius: 10,
-            padding: '6px 12px',
-            fontSize: 12,
-            fontWeight: 800,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <span>⚡ Fast Inline Add</span>
-          <span>{showQuickAdd ? '▲' : '▼'}</span>
-        </button>
+      {/* Quick Add Row Toggle (Admin only) */}
+      {isAdmin && (
+        <>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button
+              onClick={() => setShowQuickAdd(!showQuickAdd)}
+              style={{
+                background: showQuickAdd ? '#ede9fe' : '#f8fafc',
+                border: '1.5px solid #cbd5e1',
+                color: showQuickAdd ? '#6d28d9' : '#475569',
+                borderRadius: 10,
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span>⚡ Fast Inline Add</span>
+              <span>{showQuickAdd ? '▲' : '▼'}</span>
+            </button>
 
-        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>
-          💡 Tip: Tap any activity cell in the table to toggle ✅ / —
-        </span>
-      </div>
+            <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>
+              💡 Admin Tip: Tap any activity cell in the table to toggle ✅ / —
+            </span>
+          </div>
 
-      {/* Quick Add Form Box */}
-      {showQuickAdd && (
-        <form
-          onSubmit={handleQuickAdd}
-          style={{
-            background: '#ffffff',
-            border: '1.5px solid #7c3aed30',
-            borderRadius: 14,
-            padding: '12px 14px',
-            marginBottom: 14,
-            display: 'flex',
-            gap: 8,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            boxShadow: '0 2px 8px rgba(124, 58, 237, 0.08)',
-          }}
-        >
-          <input
-            type="text"
-            required
-            placeholder="Participant Name *"
-            value={quickName}
-            onChange={(e) => setQuickName(e.target.value)}
-            style={{
-              flex: '2 1 160px',
-              height: 38,
-              padding: '0 12px',
-              borderRadius: 8,
-              border: '1.5px solid #cbd5e1',
-              fontSize: 13,
-              fontWeight: 600,
-              outline: 'none',
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Flat (e.g. A-101)"
-            value={quickFlat}
-            onChange={(e) => setQuickFlat(e.target.value)}
-            style={{
-              flex: '1 1 100px',
-              height: 38,
-              padding: '0 12px',
-              borderRadius: 8,
-              border: '1.5px solid #cbd5e1',
-              fontSize: 13,
-              outline: 'none',
-            }}
-          />
-          <button
-            type="submit"
-            disabled={!quickName.trim()}
-            style={{
-              height: 38,
-              padding: '0 16px',
-              borderRadius: 8,
-              border: 'none',
-              background: quickName.trim() ? '#7c3aed' : '#cbd5e1',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 13,
-              cursor: quickName.trim() ? 'pointer' : 'not-allowed',
-            }}
-          >
-            + Add Row
-          </button>
-        </form>
+          {/* Quick Add Form Box */}
+          {showQuickAdd && (
+            <form
+              onSubmit={handleQuickAdd}
+              style={{
+                background: '#ffffff',
+                border: '1.5px solid #7c3aed30',
+                borderRadius: 14,
+                padding: '12px 14px',
+                marginBottom: 14,
+                display: 'flex',
+                gap: 8,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                boxShadow: '0 2px 8px rgba(124, 58, 237, 0.08)',
+              }}
+            >
+              <input
+                type="text"
+                required
+                placeholder="Participant Full Name *"
+                value={quickName}
+                onChange={(e) => setQuickName(e.target.value)}
+                style={{
+                  flex: '2 1 160px',
+                  height: 38,
+                  padding: '0 12px',
+                  borderRadius: 8,
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  outline: 'none',
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Flat No. (e.g. A-103)"
+                value={quickFlat}
+                onChange={(e) => setQuickFlat(e.target.value)}
+                style={{
+                  flex: '1 1 100px',
+                  height: 38,
+                  padding: '0 12px',
+                  borderRadius: 8,
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: 13,
+                  outline: 'none',
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!quickName.trim()}
+                style={{
+                  height: 38,
+                  padding: '0 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: quickName.trim() ? '#7c3aed' : '#cbd5e1',
+                  color: '#fff',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  cursor: quickName.trim() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                + Add Row
+              </button>
+            </form>
+          )}
+        </>
       )}
 
       {/* Activity Count Pills / Quick Filter */}
@@ -496,7 +491,7 @@ export const KalakritiPage: React.FC = () => {
               borderCollapse: 'collapse',
               fontSize: 12,
               textAlign: 'left',
-              minWidth: 780,
+              minWidth: 480,
             }}
           >
             <thead>
@@ -535,28 +530,30 @@ export const KalakritiPage: React.FC = () => {
                     <div style={{ fontSize: 11 }}>{act.shortLabel}</div>
                   </th>
                 ))}
-                <th style={{ padding: '12px 10px', fontWeight: 800, color: '#64748b', textAlign: 'center', width: 70 }}>
-                  Actions
-                </th>
+                {isAdmin && (
+                  <th style={{ padding: '12px 10px', fontWeight: 800, color: '#64748b', textAlign: 'center', width: 70 }}>
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} style={{ padding: '40px 16px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={isAdmin ? 5 : 4} style={{ padding: '40px 16px', textAlign: 'center', color: '#64748b' }}>
                     <div style={{ fontSize: 24, marginBottom: 6 }}>⏳</div>
                     <div style={{ fontWeight: 800 }}>Loading Kalakriti entries...</div>
                   </td>
                 </tr>
               ) : filteredEntries.length === 0 ? (
                 <tr>
-                  <td colSpan={11} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan={isAdmin ? 5 : 4} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8' }}>
                     <div style={{ fontSize: 36, marginBottom: 8 }}>🎨</div>
                     <div style={{ fontWeight: 900, color: '#0f172a', fontSize: 16, marginBottom: 4 }}>
                       No participants entered yet
                     </div>
                     <div style={{ fontSize: 13, color: '#64748b', maxWidth: 360, margin: '0 auto 16px' }}>
-                      Ready for your data! Add participants using the button below or the <strong>Fast Inline Add</strong> bar.
+                      Ready for your data! Add participants using the button below.
                     </div>
                     <button
                       onClick={() => {
@@ -635,18 +632,18 @@ export const KalakritiPage: React.FC = () => {
                       </div>
                     </td>
 
-                    {/* Activity Columns — Clickable to toggle */}
+                    {/* Activity Columns — Clickable to toggle ONLY if Admin */}
                     {KALAKRITI_ACTIVITIES.map((act) => {
                       const isChecked = entry[act.key];
                       return (
                         <td
                           key={act.key}
-                          onClick={() => handleToggleCell(entry.id, act.key)}
-                          title={`Tap to toggle ${act.label}`}
+                          onClick={() => isAdmin && handleToggleCell(entry.id, act.key)}
+                          title={isAdmin ? `Admin: Tap to toggle ${act.label}` : undefined}
                           style={{
                             padding: '10px 8px',
                             textAlign: 'center',
-                            cursor: 'pointer',
+                            cursor: isAdmin ? 'pointer' : 'default',
                             userSelect: 'none',
                           }}
                         >
@@ -675,40 +672,42 @@ export const KalakritiPage: React.FC = () => {
                       );
                     })}
 
-                    {/* Actions */}
-                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                        <button
-                          onClick={() => {
-                            setEditingEntry(entry);
-                            setIsModalOpen(true);
-                          }}
-                          title="Edit"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#64748b',
-                            cursor: 'pointer',
-                            padding: 4,
-                          }}
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(entry.id, entry.name)}
-                          title="Delete"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#dc2626',
-                            cursor: 'pointer',
-                            padding: 4,
-                          }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
+                    {/* Actions (Admin Only) */}
+                    {isAdmin && (
+                      <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                          <button
+                            onClick={() => {
+                              setEditingEntry(entry);
+                              setIsModalOpen(true);
+                            }}
+                            title="Edit"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#64748b',
+                              cursor: 'pointer',
+                              padding: 4,
+                            }}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(entry.id, entry.name)}
+                            title="Delete"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#dc2626',
+                              cursor: 'pointer',
+                              padding: 4,
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

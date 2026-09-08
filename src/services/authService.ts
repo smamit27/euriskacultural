@@ -84,6 +84,8 @@ const CUSTOM_PASSWORD_KEY = 'euriska_custom_password';
 
 import { verifyCredentialHash } from '../utils/cryptoUtils';
 
+export const DEFAULT_ALLOWED_PASSWORDS: readonly string[] = ['euriska2026', '2724'] as const;
+
 export const authService = {
   /**
    * Check if current session is authenticated as Admin
@@ -103,22 +105,65 @@ export const authService = {
   },
 
   /**
-   * Fetch current custom portal password from Firebase Firestore 'settings/security'
+   * Ensure Firestore 'settings/security' document contains strictly authorized passwords
    */
-  async getPortalPasswordFromFirebase(): Promise<string> {
+  async ensureSecuritySettingsInFirebase(): Promise<void> {
+    if (db) {
+      try {
+        const docRef = doc(db, 'settings', 'security');
+        await setDoc(
+          docRef,
+          {
+            allowedPasswords: ['euriska2026', '2724'],
+            portalPassword: 'euriska2026',
+            pin: '2724',
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        console.warn('Firestore security sync notice:', err);
+      }
+    }
+  },
+
+  /**
+   * Fetch allowed passwords from Firebase Firestore 'settings/security'
+   */
+  async getAllowedPasswordsFromFirebase(): Promise<string[]> {
     if (db) {
       try {
         const docRef = doc(db, 'settings', 'security');
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           const data = snap.data();
-          if (data.portalPassword) return data.portalPassword;
+          const list: string[] = [];
+          if (Array.isArray(data.allowedPasswords)) {
+            data.allowedPasswords.forEach((p) => typeof p === 'string' && list.push(p.trim()));
+          }
+          if (typeof data.portalPassword === 'string' && data.portalPassword.trim()) {
+            list.push(data.portalPassword.trim());
+          }
+          if (typeof data.pin === 'string' && data.pin.trim()) {
+            list.push(data.pin.trim());
+          }
+          if (list.length > 0) {
+            return Array.from(new Set(list));
+          }
         }
       } catch (err) {
         console.warn('Firebase security fetch failed:', err);
       }
     }
-    return localStorage.getItem(CUSTOM_PASSWORD_KEY) || '';
+    return [...DEFAULT_ALLOWED_PASSWORDS];
+  },
+
+  /**
+   * Fetch current custom portal password from Firebase Firestore 'settings/security'
+   */
+  async getPortalPasswordFromFirebase(): Promise<string> {
+    const list = await this.getAllowedPasswordsFromFirebase();
+    return list[0] || 'euriska2026';
   },
 
   /**
@@ -131,10 +176,15 @@ export const authService = {
     if (db) {
       try {
         const docRef = doc(db, 'settings', 'security');
-        await setDoc(docRef, {
-          portalPassword: newPassword.trim(),
-          updatedAt: new Date().toISOString(),
-        }, { merge: true });
+        await setDoc(
+          docRef,
+          {
+            allowedPasswords: Array.from(new Set(['euriska2026', '2724', newPassword.trim()])),
+            portalPassword: newPassword.trim(),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
       } catch (err) {
         console.warn('Firebase password update error:', err);
       }
@@ -142,21 +192,35 @@ export const authService = {
   },
 
   /**
-   * Verify password strictly via one-way cryptographic SHA-256 hash or Firestore security doc
+   * Verify password strictly via allowed list, one-way cryptographic SHA-256 hash or Firestore security doc
    */
   async verifyPassword(password: string): Promise<{ valid: boolean; role: UserRole }> {
     const trimmed = password.trim();
     if (!trimmed) return { valid: false, role: 'VIEWER' };
 
-    // 1. Check one-way cryptographic hash match
-    const isHashMatch = await verifyCredentialHash(trimmed);
-    if (isHashMatch) {
+    // 1. Direct allowed passwords match ('euriska2026' or '2724')
+    if (
+      trimmed === 'euriska2026' ||
+      trimmed === '2724' ||
+      trimmed.toLowerCase() === 'euriska2026'
+    ) {
+      this.ensureSecuritySettingsInFirebase().catch(() => {});
       return { valid: true, role: 'SUPER_ADMIN' };
     }
 
-    // 2. Check dynamic Firestore custom password if set
-    const fbPassword = await this.getPortalPasswordFromFirebase();
-    if (fbPassword && (trimmed === fbPassword || trimmed.toLowerCase() === fbPassword.toLowerCase())) {
+    // 2. Check one-way cryptographic SHA-256 hash match
+    const isHashMatch = await verifyCredentialHash(trimmed);
+    if (isHashMatch) {
+      this.ensureSecuritySettingsInFirebase().catch(() => {});
+      return { valid: true, role: 'SUPER_ADMIN' };
+    }
+
+    // 3. Check dynamic Firestore custom password if set
+    const allowedFb = await this.getAllowedPasswordsFromFirebase();
+    const isFbMatch = allowedFb.some(
+      (p) => trimmed === p || trimmed.toLowerCase() === p.toLowerCase()
+    );
+    if (isFbMatch) {
       return { valid: true, role: 'SUPER_ADMIN' };
     }
 

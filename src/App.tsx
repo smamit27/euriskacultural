@@ -17,7 +17,6 @@ import { VolunteerList } from './components/volunteers/VolunteerList';
 import { TaskKanban } from './components/tasks/TaskKanban';
 import { AddContributionSheet } from './components/contributions/AddContributionSheet';
 import { AddExpenseSheet } from './components/expenses/AddExpenseSheet';
-import { FirebaseSyncUtil } from './components/admin/FirebaseSyncUtil';
 import { EventsCalendarPage } from './components/pages/EventsCalendarPage';
 import { KalakritiPage } from './components/pages/KalakritiPage';
 import { PrasadPage } from './components/pages/PrasadPage';
@@ -523,9 +522,6 @@ function AppContent() {
             setSubPage('sponsors');
           }}
         />
-
-        {/* Firebase Sync Utility (Admin only) */}
-        <FirebaseSyncUtil />
       </div>
     </div>
   );

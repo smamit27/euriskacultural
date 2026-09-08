@@ -55,4 +55,17 @@ export const galleryService = {
     }
     return 0;
   },
+
+  async deleteImage(id: string): Promise<boolean> {
+    const list = localStore.getGalleryImages();
+    const index = list.findIndex((img) => img.id === id);
+    if (index === -1) return false;
+    list.splice(index, 1);
+    localStore.saveGalleryImages(list);
+    return true;
+  },
+
+  async clearAllImages(): Promise<void> {
+    localStore.saveGalleryImages([]);
+  },
 };

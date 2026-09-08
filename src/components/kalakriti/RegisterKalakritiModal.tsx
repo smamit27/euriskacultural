@@ -17,20 +17,14 @@ export const RegisterKalakritiModal: React.FC<RegisterKalakritiModalProps> = ({
   initialData,
 }) => {
   const [name, setName] = useState(initialData?.name || '');
-  const [flatNumber, setFlatNumber] = useState(initialData?.flatNumber || 'A-');
+  const [flatNumber, setFlatNumber] = useState(initialData?.flatNumber || '');
   const [phone, setPhone] = useState(initialData?.phone || '');
   const [ageGroup, setAgeGroup] = useState<'Kids' | 'Teens' | 'Adults' | 'Seniors'>(
     initialData?.ageGroup || 'Kids'
   );
   const [remarks, setRemarks] = useState(initialData?.remarks || '');
   const [activities, setActivities] = useState<Record<KalakritiActivityKey, boolean>>({
-    drawing: initialData?.drawing || false,
-    skit1: initialData?.skit1 || false,
-    skit2: initialData?.skit2 || false,
     dance: initialData?.dance || false,
-    fashionShow: initialData?.fashionShow || false,
-    mimicry: initialData?.mimicry || false,
-    singing: initialData?.singing || false,
     fancyDress: initialData?.fancyDress || false,
   });
 
@@ -49,13 +43,7 @@ export const RegisterKalakritiModal: React.FC<RegisterKalakritiModalProps> = ({
       flatNumber: flatNumber.trim() || undefined,
       phone: phone.trim() || undefined,
       ageGroup,
-      drawing: activities.drawing,
-      skit1: activities.skit1,
-      skit2: activities.skit2,
       dance: activities.dance,
-      fashionShow: activities.fashionShow,
-      mimicry: activities.mimicry,
-      singing: activities.singing,
       fancyDress: activities.fancyDress,
       remarks: remarks.trim() || undefined,
     });
@@ -167,7 +155,7 @@ export const RegisterKalakritiModal: React.FC<RegisterKalakritiModalProps> = ({
               <input
                 type="text"
                 required
-                placeholder="e.g. Aarav Sharma"
+                placeholder="Enter participant / performer full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 style={{
@@ -195,7 +183,7 @@ export const RegisterKalakritiModal: React.FC<RegisterKalakritiModalProps> = ({
                 <Home size={16} color="#94a3b8" style={{ position: 'absolute', left: 12, top: 12 }} />
                 <input
                   type="text"
-                  placeholder="e.g. A-103"
+                  placeholder="e.g. A-103 or B-507"
                   value={flatNumber}
                   onChange={(e) => setFlatNumber(e.target.value)}
                   style={{

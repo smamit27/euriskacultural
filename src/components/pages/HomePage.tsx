@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HeroSection } from '../home/HeroSection';
+import { EventScheduleCarousel } from '../home/EventScheduleCarousel';
 import { QuickActions } from '../home/QuickActions';
 import { UpcomingPrograms } from '../home/UpcomingPrograms';
 import { AdminDashboardSummary } from '../home/AdminDashboardSummary';
@@ -30,16 +31,18 @@ const FESTIVAL_BANNERS: Record<string, {
   'evt-ganesh-2026': {
     gradient: 'linear-gradient(135deg, #92400e, #c2410c, #ea580c)',
     labelColor: '#fde68a',
-    label: '🐘 Ganesh Chaturthi 2026 (14 Sep – 25 Sep)',
+    label: '🐘 Ganeshotsav 2026 Event Schedule (14 Sep – 25 Sep)',
     message:
-      'Ganpati Bappa Morya! 14 Sep: Ganesh Aagman (5 PM) | 19 & 20 Sep: Cultural Activities | 24 Sep: Maha Prasad Dinner (8:30 PM) | 25 Sep: Ganesh Visarjan (4 PM). Daily 8 PM Aarti.',
+      'Ganpati Bappa Morya! 14 Sep: Ganesh Aagman (5 PM) | 19 Sep: Carnival (Drawing 3-5 PM, Radio City 91.1 FM 6 PM, Food Stalls 7 PM) | 20 Sep: Kalakriti Talent Show (6 PM) | 24 Sep: Satyanarayan Katha (4 PM) & Mahaprasad Dinner (8 PM) | 25 Sep: Visarjan (4 PM). Daily Aarti: 9 AM & 8 PM.',
     chips: [
       '📅 14 Sep – 25 Sep 2026',
       '🚩 14 Sep: Aagman (5 PM)',
-      '🎨 19 & 20 Sep: Activities',
-      '🍽️ 24 Sep: Maha Prasad (8:30 PM)',
+      '🎪 19 Sep: Carnival & Food Stalls',
+      '🎭 20 Sep: Kalakriti Talent Show (6 PM)',
+      '🪔 24 Sep: Satyanarayan Katha (4 PM)',
+      '🍽️ 24 Sep: Mahaprasad (8 PM)',
       '🌊 25 Sep: Visarjan (4 PM)',
-      '🪔 Daily 8 PM Aarti',
+      '🔔 Daily Aarti: 9 AM & 8 PM',
     ],
   },
   'evt-navratri-2026': {
@@ -128,6 +131,11 @@ export const HomePage: React.FC<HomePageProps> = ({
         onViewPrograms={() => onNavigate('programs')}
         onViewPerformances={() => onNavigate('performances')}
         onViewEvents={() => onNavigate('events')}
+      />
+
+      {/* Ganeshotsav 2026 Event Schedule Carousel Showcase */}
+      <EventScheduleCarousel
+        onViewAllPrograms={() => onNavigate('programs')}
       />
 
       {/* Admin Dashboard — shown only to admins */}

@@ -277,6 +277,7 @@ export interface FinancialReportData {
   }[];
   buildingSummaries: Building[];
   recentExpenses: Expense[];
+  sponsors?: Sponsor[];
 }
 
 export type CulturalEventStatus = 'UPCOMING' | 'ONGOING' | 'COMPLETED';
@@ -305,15 +306,7 @@ export interface CulturalEvent {
   }[];
 }
 
-export type KalakritiActivityKey =
-  | 'drawing'
-  | 'skit1'
-  | 'skit2'
-  | 'dance'
-  | 'fashionShow'
-  | 'mimicry'
-  | 'singing'
-  | 'fancyDress';
+export type KalakritiActivityKey = 'dance' | 'fancyDress';
 
 export interface KalakritiEntry {
   id: string;
@@ -322,14 +315,14 @@ export interface KalakritiEntry {
   flatNumber?: string;
   phone?: string;
   ageGroup?: 'Kids' | 'Teens' | 'Adults' | 'Seniors';
-  drawing: boolean;
-  skit1: boolean;
-  skit2: boolean;
   dance: boolean;
-  fashionShow: boolean;
-  mimicry: boolean;
-  singing: boolean;
   fancyDress: boolean;
+  drawing?: boolean;
+  skit1?: boolean;
+  skit2?: boolean;
+  fashionShow?: boolean;
+  mimicry?: boolean;
+  singing?: boolean;
   remarks?: string;
   createdAt: string;
 }
