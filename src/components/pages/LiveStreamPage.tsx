@@ -7,6 +7,9 @@ import {
   BookOpen,
   Share2,
   Settings,
+  Calendar,
+  Clock,
+  Bell,
 } from 'lucide-react';
 import { liveStreamService, AARTI_LYRICS } from '../../services/liveStreamService';
 import { AdminLiveStreamModal } from '../livestream/AdminLiveStreamModal';
@@ -24,13 +27,148 @@ interface FloatingReaction {
   x: number;
 }
 
+export const DAILY_FESTIVAL_SCHEDULE = [
+  {
+    day: 1,
+    date: '14 Sep 2026',
+    dayName: 'Monday',
+    title: 'Ganesh Sthapana & Aagman Miravnuk',
+    morningAarti: '8:00 AM (Prathakal Sthapana)',
+    eveningAarti: '8:00 PM (Maha Aarti & Prasad)',
+    specialEvent: '🚩 5:00 PM: Grand Aagman Miravnuk with Dhol Tasha Pathak',
+    badge: '🚩 STHAPANA & AAGMAN',
+    badgeColor: '#ea580c',
+  },
+  {
+    day: 2,
+    date: '15 Sep 2026',
+    dayName: 'Tuesday',
+    title: 'Daily Darshan & Devotional Bhajans',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🪔 7:30 PM: Community Devotional Bhajans',
+    badge: 'DAILY AARTI',
+    badgeColor: '#0284c7',
+  },
+  {
+    day: 3,
+    date: '16 Sep 2026',
+    dayName: 'Wednesday',
+    title: 'Daily Pooja & Devotee Prasad Seva',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🌸 8:30 PM: Prasad Distribution',
+    badge: 'DAILY AARTI',
+    badgeColor: '#0284c7',
+  },
+  {
+    day: 4,
+    date: '17 Sep 2026',
+    dayName: 'Thursday',
+    title: 'Evening Aarti & Cultural Rehearsals',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🎭 6:30 PM: Kalakriti Stage Rehearsals at Podium',
+    badge: 'DAILY AARTI',
+    badgeColor: '#0284c7',
+  },
+  {
+    day: 5,
+    date: '18 Sep 2026',
+    dayName: 'Friday',
+    title: 'Daily Evening Aarti & Festive Gathering',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🪔 8:45 PM: Evening Prasad Seva by Residents',
+    badge: 'DAILY AARTI',
+    badgeColor: '#0284c7',
+  },
+  {
+    day: 6,
+    date: '19 Sep 2026',
+    dayName: 'Saturday',
+    title: 'Society Carnival, Radio City 91.1 FM & Food Stalls',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🎪 3 PM: Kids Drawing | 6 PM: Radio City 91.1 FM RJ Live | 7 PM: Food Stalls',
+    badge: '🎪 CARNIVAL & FOOD STALLS',
+    badgeColor: '#d97706',
+  },
+  {
+    day: 7,
+    date: '20 Sep 2026',
+    dayName: 'Sunday',
+    title: 'Kalakriti 2026: Grand Cultural Talent Show',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🎭 6:00 PM: Stage Performances (Dance, Music, Skit) & Awards',
+    badge: '🎭 KALAKRITI STAGE SHOW',
+    badgeColor: '#7c3aed',
+  },
+  {
+    day: 8,
+    date: '21 Sep 2026',
+    dayName: 'Monday',
+    title: 'Daily Darshan & Bhajan Sandhya',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🪔 8:30 PM: Devotee Prasad Seva',
+    badge: 'DAILY AARTI',
+    badgeColor: '#0284c7',
+  },
+  {
+    day: 9,
+    date: '22 Sep 2026',
+    dayName: 'Tuesday',
+    title: 'Daily Evening Aarti & Floral Decor',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🌸 8:45 PM: Evening Prasad Distribution',
+    badge: 'DAILY AARTI',
+    badgeColor: '#0284c7',
+  },
+  {
+    day: 10,
+    date: '23 Sep 2026',
+    dayName: 'Wednesday',
+    title: 'Daily Darshan & Satyanarayan Prep',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Evening Maha Aarti)',
+    specialEvent: '🪔 8:30 PM: Mahaprasad Token & Preparation Briefing',
+    badge: 'DAILY AARTI',
+    badgeColor: '#0284c7',
+  },
+  {
+    day: 11,
+    date: '24 Sep 2026',
+    dayName: 'Thursday',
+    title: 'Shri Satyanarayan Katha & Grand Mahaprasad Feast',
+    morningAarti: '8:00 AM (Morning Pooja)',
+    eveningAarti: '8:00 PM (Maha Aarti)',
+    specialEvent: '🍲 4:00 PM: Satyanarayan Pooja | 8:00 PM – 10:00 PM: Mahaprasad Community Dinner',
+    badge: '🍲 MAHAPRASAD DINNER',
+    badgeColor: '#dc2626',
+  },
+  {
+    day: 12,
+    date: '25 Sep 2026',
+    dayName: 'Friday',
+    title: 'Anant Chaturdashi Ganesh Visarjan Miravnuk',
+    morningAarti: '8:00 AM (Uttarpujan & Morning Aarti)',
+    eveningAarti: '4:00 PM (Final Visarjan Maha Aarti)',
+    specialEvent: '🌊 4:00 PM: Farewell Miravnuk, Dhol Tasha & Eco-Friendly Immersion',
+    badge: '🌊 GANESH VISARJAN',
+    badgeColor: '#ea580c',
+  },
+];
+
 export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) => {
   const { isAdmin } = useAuth();
   const { showToast } = useToast();
 
   const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'lyrics' | 'info'>('lyrics');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'lyrics' | 'info'>('schedule');
   const [selectedAartiIdx, setSelectedAartiIdx] = useState(0);
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const [reactionsCount, setReactionsCount] = useState<Record<string, number>>({
@@ -453,11 +591,35 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
           boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
         }}
       >
-        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', overflowX: 'auto' }}>
+          <button
+            onClick={() => setActiveTab('schedule')}
+            style={{
+              flex: 1,
+              minWidth: 150,
+              padding: '12px 16px',
+              fontSize: 13,
+              fontWeight: 800,
+              color: activeTab === 'schedule' ? '#ea580c' : '#64748b',
+              borderBottom: activeTab === 'schedule' ? '2.5px solid #ea580c' : 'none',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+            }}
+          >
+            <Calendar size={15} />
+            <span>📅 Daily Aarti Schedule (14-25 Sep)</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('lyrics')}
             style={{
               flex: 1,
+              minWidth: 140,
               padding: '12px 16px',
               fontSize: 13,
               fontWeight: 800,
@@ -480,6 +642,7 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
             onClick={() => setActiveTab('info')}
             style={{
               flex: 1,
+              minWidth: 140,
               padding: '12px 16px',
               fontSize: 13,
               fontWeight: 800,
@@ -495,12 +658,221 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
             }}
           >
             <Sparkles size={15} />
-            <span>Festival Details &amp; Venue</span>
+            <span>✨ Venue Details</span>
           </button>
         </div>
 
         <div style={{ padding: '18px 20px' }}>
-          {activeTab === 'lyrics' ? (
+          {activeTab === 'schedule' ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+                <div>
+                  <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0f172a', margin: '0 0 4px' }}>
+                    🐘 Ganeshotsav 2026 — Daily Aarti &amp; Live Darshan Calendar
+                  </h3>
+                  <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
+                    Everyday: <strong>Morning Aarti @ 8:00 AM</strong> &amp; <strong>Evening Maha Aarti @ 8:00 PM</strong> at Main Mandap
+                  </p>
+                </div>
+
+                <a
+                  href={streamInfo?.channelUrl || 'https://www.youtube.com/channel/UCxRNcIybtSFaD6HWiMlrpLw'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    color: '#dc2626',
+                    borderRadius: 10,
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <Bell size={13} />
+                  <span>Subscribe on YouTube</span>
+                </a>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {DAILY_FESTIVAL_SCHEDULE.map((item) => (
+                  <div
+                    key={item.day}
+                    style={{
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 16,
+                      padding: '14px 16px',
+                      background: item.day === 1 ? '#fff7ed' : '#ffffff',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                      transition: 'box-shadow 0.2s ease',
+                      boxShadow: item.day === 1 ? '0 2px 10px rgba(234, 88, 12, 0.08)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 10,
+                            background: item.badgeColor,
+                            color: '#fff',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 900,
+                            fontSize: 13,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                          }}
+                        >
+                          <span style={{ fontSize: 9, opacity: 0.85 }}>DAY</span>
+                          <span>{item.day}</span>
+                        </div>
+
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 900, color: '#0f172a' }}>
+                            {item.title}
+                          </div>
+                          <div style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600 }}>
+                            📅 {item.date} ({item.dayName})
+                          </div>
+                        </div>
+                      </div>
+
+                      <span
+                        style={{
+                          background: `${item.badgeColor}15`,
+                          color: item.badgeColor,
+                          border: `1px solid ${item.badgeColor}35`,
+                          borderRadius: 999,
+                          padding: '3px 10px',
+                          fontSize: 10.5,
+                          fontWeight: 800,
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        {item.badge}
+                      </span>
+                    </div>
+
+                    {/* Schedule Timings Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+                      <div
+                        style={{
+                          background: '#f8fafc',
+                          border: '1px solid #f1f5f9',
+                          borderRadius: 10,
+                          padding: '8px 12px',
+                          fontSize: 12,
+                          color: '#334155',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <Clock size={14} color="#0284c7" />
+                        <div>
+                          <span style={{ fontWeight: 800, color: '#0f172a' }}>Morning: </span>
+                          <span>{item.morningAarti}</span>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          background: '#f8fafc',
+                          border: '1px solid #f1f5f9',
+                          borderRadius: 10,
+                          padding: '8px 12px',
+                          fontSize: 12,
+                          color: '#334155',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <Clock size={14} color="#ea580c" />
+                        <div>
+                          <span style={{ fontWeight: 800, color: '#0f172a' }}>Evening: </span>
+                          <span>{item.eveningAarti}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Special Event highlight */}
+                    {item.specialEvent && (
+                      <div
+                        style={{
+                          background: 'rgba(249, 115, 22, 0.08)',
+                          borderLeft: '3px solid #ea580c',
+                          padding: '6px 10px',
+                          borderRadius: '0 8px 8px 0',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: '#9a3412',
+                        }}
+                      >
+                        {item.specialEvent}
+                      </div>
+                    )}
+
+                    {/* Actions row */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginTop: 2 }}>
+                      {onNavigate && (
+                        <button
+                          onClick={() => onNavigate('prasad')}
+                          style={{
+                            background: 'transparent',
+                            border: '1px solid #fed7aa',
+                            color: '#ea580c',
+                            borderRadius: 8,
+                            padding: '5px 10px',
+                            fontSize: 11.5,
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          <Utensils size={12} />
+                          <span>Book Prasad Slot</span>
+                        </button>
+                      )}
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => setShowAdminModal(true)}
+                          style={{
+                            background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 8,
+                            padding: '5px 12px',
+                            fontSize: 11.5,
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          <Radio size={12} />
+                          <span>Broadcast Live</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : activeTab === 'lyrics' ? (
             <div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 14, overflowX: 'auto', paddingBottom: 4 }}>
                 {AARTI_LYRICS.map((aarti, idx) => (
@@ -556,13 +928,13 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
                   <strong>📍 Location:</strong> Main Mandap, Club House Podium
                 </div>
                 <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#334155' }}>
-                  <strong>⏰ Aarti Timings:</strong> Morning 8:00 AM | Evening 8:00 PM
+                  <strong>⏰ Daily Aarti Timings:</strong> Morning 8:00 AM | Evening 8:00 PM
                 </div>
                 <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#334155' }}>
-                  <strong>🎥 Official Channel:</strong> Majestique Euriska Cultural
+                  <strong>🎥 Official YouTube:</strong> Majestique Euriska Cultural
                 </div>
                 <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#334155' }}>
-                  <strong>✉️ Email:</strong> majestiqueeuriskacultural@gmail.com
+                  <strong>✉️ Contact Email:</strong> majestiqueeuriskacultural@gmail.com
                 </div>
               </div>
             </div>
