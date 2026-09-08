@@ -20,34 +20,46 @@ interface AdminLiveStreamModalProps {
 
 const PRESET_EVENTS = [
   {
-    title: 'Shree Ganesh Evening Maha Aarti (8:00 PM)',
+    title: '🐘 14 Sep: Ganesh Aagman Miravnuk & Sthapana (5:00 PM)',
+    category: 'Cultural' as LiveStreamCategory,
+    desc: 'Grand procession with traditional Dhol Tasha Pathak beats & Ganesh Sthapana ceremony.',
+    pinned: '🥁 Ganpati Bappa Morya! Grand welcoming procession at Society Main Gate.',
+  },
+  {
+    title: '🪔 Daily Shree Ganesh Evening Maha Aarti (8:00 PM)',
     category: 'Aarti' as LiveStreamCategory,
     desc: 'Live Darshan & Maha Aarti of Lord Ganesha at Majestique Euriska Club House.',
-    pinned: '🪔 Maha Prasad distribution starts at 8:45 PM at Club House.',
+    pinned: '🪔 Evening Aarti live! Prasad distribution starts at 8:45 PM at Club House.',
   },
   {
-    title: 'Shree Ganesh Morning Aarti (8:00 AM)',
+    title: '🌸 Daily Shree Ganesh Morning Aarti (8:00 AM)',
     category: 'Aarti' as LiveStreamCategory,
     desc: 'Morning prayers, Pooja, and Devotional Bhajans from the Mandap.',
-    pinned: '🌸 Morning Pooja and flower offerings underway.',
+    pinned: '🌸 Morning Pooja & floral archana underway at Mandap.',
   },
   {
-    title: 'Kalakriti 2026: Dance & Fancy Dress Gala',
-    category: 'Kalakriti' as LiveStreamCategory,
-    desc: 'Grand cultural talent performances by society kids & residents on stage.',
-    pinned: '🎭 Live voting and cheering for Kalakriti stage performers!',
-  },
-  {
-    title: 'Dhol Pathak & Ganesh Aagman Miravnuk',
+    title: '🎪 19 Sep: Carnival, Radio City 91.1 FM RJ & Food Stalls (6:00 PM)',
     category: 'Cultural' as LiveStreamCategory,
-    desc: 'Grand procession with traditional Dhol Tasha Pathak beats & celebrations.',
-    pinned: '🥁 Ganpati Bappa Morya! Grand welcoming at Society Main Gate.',
+    desc: 'Society Carnival, Radio City 91.1 FM Live RJ interaction, Drawing Competition & delicious Food Stalls.',
+    pinned: '🎉 Carnival in full swing! Food Stalls open from 7:00 PM at Main Podium.',
   },
   {
-    title: 'Anant Chaturdashi Ganesh Visarjan Live',
+    title: '🎭 20 Sep: Kalakriti Talent Show & Stage Gala (6:00 PM)',
+    category: 'Kalakriti' as LiveStreamCategory,
+    desc: 'Grand cultural talent performances, dance, singing & drama by society children & residents.',
+    pinned: '🎭 Kalakriti Live on Stage! Cheer for our society talents in the chat.',
+  },
+  {
+    title: '🪔 24 Sep: Satyanarayan Katha (4 PM) & Mahaprasad Feast (8 PM)',
+    category: 'Aarti' as LiveStreamCategory,
+    desc: 'Sacred Shri Satyanarayan Maha Pooja followed by grand community Mahaprasad feast.',
+    pinned: '🍲 Mahaprasad token distribution & community dinner starts at 8:00 PM.',
+  },
+  {
+    title: '🌊 25 Sep: Anant Chaturdashi Ganesh Visarjan Miravnuk (4:00 PM)',
     category: 'Visarjan' as LiveStreamCategory,
-    desc: 'Emotional farewell & Eco-friendly Visarjan immersion ceremony.',
-    pinned: '🌺 Pudhchya Varshi Lavkar Ya! Visarjan procession live.',
+    desc: 'Emotional farewell procession & Eco-friendly Visarjan immersion ceremony.',
+    pinned: '🌺 Ganpati Bappa Morya, Pudhchya Varshi Lavkar Ya! Visarjan procession live.',
   },
 ];
 
