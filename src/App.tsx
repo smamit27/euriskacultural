@@ -31,16 +31,20 @@ import { GlossyMandapWelcomeModal } from './components/sponsors/GlossyMandapWelc
 import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
 import { LivePresenceBadge } from './components/common/LivePresenceBadge';
 import { LiveTrafficModal } from './components/admin/LiveTrafficModal';
+import { LiveStreamPlayerModal } from './components/livestream/LiveStreamPlayerModal';
+import { liveStreamService } from './services/liveStreamService';
 import { presenceService, type ActiveSession } from './services/presenceService';
 import { contributionService } from './services/contributionService';
 import { expenseService } from './services/expenseService';
 import { useToast } from './context/ToastContext';
+import type { LiveStreamInfo } from './types';
 import euriskaLogo from '/euriska_logo.png';
 
-type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad' | 'mahaprasad' | 'demographics';
+type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteers' | 'tasks' | 'reports' | 'settings' | 'events' | 'kalakriti' | 'prasad' | 'mahaprasad' | 'demographics' | 'livestream';
 
 const PAGE_TITLES: Record<string, string> = {
   home: 'Dashboard',
+  livestream: '🔴 Live Stream & Aarti Darshan',
   prasad: 'Ganpati Prasad Seva (8:00 PM Aarti)',
   mahaprasad: 'Maha Prasad RSVP (24 Sep, 8-10 PM)',
   demographics: 'Executive Demographics (Confidential)',
@@ -201,6 +205,16 @@ function AppContent() {
   const [showPairModal, setShowPairModal] = useState(false);
   const [sessions, setSessions] = useState<ActiveSession[]>([]);
   const [showTrafficModal, setShowTrafficModal] = useState(false);
+  const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
+  const [showLivePlayerModal, setShowLivePlayerModal] = useState(false);
+
+  // Subscribe to real-time live stream updates
+  React.useEffect(() => {
+    const unsub = liveStreamService.subscribeLiveStream((info) => {
+      setStreamInfo(info);
+    });
+    return () => unsub();
+  }, []);
 
   // Initialize real-time presence heartbeat
   React.useEffect(() => {
@@ -345,8 +359,12 @@ function AppContent() {
     if (section === 'prasad') { handleTabChange('prasad'); return; }
     if (section === 'kalakriti') { handleTabChange('kalakriti'); return; }
     if (section === 'events') { setActiveTab('more'); setSubPage('events'); return; }
+    if (section === 'livestream') {
+      setShowLivePlayerModal(true);
+      return;
+    }
 
-    const subPages: SubPage[] = ['programs', 'performances', 'gallery', 'sponsors', 'volunteers', 'tasks', 'settings', 'kalakriti', 'prasad', 'demographics'];
+    const subPages: SubPage[] = ['programs', 'performances', 'gallery', 'sponsors', 'volunteers', 'tasks', 'settings', 'kalakriti', 'prasad', 'demographics', 'livestream'];
     if (subPages.includes(section as SubPage)) {
       setActiveTab('more');
       setSubPage(section as SubPage);
@@ -521,6 +539,14 @@ function AppContent() {
             setActiveTab('more');
             setSubPage('sponsors');
           }}
+        />
+
+        {/* Global Live Stream Devotional Player Modal */}
+        <LiveStreamPlayerModal
+          isOpen={showLivePlayerModal}
+          onClose={() => setShowLivePlayerModal(false)}
+          streamInfo={streamInfo}
+          onOpenPrasadBooking={() => handleTabChange('prasad')}
         />
       </div>
     </div>

@@ -398,4 +398,32 @@ export interface PrasadSlot {
   notes?: string;
 }
 
+export type LiveStreamCategory = 'Aarti' | 'Kalakriti' | 'Visarjan' | 'Cultural' | 'AGM' | 'Other';
+
+export interface LiveStreamInfo {
+  id: string;
+  isLive: boolean;
+  title: string;
+  description: string;
+  category: LiveStreamCategory;
+  streamUrl: string;
+  youtubeVideoId?: string;
+  channelName: string;
+  channelEmail: string;
+  scheduledTime?: string;
+  viewerCount?: number;
+  pinnedMessage?: string;
+  startedAt?: string;
+  endedAt?: string;
+  replayUrl?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+export interface LiveReaction {
+  id: string;
+  emoji: string;
+  count: number;
+}
+
 
