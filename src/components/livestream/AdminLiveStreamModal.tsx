@@ -341,23 +341,42 @@ export const AdminLiveStreamModal: React.FC<AdminLiveStreamModalProps> = ({
                 </svg>
                 <span>YouTube Live Stream Link or Video ID *</span>
               </label>
-              <a
-                href="https://studio.youtube.com/channel/live_streaming"
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  fontSize: 11,
-                  color: '#ea580c',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 3,
-                }}
-              >
-                <span>Open YouTube Studio</span>
-                <ExternalLink size={11} />
-              </a>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <a
+                  href="https://www.youtube.com/channel/UCxRNcIybtSFaD6HWiMlrpLw"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    fontSize: 11,
+                    color: '#ef4444',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                  }}
+                >
+                  <span>Channel</span>
+                  <ExternalLink size={11} />
+                </a>
+                <a
+                  href="https://studio.youtube.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    fontSize: 11,
+                    color: '#ea580c',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                  }}
+                >
+                  <span>YouTube Studio</span>
+                  <ExternalLink size={11} />
+                </a>
+              </div>
             </div>
 
             <input

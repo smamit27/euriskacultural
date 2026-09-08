@@ -269,28 +269,53 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
               Live video broadcast will appear here during daily evening Aarti, Ganpati Aagman, and Kalakriti performances.
             </p>
 
-            {isAdmin && (
-              <button
-                onClick={() => setShowAdminModal(true)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <a
+                href={streamInfo?.channelUrl || 'https://www.youtube.com/channel/UCxRNcIybtSFaD6HWiMlrpLw'}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                  background: '#ef4444',
                   color: '#fff',
                   border: 'none',
                   borderRadius: 14,
-                  padding: '10px 20px',
+                  padding: '10px 18px',
                   fontSize: 13,
                   fontWeight: 900,
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
-                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
                 }}
               >
-                <Radio size={16} />
-                <span>Go Live / Paste Stream URL</span>
-              </button>
-            )}
+                <span>▶ Visit YouTube Channel</span>
+              </a>
+
+              {isAdmin && (
+                <button
+                  onClick={() => setShowAdminModal(true)}
+                  style={{
+                    background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 14,
+                    padding: '10px 18px',
+                    fontSize: 13,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
+                  }}
+                >
+                  <Radio size={16} />
+                  <span>Go Live / Paste Stream URL</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 

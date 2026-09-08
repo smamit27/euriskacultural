@@ -410,6 +410,7 @@ export interface LiveStreamInfo {
   youtubeVideoId?: string;
   channelName: string;
   channelEmail: string;
+  channelUrl?: string;
   scheduledTime?: string;
   viewerCount?: number;
   pinnedMessage?: string;

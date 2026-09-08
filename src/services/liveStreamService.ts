@@ -14,6 +14,7 @@ export const DEFAULT_LIVESTREAM: LiveStreamInfo = {
   youtubeVideoId: '',
   channelName: 'Majestique Euriska Cultural',
   channelEmail: 'majestiqueeuriskacultural@gmail.com',
+  channelUrl: 'https://www.youtube.com/channel/UCxRNcIybtSFaD6HWiMlrpLw',
   scheduledTime: 'Daily 8:00 PM',
   viewerCount: 42,
   pinnedMessage: '🌸 Ganpati Bappa Morya! Prasad distribution will commence right after Aarti at Club House.',
@@ -209,6 +210,7 @@ export const liveStreamService = {
       youtubeVideoId: videoId,
       channelName: 'Majestique Euriska Cultural',
       channelEmail: 'majestiqueeuriskacultural@gmail.com',
+      channelUrl: 'https://www.youtube.com/channel/UCxRNcIybtSFaD6HWiMlrpLw',
       updatedAt: new Date().toISOString(),
     };
 
