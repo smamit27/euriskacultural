@@ -33,7 +33,9 @@ import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
 import { LivePresenceBadge } from './components/common/LivePresenceBadge';
 import { LiveTrafficModal } from './components/admin/LiveTrafficModal';
 import { LiveStreamPlayerModal } from './components/livestream/LiveStreamPlayerModal';
+import { NotificationModal } from './components/notifications/NotificationModal';
 import { liveStreamService } from './services/liveStreamService';
+import { notificationService } from './services/notificationService';
 import { presenceService, type ActiveSession } from './services/presenceService';
 import { contributionService } from './services/contributionService';
 import { expenseService } from './services/expenseService';
@@ -72,6 +74,7 @@ function DesktopHeader({
   onBack,
   onOpenAdminLogin,
   onOpenPairPhone,
+  onOpenNotifications,
   sessions = [],
   onOpenTrafficModal,
 }: {
@@ -80,6 +83,7 @@ function DesktopHeader({
   onBack: () => void;
   onOpenAdminLogin: () => void;
   onOpenPairPhone?: () => void;
+  onOpenNotifications?: () => void;
   sessions?: ActiveSession[];
   onOpenTrafficModal?: () => void;
 }) {
@@ -179,11 +183,13 @@ function DesktopHeader({
         )}
         {/* Notification bell */}
         <button
+          onClick={onOpenNotifications}
           style={{
             background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 10,
             width: 38, height: 38, display: 'flex', alignItems: 'center',
             justifyContent: 'center', cursor: 'pointer', position: 'relative',
           }}
+          title="Festival Announcements & Live Aarti Notifications"
         >
           <Bell size={18} color="#64748b" />
           <span style={{
@@ -208,11 +214,21 @@ function AppContent() {
   const [showTrafficModal, setShowTrafficModal] = useState(false);
   const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
   const [showLivePlayerModal, setShowLivePlayerModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const prevIsLiveRef = React.useRef(false);
 
-  // Subscribe to real-time live stream updates
+  // Subscribe to real-time live stream updates & trigger notifications
   React.useEffect(() => {
     const unsub = liveStreamService.subscribeLiveStream((info) => {
       setStreamInfo(info);
+      if (info?.isLive && !prevIsLiveRef.current) {
+        notificationService.sendLiveStreamNotification(info, () => {
+          setActiveTab('more');
+          setSubPage('livestream');
+        });
+        showToast(`🔴 LIVE NOW: ${info.title || 'Shree Ganesh Maha Aarti'} — Tap to watch!`, 'info');
+      }
+      prevIsLiveRef.current = !!info?.isLive;
     });
     return () => unsub();
   }, []);
@@ -471,6 +487,7 @@ function AppContent() {
         <Header
           onOpenAdminLogin={() => setShowAdminLogin(true)}
           onOpenPairPhone={() => setShowPairModal(true)}
+          onOpenNotifications={() => setShowNotificationModal(true)}
           sessions={sessions}
           onOpenTrafficModal={() => setShowTrafficModal(true)}
         />
@@ -493,12 +510,25 @@ function AppContent() {
             onBack={() => setSubPage(null)}
             onOpenAdminLogin={() => setShowAdminLogin(true)}
             onOpenPairPhone={() => setShowPairModal(true)}
+            onOpenNotifications={() => setShowNotificationModal(true)}
             sessions={sessions}
             onOpenTrafficModal={() => setShowTrafficModal(true)}
           />
 
           {renderContent()}
         </main>
+
+        {/* Festival & Live Aarti Notifications Drawer Modal */}
+        <NotificationModal
+          isOpen={showNotificationModal}
+          onClose={() => setShowNotificationModal(false)}
+          streamInfo={streamInfo}
+          onWatchLive={() => {
+            setActiveTab('more');
+            setSubPage('livestream');
+          }}
+          onNavigate={handleNavigate}
+        />
 
         {/* Live Active Visitors Traffic Modal */}
         <LiveTrafficModal
