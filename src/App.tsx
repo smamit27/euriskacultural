@@ -23,6 +23,7 @@ import { PrasadPage } from './components/pages/PrasadPage';
 import { MahaPrasadPage } from './components/pages/MahaPrasadPage';
 import { DemographicsPage } from './components/pages/DemographicsPage';
 import { FinancialReportPage } from './components/pages/FinancialReportPage';
+import { LiveStreamPage } from './components/pages/LiveStreamPage';
 import { AdminLoginModal } from './components/auth/AdminLoginModal';
 import { PairDeviceModal } from './components/auth/PairDeviceModal';
 import { AdminScanApprovalModal } from './components/auth/AdminScanApprovalModal';
@@ -285,6 +286,9 @@ function AppContent() {
         setSubPage('events');
       } else if (tabParam === 'programs' || path.includes('/programs')) {
         setSubPage('programs');
+      } else if (tabParam === 'livestream' || path.includes('/livestream')) {
+        setActiveTab('more');
+        setSubPage('livestream');
       } else if (tabParam === 'gallery' || path.includes('/gallery')) {
         setSubPage('gallery');
       }
@@ -360,7 +364,8 @@ function AppContent() {
     if (section === 'kalakriti') { handleTabChange('kalakriti'); return; }
     if (section === 'events') { setActiveTab('more'); setSubPage('events'); return; }
     if (section === 'livestream') {
-      setShowLivePlayerModal(true);
+      setActiveTab('more');
+      setSubPage('livestream');
       return;
     }
 
@@ -403,6 +408,7 @@ function AppContent() {
   const renderContent = () => {
     // Sub-pages from More menu
     if (subPage === 'demographics') return isAdmin ? <DemographicsPage /> : <HomePage onNavigate={handleNavigate} onSelectBuilding={handleSelectBuilding} onShowAddContribution={() => {}} onShowAddExpense={() => {}} />;
+    if (subPage === 'livestream') return <LiveStreamPage onNavigate={handleNavigate} />;
     if (subPage === 'programs') return <ProgramTimeline onSelectProgram={() => {}} />;
     if (subPage === 'performances') return <PerformanceList onSelectPerformance={() => {}} />;
     if (subPage === 'gallery') return <GalleryGrid />;
