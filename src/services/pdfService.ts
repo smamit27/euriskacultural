@@ -369,9 +369,9 @@ export const pdfService = {
       ['Devotee / Host Family:', cleanPdfText(activeBooking.residentName) || 'Devotee Family'],
       ['Contact Phone:', cleanPdfText(activeBooking.phone) || 'Registered Society Resident'],
       ['Prasad Seva Offering:', cleanPdfText(activeBooking.prasadItem) || 'Traditional Modak, Sweets & Fresh Fruits'],
-      ['Reporting Time:', '7:45 PM (15 Minutes prior to Aarti for Mandap Sthapana)'],
-      ['Maha Aarti Timing:', '8:00 PM Sharp (Evening Aarti, Stuti & Modak Prasad)'],
-      ['Venue Location:', 'Club House Podium'],
+      ['Reporting Time:', slot.dayNumber === 12 ? '3:45 PM (Prior to Visarjan Procession)' : '7:45 PM (15 Minutes prior to Aarti for Mandap Sthapana)'],
+      ['Maha Aarti Timing:', slot.dayNumber === 12 ? '4:00 PM (Ganesh Visarjan Procession & Aarti)' : '8:00 PM Sharp (Evening Aarti, Stuti & Modak Prasad)'],
+      ['Venue Location:', slot.dayNumber === 12 ? 'Main Ground & Visarjan Route' : 'Club House Podium'],
     ];
 
     if (activeBooking.notes) {

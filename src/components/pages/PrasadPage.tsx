@@ -84,7 +84,9 @@ export const PrasadPage: React.FC = () => {
 
   const handleShareBooking = (slot: PrasadSlot, booking: PrasadBooking, e: React.MouseEvent) => {
     e.stopPropagation();
-    const text = `🪔 Euriska Ganpati Prasad Seva 2026\n📅 Date: ${slot.dateDisplay} (8:00 PM Aarti)\n🏠 Flat: ${booking.flatNumber} (${booking.residentName})\n🥟 Prasad: ${booking.prasadItem || 'Modak & Fruits'}\n📍 Venue: Club House Podium, Euriska`;
+    const timingStr = slot.dayNumber === 12 ? '4:00 PM Visarjan' : '8:00 PM Aarti';
+    const venueStr = slot.dayNumber === 12 ? 'Main Ground & Visarjan Route, Euriska' : 'Club House Podium, Euriska';
+    const text = `🪔 Euriska Ganpati Prasad Seva 2026\n📅 Date: ${slot.dateDisplay} (${timingStr})\n🏠 Flat: ${booking.flatNumber} (${booking.residentName})\n🥟 Prasad: ${booking.prasadItem || 'Modak & Fruits'}\n📍 Venue: ${venueStr}`;
     if (navigator.share) {
       navigator.share({ title: 'Ganpati Prasad Seva', text }).catch(() => {});
     } else {
@@ -646,7 +648,11 @@ export const PrasadPage: React.FC = () => {
                     }}
                   >
                     <Clock size={14} color="#ea580c" />
-                    <span>8:00 PM Evening Aarti • Club House Podium</span>
+                    <span>
+                      {slot.dayNumber === 12
+                        ? '4:00 PM Ganesh Visarjan Procession • Main Ground & Visarjan Route'
+                        : `${slot.time || '8:00 PM'} Evening Aarti • Club House Podium`}
+                    </span>
                   </div>
 
                   {/* Bookings List or Open Prompt */}

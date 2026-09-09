@@ -293,7 +293,15 @@ export const BookPrasadModal: React.FC<BookPrasadModalProps> = ({
           >
             <Clock size={18} color="#b45309" />
             <div style={{ fontSize: 12, color: '#92400e', fontWeight: 700 }}>
-              Evening Aarti Timing: <strong>8:00 PM</strong> at <strong>Club House Podium</strong>
+              {currentSlot?.dayNumber === 12 ? (
+                <>
+                  Visarjan Procession Timing: <strong>4:00 PM</strong> at <strong>Main Ground &amp; Visarjan Route</strong>
+                </>
+              ) : (
+                <>
+                  Evening Aarti Timing: <strong>8:00 PM</strong> at <strong>Club House Podium</strong>
+                </>
+              )}
             </div>
           </div>
 
