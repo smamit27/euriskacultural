@@ -774,6 +774,7 @@ export const KalakritiPage: React.FC = () => {
 
       {/* Registration / Edit Modal */}
       <RegisterKalakritiModal
+        key={editingEntry ? editingEntry.id : 'new-kalakriti-entry'}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, User, Home, Phone, Sparkles } from 'lucide-react';
 import { KALAKRITI_ACTIVITIES } from '../../services/kalakritiService';
 import type { KalakritiEntry, KalakritiActivityKey } from '../../types';
@@ -27,6 +27,20 @@ export const RegisterKalakritiModal: React.FC<RegisterKalakritiModalProps> = ({
     dance: initialData?.dance || false,
     fancyDress: initialData?.fancyDress || false,
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialData?.name || '');
+      setFlatNumber(initialData?.flatNumber || '');
+      setPhone(initialData?.phone || '');
+      setAgeGroup(initialData?.ageGroup || 'Kids');
+      setRemarks(initialData?.remarks || '');
+      setActivities({
+        dance: Boolean(initialData?.dance),
+        fancyDress: Boolean(initialData?.fancyDress),
+      });
+    }
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
