@@ -32,7 +32,8 @@ interface AartiTrack {
   subtitle: string;
   artist: string;
   duration: string;
-  audioUrl: string;
+  tempo: number;
+  melody: { note: number; dur: number }[];
   lyrics: {
     verseNo: number;
     devanagari: string[];
@@ -41,14 +42,149 @@ interface AartiTrack {
   }[];
 }
 
+// Frequencies for Raag Yaman / Bhupali devotional notes
+const N_D3 = 146.83;
+const N_A3 = 220.00;
+const N_D4 = 293.66;
+const N_E4 = 329.63;
+const N_FS4 = 369.99;
+const N_G4 = 392.00;
+const N_A4 = 440.00;
+const N_B4 = 493.88;
+const N_CS5 = 554.37;
+const N_D5 = 587.33;
+
+// Sukhkarta Dukh Harta Full Authentic Devotional Melody
+const SUKHKARTA_MELODY: { note: number; dur: number }[] = [
+  // Sukh-kar-ta dukh-har-ta
+  { note: N_D4, dur: 0.45 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_FS4, dur: 0.8 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_D4, dur: 0.45 },
+  { note: N_FS4, dur: 0.8 },
+  // vaar-ta vigh-naa-chi
+  { note: N_A4, dur: 0.45 },
+  { note: N_B4, dur: 0.45 },
+  { note: N_D5, dur: 0.65 },
+  { note: N_CS5, dur: 0.45 },
+  { note: N_B4, dur: 0.85 },
+  // nu-ra-vee poo-ra-vee
+  { note: N_A4, dur: 0.45 },
+  { note: N_B4, dur: 0.45 },
+  { note: N_A4, dur: 0.45 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_G4, dur: 0.45 },
+  { note: N_FS4, dur: 0.8 },
+  // pre-ma kri-pa ja-ya-chi
+  { note: N_E4, dur: 0.45 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_D4, dur: 0.6 },
+  { note: N_D4, dur: 1.1 },
+  // Jai dev jai dev mangal murti
+  { note: N_A4, dur: 0.45 },
+  { note: N_A4, dur: 0.45 },
+  { note: N_B4, dur: 0.45 },
+  { note: N_CS5, dur: 0.45 },
+  { note: N_D5, dur: 0.65 },
+  { note: N_D5, dur: 0.45 },
+  { note: N_CS5, dur: 0.45 },
+  { note: N_B4, dur: 0.85 },
+  // Dar-shan maa-tre man-kaam-na purti
+  { note: N_A4, dur: 0.45 },
+  { note: N_B4, dur: 0.45 },
+  { note: N_A4, dur: 0.45 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_D4, dur: 1.3 },
+  // Jai dev jai dev (Refrain)
+  { note: N_D4, dur: 0.5 },
+  { note: N_FS4, dur: 0.5 },
+  { note: N_A4, dur: 0.8 },
+  { note: N_B4, dur: 0.5 },
+  { note: N_A4, dur: 0.5 },
+  { note: N_D4, dur: 1.2 },
+];
+
+// Jai Ganesh Jai Ganesh Deva Authentic Melody
+const JAI_GANESH_MELODY: { note: number; dur: number }[] = [
+  // Jai Ganesh, Jai Ganesh, Jai Ganesh Deva
+  { note: N_D4, dur: 0.4 },
+  { note: N_FS4, dur: 0.4 },
+  { note: N_A4, dur: 0.8 },
+  { note: N_A4, dur: 0.4 },
+  { note: N_B4, dur: 0.4 },
+  { note: N_D5, dur: 0.8 },
+  { note: N_D5, dur: 0.4 },
+  { note: N_CS5, dur: 0.4 },
+  { note: N_B4, dur: 0.4 },
+  { note: N_A4, dur: 0.8 },
+  // Mata jaaki Parvati, pita Mahadeva
+  { note: N_B4, dur: 0.45 },
+  { note: N_A4, dur: 0.45 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_D4, dur: 1.2 },
+  // Ek danta dayavanta chaara bhujaadhaari
+  { note: N_D4, dur: 0.4 },
+  { note: N_E4, dur: 0.4 },
+  { note: N_FS4, dur: 0.7 },
+  { note: N_FS4, dur: 0.4 },
+  { note: N_G4, dur: 0.4 },
+  { note: N_A4, dur: 0.8 },
+  { note: N_B4, dur: 0.45 },
+  { note: N_A4, dur: 0.45 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_E4, dur: 0.8 },
+  // Maathe par sindoora sohe moose ki savaari
+  { note: N_FS4, dur: 0.45 },
+  { note: N_G4, dur: 0.45 },
+  { note: N_A4, dur: 0.6 },
+  { note: N_FS4, dur: 0.45 },
+  { note: N_E4, dur: 0.45 },
+  { note: N_D4, dur: 1.2 },
+];
+
+// Om Gan Ganapataye Namo Namah Dhun Melody
+const GANESH_MANTRA_MELODY: { note: number; dur: number }[] = [
+  { note: N_D4, dur: 0.6 },
+  { note: N_FS4, dur: 0.6 },
+  { note: N_A4, dur: 0.8 },
+  { note: N_B4, dur: 0.6 },
+  { note: N_A4, dur: 0.6 },
+  { note: N_FS4, dur: 1.0 },
+  { note: N_E4, dur: 0.6 },
+  { note: N_FS4, dur: 0.6 },
+  { note: N_D4, dur: 1.4 },
+  // Shree Siddhivinayaka Namo Namah
+  { note: N_A4, dur: 0.5 },
+  { note: N_B4, dur: 0.5 },
+  { note: N_D5, dur: 0.8 },
+  { note: N_CS5, dur: 0.5 },
+  { note: N_B4, dur: 0.5 },
+  { note: N_A4, dur: 1.0 },
+  // Ganpati Bappa Morya
+  { note: N_FS4, dur: 0.5 },
+  { note: N_G4, dur: 0.5 },
+  { note: N_A4, dur: 0.8 },
+  { note: N_E4, dur: 0.6 },
+  { note: N_D4, dur: 1.4 },
+];
+
 const GANESH_AARTI_TRACKS: AartiTrack[] = [
   {
     id: 'sukhkarta',
     title: 'Sukhkarta Dukh Harta (सुखकर्ता दुखहर्ता)',
     subtitle: 'Traditional Maha Aarti • Samarth Ramdas',
-    artist: 'Lata Mangeshkar / Traditional Devotional',
+    artist: 'Divine Bansuri Flute & Tanpura Devotional Engine',
     duration: '4:15',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/16/audio_c89a710e20.mp3?filename=indian-devotional-flute-and-sitar-ambient-111868.mp3',
+    tempo: 1.0,
+    melody: SUKHKARTA_MELODY,
     lyrics: [
       {
         verseNo: 1,
@@ -116,9 +252,10 @@ const GANESH_AARTI_TRACKS: AartiTrack[] = [
     id: 'jai-ganesh',
     title: 'Jai Ganesh Jai Ganesh Deva (जय गणेश जय गणेश देवा)',
     subtitle: 'Grand Aarti of Lord Ganesha',
-    artist: 'Anuradha Paudwal / Traditional',
+    artist: 'Divine Bansuri Flute & Tanpura Devotional Engine',
     duration: '5:02',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f7988a.mp3?filename=spiritual-meditation-ambient-123793.mp3',
+    tempo: 1.05,
+    melody: JAI_GANESH_MELODY,
     lyrics: [
       {
         verseNo: 1,
@@ -170,9 +307,10 @@ const GANESH_AARTI_TRACKS: AartiTrack[] = [
     id: 'ganesh-mantra',
     title: 'Om Gan Ganapataye Namo Namah (ॐ गं गणपतये नमो नमः)',
     subtitle: 'Sacred Mool Mantra & Dhun',
-    artist: 'Suresh Wadkar / Vedic Chants',
+    artist: 'Divine Bansuri Flute & Tanpura Devotional Engine',
     duration: '6:30',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_3327d97607.mp3?filename=meditative-spiritual-drone-6644.mp3',
+    tempo: 0.9,
+    melody: GANESH_MANTRA_MELODY,
     lyrics: [
       {
         verseNo: 1,
@@ -196,14 +334,12 @@ const GANESH_AARTI_TRACKS: AartiTrack[] = [
 
 export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen, onClose }) => {
   const canvasContainerRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // States
   const [activeTab, setActiveTab] = useState<'AARTI' | 'LYRICS'>('AARTI');
   const [selectedTrackIdx, setSelectedTrackIdx] = useState<number>(0);
-  const [isPlayingMusic, setIsPlayingMusic] = useState<boolean>(false);
+  const [isPlayingMusic, setIsPlayingMusic] = useState<boolean>(true); // Auto-play when opened
   const [musicProgress, setMusicProgress] = useState<number>(0);
-  const [musicDuration, setMusicDuration] = useState<number>(0);
 
   const [aartiCount, setAartiCount] = useState<number>(0);
   const [isAartiRotating, setIsAartiRotating] = useState<boolean>(true);
@@ -217,18 +353,111 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const musicTimerRef = useRef<number | null>(null);
+  const tanpuraIntervalRef = useRef<number | null>(null);
+  const melodyStepRef = useRef<number>(0);
+
   const currentTrack = GANESH_AARTI_TRACKS[selectedTrackIdx];
 
-  // 1. Synthetic Shankha Naad (Conch shell deep spiritual sound)
+  // Helper to ensure AudioContext
+  const getAudioContext = (): AudioContext => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current;
+  };
+
+  // 1. Play Bansuri Flute Note with warm breath vibrato & acoustic envelope
+  const playBansuriNote = (freq: number, duration: number) => {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+
+      // Primary tone (Pure flute sine)
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      // Vibrato LFO
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.setValueAtTime(5.5, now); // 5.5 Hz Indian flute vibrato
+      lfoGain.gain.setValueAtTime(2.2, now);
+      lfo.connect(osc1.frequency);
+      lfo.connect(osc2.frequency);
+
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(freq, now);
+
+      // Soft triangle harmonic (giving wooden bansuri texture)
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(freq * 2, now); // Octave overtone
+      const harmonicGain = ctx.createGain();
+      harmonicGain.gain.setValueAtTime(0.12, now);
+
+      // Attack - Decay - Sustain - Release Envelope
+      gainNode.gain.setValueAtTime(0.001, now);
+      gainNode.gain.linearRampToValueAtTime(0.26, now + 0.08); // Soft breath attack
+      gainNode.gain.setValueAtTime(0.24, now + duration * 0.7);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      osc1.connect(gainNode);
+      osc2.connect(harmonicGain);
+      harmonicGain.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      lfo.start(now);
+      osc1.start(now);
+      osc2.start(now);
+
+      lfo.stop(now + duration);
+      osc1.stop(now + duration);
+      osc2.stop(now + duration);
+    } catch {
+      // ignore
+    }
+  };
+
+  // 2. Play Deep Tanpura Drone String Pluck
+  const playTanpuraPluck = (freq: number) => {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, now);
+      filter.Q.setValueAtTime(3.0, now);
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 2.4);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 2.4);
+    } catch {
+      // ignore
+    }
+  };
+
+  // 3. Play Synthetic Shankha Naad (Conch Shell spiritual sound)
   const playShankhaNaad = () => {
     if (!soundEnabled) return;
     try {
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
-
+      const ctx = getAudioContext();
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
@@ -237,23 +466,23 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
 
       filter.type = 'lowpass';
       filter.frequency.setValueAtTime(450, now);
-      filter.frequency.exponentialRampToValueAtTime(800, now + 1.2);
-      filter.frequency.exponentialRampToValueAtTime(300, now + 3.0);
+      filter.frequency.exponentialRampToValueAtTime(850, now + 1.2);
+      filter.frequency.exponentialRampToValueAtTime(320, now + 3.2);
 
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, now); // A3
+      osc.frequency.setValueAtTime(220, now);
       osc.frequency.exponentialRampToValueAtTime(235, now + 0.5);
-      osc.frequency.exponentialRampToValueAtTime(215, now + 2.8);
+      osc.frequency.exponentialRampToValueAtTime(215, now + 3.0);
 
       osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(440, now); // A4 harmonic
+      osc2.frequency.setValueAtTime(440, now);
       osc2.frequency.exponentialRampToValueAtTime(470, now + 0.5);
-      osc2.frequency.exponentialRampToValueAtTime(430, now + 2.8);
+      osc2.frequency.exponentialRampToValueAtTime(430, now + 3.0);
 
       gain.gain.setValueAtTime(0.01, now);
-      gain.gain.linearRampToValueAtTime(0.4, now + 0.4);
-      gain.gain.setValueAtTime(0.38, now + 1.8);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 3.2);
+      gain.gain.linearRampToValueAtTime(0.45, now + 0.4);
+      gain.gain.setValueAtTime(0.42, now + 2.0);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 3.4);
 
       osc.connect(filter);
       osc2.connect(filter);
@@ -262,30 +491,25 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
 
       osc.start(now);
       osc2.start(now);
-      osc.stop(now + 3.2);
-      osc2.stop(now + 3.2);
+      osc.stop(now + 3.4);
+      osc2.stop(now + 3.4);
     } catch {
       // ignore
     }
   };
 
-  // 2. Synthetic Temple Bell (Ghanti) Chime
+  // 4. Temple Bell Chime
   const playBellChime = () => {
     if (!soundEnabled) return;
     try {
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
-
+      const ctx = getAudioContext();
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const oscHarmonic = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(987.77, now); // B5 note
+      osc.frequency.setValueAtTime(987.77, now);
       osc.frequency.exponentialRampToValueAtTime(1975.53, now + 0.05);
       osc.frequency.exponentialRampToValueAtTime(987.77, now + 0.25);
 
@@ -308,57 +532,58 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
     }
   };
 
-  // 3. Devotional Music Player Setup
+  // 5. Continuous Devotional Melody Sequencer & Tanpura Drone Engine
   useEffect(() => {
-    if (!audioRef.current) return;
-    const audio = audioRef.current;
+    if (!isOpen || !isPlayingMusic) {
+      if (musicTimerRef.current) clearTimeout(musicTimerRef.current);
+      if (tanpuraIntervalRef.current) clearInterval(tanpuraIntervalRef.current);
+      return;
+    }
 
-    const handleTimeUpdate = () => {
-      setMusicProgress(audio.currentTime);
-      setMusicDuration(audio.duration || 0);
+    // A. Start Tanpura Drone
+    let tanpuraStep = 0;
+    const tanpuraNotes = [N_A3, N_D4, N_D4, N_D3];
+    playTanpuraPluck(tanpuraNotes[0]);
+
+    tanpuraIntervalRef.current = window.setInterval(() => {
+      tanpuraStep = (tanpuraStep + 1) % tanpuraNotes.length;
+      playTanpuraPluck(tanpuraNotes[tanpuraStep]);
+    }, 1400);
+
+    // B. Start Melody Sequencer
+    melodyStepRef.current = 0;
+    const track = currentTrack;
+    const melody = track.melody;
+
+    const playNextNote = () => {
+      if (!isPlayingMusic || !isOpen) return;
+
+      const idx = melodyStepRef.current % melody.length;
+      const currentNote = melody[idx];
+
+      playBansuriNote(currentNote.note, currentNote.dur);
+
+      // On major beat boundaries, ring soft temple chime
+      if (idx % 6 === 0) {
+        playBellChime();
+      }
+
+      setMusicProgress(idx / melody.length);
+      melodyStepRef.current++;
+
+      musicTimerRef.current = window.setTimeout(playNextNote, currentNote.dur * 1000 * track.tempo);
     };
 
-    const handleEnded = () => {
-      // Auto advance to next Aarti track or loop
-      setSelectedTrackIdx((prev) => (prev + 1) % GANESH_AARTI_TRACKS.length);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
+    // Initial note delay
+    musicTimerRef.current = window.setTimeout(playNextNote, 300);
 
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
+      if (musicTimerRef.current) clearTimeout(musicTimerRef.current);
+      if (tanpuraIntervalRef.current) clearInterval(tanpuraIntervalRef.current);
     };
-  }, []);
+  }, [isOpen, isPlayingMusic, selectedTrackIdx, soundEnabled]);
 
-  // When track changes, reload audio source
-  useEffect(() => {
-    if (!audioRef.current) return;
-    audioRef.current.src = currentTrack.audioUrl;
-    if (isPlayingMusic) {
-      audioRef.current.play().catch(() => {
-        setIsPlayingMusic(false);
-      });
-    }
-  }, [selectedTrackIdx]);
-
-  const toggleMusicPlay = () => {
-    if (!audioRef.current) return;
-    if (isPlayingMusic) {
-      audioRef.current.pause();
-      setIsPlayingMusic(false);
-    } else {
-      audioRef.current.play().then(() => {
-        setIsPlayingMusic(true);
-      }).catch((e) => {
-        console.warn('Audio play request:', e);
-        setIsPlayingMusic(true);
-      });
-    }
-  };
-
-  // 4. Three.js 3D Virtual Mandap, Idol & 5-Wick Aarti Thali
+  // 6. Three.js 3D Virtual Mandap, Idol & 5-Wick Aarti Thali
   useEffect(() => {
     if (!isOpen || !canvasContainerRef.current) return;
 
@@ -710,9 +935,6 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
       }}
       onClick={onClose}
     >
-      {/* Hidden Audio element for background Aarti track */}
-      <audio ref={audioRef} preload="auto" />
-
       <div
         style={{
           background: 'radial-gradient(ellipse at top, #2e1065 0%, #0f172a 70%, #020617 100%)',
@@ -1045,11 +1267,11 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
               </button>
             </div>
 
-            {/* Embedded Ganesh Ji Music Player Bar */}
+            {/* Embedded Devotional Bansuri & Tanpura Audio Player Bar */}
             <div
               style={{
                 padding: '10px 16px',
-                background: 'rgba(0, 0, 0, 0.5)',
+                background: 'rgba(0, 0, 0, 0.55)',
                 borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1060,8 +1282,8 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   <div
                     style={{
-                      width: 28,
-                      height: 28,
+                      width: 30,
+                      height: 30,
                       borderRadius: '50%',
                       background: isPlayingMusic ? '#f59e0b' : 'rgba(255,255,255,0.1)',
                       color: isPlayingMusic ? '#000' : '#fff',
@@ -1071,14 +1293,14 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
                       flexShrink: 0,
                     }}
                   >
-                    <Music size={14} className={isPlayingMusic ? 'spin-slow' : ''} />
+                    <Music size={15} className={isPlayingMusic ? 'spin-slow' : ''} />
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#fef08a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {currentTrack.title}
                     </div>
                     <div style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                      {currentTrack.subtitle}
+                      {isPlayingMusic ? '🪈 Playing Live Bansuri & Tanpura Aarti' : 'Tap play for devotional music'}
                     </div>
                   </div>
                 </div>
@@ -1086,34 +1308,37 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <button
                     type="button"
-                    onClick={toggleMusicPlay}
+                    onClick={() => setIsPlayingMusic(!isPlayingMusic)}
                     style={{
                       background: 'linear-gradient(135deg, #f59e0b, #ea580c)',
                       border: 'none',
                       borderRadius: '50%',
-                      width: 34,
-                      height: 34,
+                      width: 36,
+                      height: 36,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: '#fff',
                       cursor: 'pointer',
-                      boxShadow: '0 2px 10px rgba(245, 158, 11, 0.35)',
+                      boxShadow: '0 2px 10px rgba(245, 158, 11, 0.4)',
                     }}
                   >
-                    {isPlayingMusic ? <Pause size={16} /> : <Play size={16} style={{ marginLeft: 2 }} />}
+                    {isPlayingMusic ? <Pause size={17} /> : <Play size={17} style={{ marginLeft: 2 }} />}
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setSelectedTrackIdx((prev) => (prev + 1) % GANESH_AARTI_TRACKS.length)}
+                    onClick={() => {
+                      setSelectedTrackIdx((prev) => (prev + 1) % GANESH_AARTI_TRACKS.length);
+                      setIsPlayingMusic(true);
+                    }}
                     title="Next Aarti Track"
                     style={{
                       background: 'rgba(255, 255, 255, 0.1)',
                       border: 'none',
                       borderRadius: '50%',
-                      width: 28,
-                      height: 28,
+                      width: 30,
+                      height: 30,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1121,38 +1346,37 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
                       cursor: 'pointer',
                     }}
                   >
-                    <SkipForward size={14} />
+                    <SkipForward size={15} />
                   </button>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              {musicDuration > 0 && (
+              <div
+                style={{
+                  width: '100%',
+                  height: 3,
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
                 <div
                   style={{
-                    width: '100%',
-                    height: 3,
-                    background: 'rgba(255,255,255,0.1)',
-                    borderRadius: 2,
-                    overflow: 'hidden',
+                    width: `${Math.max(5, musicProgress * 100)}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #f59e0b, #ea580c)',
+                    transition: 'width 0.3s ease',
                   }}
-                >
-                  <div
-                    style={{
-                      width: `${(musicProgress / musicDuration) * 100}%`,
-                      height: '100%',
-                      background: 'linear-gradient(90deg, #f59e0b, #ea580c)',
-                    }}
-                  />
-                </div>
-              )}
+                />
+              </div>
             </div>
 
             {/* Interactive Devotional Actions (5 Buttons) */}
             <div
               style={{
                 padding: '12px 14px',
-                background: 'rgba(15, 23, 42, 0.9)',
+                background: 'rgba(15, 23, 42, 0.95)',
                 borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(5, 1fr)',
@@ -1293,7 +1517,10 @@ export const VirtualAarti3DModal: React.FC<VirtualAarti3DModalProps> = ({ isOpen
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => setSelectedTrackIdx(idx)}
+                  onClick={() => {
+                    setSelectedTrackIdx(idx);
+                    setIsPlayingMusic(true);
+                  }}
                   style={{
                     padding: '6px 12px',
                     borderRadius: 12,
