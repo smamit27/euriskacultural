@@ -22,7 +22,7 @@ const FLOATING_PETALS = [
 
 export const GlossyMandapWelcomeModal: React.FC<GlossyMandapWelcomeModalProps> = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeImage, setActiveImage] = useState<'DECOR' | 'MURTI'>('DECOR');
+  const [activeImage, setActiveImage] = useState<'DECOR' | 'MURTI' | 'MAHAPRASAD'>('DECOR');
 
   // Trigger firecracker patakha & flower confetti
   const triggerPatakhaAndFlowers = useCallback(() => {
@@ -106,8 +106,6 @@ export const GlossyMandapWelcomeModal: React.FC<GlossyMandapWelcomeModalProps> =
   }, [triggerPatakhaAndFlowers]);
 
   if (!isOpen) return null;
-
-  const isMurti = activeImage === 'MURTI';
 
   return (
     <div
@@ -245,10 +243,10 @@ export const GlossyMandapWelcomeModal: React.FC<GlossyMandapWelcomeModalProps> =
             style={{
               padding: '6px 12px',
               borderRadius: 20,
-              border: !isMurti ? '1.5px solid #fde047' : '1px solid rgba(255,255,255,0.3)',
-              background: !isMurti ? 'rgba(15, 23, 42, 0.9)' : 'rgba(15, 23, 42, 0.6)',
+              border: activeImage === 'DECOR' ? '1.5px solid #fde047' : '1px solid rgba(255,255,255,0.3)',
+              background: activeImage === 'DECOR' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(15, 23, 42, 0.6)',
               backdropFilter: 'blur(8px)',
-              color: !isMurti ? '#fde047' : '#ffffff',
+              color: activeImage === 'DECOR' ? '#fde047' : '#ffffff',
               fontSize: 11.5,
               fontWeight: 800,
               cursor: 'pointer',
@@ -262,16 +260,33 @@ export const GlossyMandapWelcomeModal: React.FC<GlossyMandapWelcomeModalProps> =
             style={{
               padding: '6px 12px',
               borderRadius: 20,
-              border: isMurti ? '1.5px solid #fde047' : '1px solid rgba(255,255,255,0.3)',
-              background: isMurti ? 'rgba(15, 23, 42, 0.9)' : 'rgba(15, 23, 42, 0.6)',
+              border: activeImage === 'MURTI' ? '1.5px solid #fde047' : '1px solid rgba(255,255,255,0.3)',
+              background: activeImage === 'MURTI' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(15, 23, 42, 0.6)',
               backdropFilter: 'blur(8px)',
-              color: isMurti ? '#fde047' : '#ffffff',
+              color: activeImage === 'MURTI' ? '#fde047' : '#ffffff',
               fontSize: 11.5,
               fontWeight: 800,
               cursor: 'pointer',
             }}
           >
             🌺 Murti
+          </button>
+
+          <button
+            onClick={() => setActiveImage('MAHAPRASAD')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 20,
+              border: activeImage === 'MAHAPRASAD' ? '1.5px solid #fde047' : '1px solid rgba(255,255,255,0.3)',
+              background: activeImage === 'MAHAPRASAD' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(15, 23, 42, 0.6)',
+              backdropFilter: 'blur(8px)',
+              color: activeImage === 'MAHAPRASAD' ? '#fde047' : '#ffffff',
+              fontSize: 11.5,
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            🍲 Maha Prasad
           </button>
 
           <button
@@ -306,13 +321,19 @@ export const GlossyMandapWelcomeModal: React.FC<GlossyMandapWelcomeModalProps> =
         >
           {/* Sacred Photo */}
           <img
-            src={isMurti ? '/ganesh_murti_sponsor.jpg' : '/dagdusheth_decoration.jpg'}
+            src={
+              activeImage === 'MURTI'
+                ? '/ganesh_murti_sponsor.jpg'
+                : activeImage === 'MAHAPRASAD'
+                ? '/mahaprasad_sponsor.jpg'
+                : '/dagdusheth_decoration.jpg'
+            }
             alt="Festival Visual"
             style={{
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              objectPosition: isMurti ? 'center 20%' : 'center 25%',
+              objectPosition: activeImage === 'MURTI' ? 'center 20%' : activeImage === 'MAHAPRASAD' ? 'center 50%' : 'center 25%',
               display: 'block',
             }}
           />

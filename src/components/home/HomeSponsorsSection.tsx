@@ -18,6 +18,12 @@ const FESTIVAL_IMAGES = [
     src: '/dagdusheth_decoration.jpg',
     borderColor: '#d97706',
   },
+  {
+    id: 'mahaprasad',
+    title: 'Grand Maha Prasad Community Feast',
+    src: '/mahaprasad_sponsor.jpg',
+    borderColor: '#eab308',
+  },
 ];
 
 const FLOWER_PARTICLES = [

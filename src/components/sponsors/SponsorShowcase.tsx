@@ -7,9 +7,7 @@ import {
   Crown,
   Share2,
   CheckCircle2,
-  MessageCircle,
   Flame,
-  Users,
   Plus,
   Download,
   Award
@@ -44,7 +42,7 @@ interface SevaCardData {
 const SEVA_DETAILS: Record<string, SevaCardData> = {
   Murti: {
     id: 'spon-rahul-murti-b307',
-    devoteeName: 'Rahul Singh',
+    devoteeName: 'Rahul',
     flat: 'B-307',
     building: 'B Building',
     sevaTitle: 'Shri Ganesh Murti Seva',
@@ -90,26 +88,55 @@ const SEVA_DETAILS: Record<string, SevaCardData> = {
     mantra: 'Creating a radiant, celebratory atmosphere for our entire Euriska society community.',
     phone: '+91 98900 00505',
   },
+  MahaPrasad: {
+    id: 'spon-sachin-sunil-mahaprasad',
+    devoteeName: 'Sachin & Sunil',
+    flat: 'A-704 & C-303',
+    building: 'A & C Buildings',
+    sevaTitle: 'Grand Maha Prasad Community Feast Seva',
+    sevaCategory: 'Maha Prasad',
+    badge: '🍲 MAHA PRASAD SEVA PATRONS',
+    badgeBg: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+    badgeColor: '#b45309',
+    borderColor: '#fde68a',
+    gradient: 'linear-gradient(135deg, #d97706 0%, #b45309 50%, #92400e 100%)',
+    glowColor: 'rgba(217, 119, 6, 0.20)',
+    icon: '🍲',
+    coverImage: '/mahaprasad_sponsor.jpg',
+    description: 'Generously co-sponsoring the auspicious Grand Maha Prasad Community Feast on Thursday, 24th September 2026. Feeding all 231+ resident families with sacred satvik bhog and modak prasad.',
+    highlights: [
+      'Grand Community Mahaprasad Feast on 24th Sep',
+      'Satvik Bhojan & Modak Prasad for 231+ Families',
+      'Devotional Seva bringing the entire society together',
+    ],
+    mantra: 'अन्नं परब्रह्म स्वरूपम् — Blessed seva of feeding the community with divine love and togetherness.',
+    phone: '+91 99600 73627',
+  },
+  Almirah: {
+    id: 'spon-dwarka-almirah-a103',
+    devoteeName: 'Dwarka',
+    flat: 'A-103',
+    building: 'A Building',
+    sevaTitle: 'Temple & Mandap Almirah Seva',
+    sevaCategory: 'Almirah',
+    badge: '🗄️ ALMIRAH SEVA PATRON',
+    badgeBg: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+    badgeColor: '#047857',
+    borderColor: '#a7f3d0',
+    gradient: 'linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%)',
+    glowColor: 'rgba(5, 150, 105, 0.20)',
+    icon: '🗄️',
+    coverImage: '/almirah_sponsor.jpg',
+    description: 'Generously sponsoring the permanent Temple & Mandap Pooja Samagri Storage Almirah for Majestique Euriska Cultural Utsav 2026. Ensuring safe and organized storage for sacred festival samagri.',
+    highlights: [
+      'Dedicated Mandap & Temple Storage Almirah',
+      'Pooja Samagri, Aarti & Devotional Goods Preservation',
+      'Permanent Community Seva Asset for Society Utsav',
+    ],
+    mantra: 'Dedicated service in keeping the Lord’s sacred space organized and blessed.',
+    phone: '+91 77989 85631',
+  },
 };
-
-const OPEN_SEVA_OPPORTUNITIES = [
-  {
-    title: 'Daily Fresh Pooja Flowers & Garlands',
-    icon: '🌸',
-    tag: 'Daily Seva',
-    color: '#ea580c',
-    bg: '#fff7ed',
-    desc: 'Sponsor fresh daily flower garlands and pooja samagri for 11 days of morning and evening aartis.',
-  },
-  {
-    title: 'Evening Modak & Maha Prasad Sweets',
-    icon: '🍯',
-    tag: 'Prasad Seva',
-    color: '#16a34a',
-    bg: '#f0fdf4',
-    desc: 'Sponsor fresh modak prasad distribution to all visiting devotees and children after daily Maha Aarti.',
-  },
-];
 
 export const SponsorShowcase: React.FC = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -121,9 +148,9 @@ export const SponsorShowcase: React.FC = () => {
   const [gratitudeCounts, setGratitudeCounts] = useState<Record<string, number>>(() => {
     try {
       const saved = localStorage.getItem('euriska_sponsor_gratitude');
-      return saved ? JSON.parse(saved) : { 'B-307': 34, 'A-505': 28 };
+      return saved ? JSON.parse(saved) : { 'B-307': 34, 'A-505': 28, 'A-704 & C-303': 42, 'A-103': 30 };
     } catch {
-      return { 'B-307': 34, 'A-505': 28 };
+      return { 'B-307': 34, 'A-505': 28, 'A-704 & C-303': 42, 'A-103': 30 };
     }
   });
   const [thankedCards, setThankedCards] = useState<Record<string, boolean>>({});
@@ -199,30 +226,48 @@ export const SponsorShowcase: React.FC = () => {
     ? sponsors.map((sp) => {
         const isMurti = sp.sevaType === 'Murti' || sp.name.toLowerCase().includes('rahul');
         const isDecor = sp.sevaType === 'Decoration' || sp.name.toLowerCase().includes('prashant');
-        const defaultSeva = isMurti ? SEVA_DETAILS.Murti : isDecor ? SEVA_DETAILS.Decoration : {
-          id: sp.id,
-          devoteeName: sp.name,
-          flat: sp.flatNumber || 'Resident',
-          building: sp.buildingId ? `${sp.buildingId} Building` : 'Euriska',
-          sevaTitle: sp.sevaCategory || 'Community Festival Seva',
-          sevaCategory: sp.sevaType || 'General',
-          badge: `🤝 ${sp.tier.toUpperCase()} PATRON`,
-          badgeBg: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
-          badgeColor: '#16a34a',
-          borderColor: '#bbf7d0',
-          gradient: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-          glowColor: 'rgba(5, 150, 105, 0.20)',
-          icon: '✨',
-          coverImage: sp.logoUrl || '/dagdusheth_decoration.jpg',
-          description: sp.description || 'Generous devotee sponsor for Euriska Cultural Festival 2026.',
-          highlights: [
-            `${sp.sevaCategory || 'Festival Seva'} Contributor`,
-            `Flat ${sp.flatNumber || 'Resident'} Seva`,
-            'Community Utsav Partner 2026',
-          ],
-          mantra: 'Dedicated to the joy and spirit of Majestique Euriska.',
-          phone: sp.contactPhone || '',
-        };
+        const isMahaPrasad =
+          sp.sevaType === 'Maha Prasad' ||
+          sp.name.toLowerCase().includes('sachin') ||
+          sp.name.toLowerCase().includes('sunil') ||
+          (sp.flatNumber && (sp.flatNumber.includes('704') || sp.flatNumber.includes('303')));
+        const isAlmirah =
+          sp.sevaType === 'Almirah' ||
+          sp.name.toLowerCase().includes('dwarka') ||
+          (sp.flatNumber && sp.flatNumber.includes('103'));
+
+        const defaultSeva = isMurti
+          ? SEVA_DETAILS.Murti
+          : isDecor
+          ? SEVA_DETAILS.Decoration
+          : isMahaPrasad
+          ? SEVA_DETAILS.MahaPrasad
+          : isAlmirah
+          ? SEVA_DETAILS.Almirah
+          : {
+              id: sp.id,
+              devoteeName: sp.name,
+              flat: sp.flatNumber || 'Resident',
+              building: sp.buildingId ? `${sp.buildingId} Building` : 'Euriska',
+              sevaTitle: sp.sevaCategory || 'Community Festival Seva',
+              sevaCategory: sp.sevaType || 'General',
+              badge: `🤝 ${sp.tier.toUpperCase()} PATRON`,
+              badgeBg: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+              badgeColor: '#16a34a',
+              borderColor: '#bbf7d0',
+              gradient: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              glowColor: 'rgba(5, 150, 105, 0.20)',
+              icon: '✨',
+              coverImage: sp.logoUrl || '/dagdusheth_decoration.jpg',
+              description: sp.description || 'Generous devotee sponsor for Euriska Cultural Festival 2026.',
+              highlights: [
+                `${sp.sevaCategory || 'Festival Seva'} Contributor`,
+                `Flat ${sp.flatNumber || 'Resident'} Seva`,
+                'Community Utsav Partner 2026',
+              ],
+              mantra: 'Dedicated to the joy and spirit of Majestique Euriska.',
+              phone: sp.contactPhone || '',
+            };
 
         return {
           ...defaultSeva,
@@ -235,7 +280,7 @@ export const SponsorShowcase: React.FC = () => {
           phone: sp.contactPhone || defaultSeva.phone,
         };
       })
-    : [SEVA_DETAILS.Murti, SEVA_DETAILS.Decoration]
+    : [SEVA_DETAILS.Murti, SEVA_DETAILS.Decoration, SEVA_DETAILS.MahaPrasad, SEVA_DETAILS.Almirah]
   ).filter((item) => {
     if (activeFilter === 'ALL') return true;
     return item.sevaCategory.toLowerCase().includes(activeFilter.toLowerCase());
@@ -301,7 +346,7 @@ export const SponsorShowcase: React.FC = () => {
                   border: '1px solid rgba(254, 240, 138, 0.35)',
                 }}
               >
-                <Sparkles size={13} color="#facc15" /> 50% 50% DUAL SEVA PILLARS • EURISKA 2026
+                <Sparkles size={13} color="#facc15" /> 4 CORE SEVA PILLARS • EURISKA 2026
               </span>
               <span
                 style={{
@@ -378,7 +423,7 @@ export const SponsorShowcase: React.FC = () => {
               flexWrap: 'wrap',
             }}
           >
-            <span>Our Sponsors & Seva Patrons</span>
+            <span>Our Sponsors &amp; Seva Patrons</span>
             <span style={{ fontSize: 22 }}>🪔</span>
           </h1>
 
@@ -391,14 +436,14 @@ export const SponsorShowcase: React.FC = () => {
               maxWidth: 700,
             }}
           >
-            Expressing our heartfelt gratitude to the two dedicated resident families who have graciously sponsored the central pillars for Euriska Cultural Festival 2026.
+            Expressing our heartfelt gratitude to the generous resident families who have graciously sponsored the central pillars for Euriska Cultural Festival 2026.
           </p>
 
-          {/* 50% - 50% Dual Highlights Ribbon */}
+          {/* 4 Seva Highlights Ribbon */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
               gap: 10,
               background: 'rgba(15, 23, 42, 0.45)',
               padding: '12px 14px',
@@ -407,26 +452,34 @@ export const SponsorShowcase: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ fontSize: 24 }}>🌺</div>
+              <div style={{ fontSize: 22 }}>🌺</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 900, color: '#fde047' }}>50% Murti Seva</div>
-                <div style={{ fontSize: 11, color: '#e2e8f0', fontWeight: 600 }}>Rahul Singh • Flat B-307</div>
+                <div style={{ fontSize: 12.5, fontWeight: 900, color: '#fde047' }}>Murti Seva</div>
+                <div style={{ fontSize: 11, color: '#e2e8f0', fontWeight: 600 }}>Rahul • B-307</div>
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderLeft: '1px solid rgba(255,255,255,0.12)', paddingLeft: 10 }}>
-              <div style={{ fontSize: 24 }}>✨</div>
+              <div style={{ fontSize: 22 }}>✨</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 900, color: '#c084fc' }}>50% Decoration Seva</div>
-                <div style={{ fontSize: 11, color: '#e2e8f0', fontWeight: 600 }}>Prashant • Flat A-505</div>
+                <div style={{ fontSize: 12.5, fontWeight: 900, color: '#c084fc' }}>Decoration Seva</div>
+                <div style={{ fontSize: 11, color: '#e2e8f0', fontWeight: 600 }}>Prashant • A-505</div>
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderLeft: '1px solid rgba(255,255,255,0.12)', paddingLeft: 10 }}>
-              <div style={{ fontSize: 24 }}>🤝</div>
+              <div style={{ fontSize: 22 }}>🍲</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 900, color: '#86efac' }}>100% Devotion</div>
-                <div style={{ fontSize: 11, color: '#e2e8f0', fontWeight: 600 }}>Resident-Led Community Seva</div>
+                <div style={{ fontSize: 12.5, fontWeight: 900, color: '#fcd34d' }}>Maha Prasad Seva</div>
+                <div style={{ fontSize: 11, color: '#e2e8f0', fontWeight: 600 }}>Sachin A-704 &amp; Sunil C-303</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderLeft: '1px solid rgba(255,255,255,0.12)', paddingLeft: 10 }}>
+              <div style={{ fontSize: 22 }}>🗄️</div>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 900, color: '#6ee7b7' }}>Almirah Seva</div>
+                <div style={{ fontSize: 11, color: '#e2e8f0', fontWeight: 600 }}>Dwarka • A-103</div>
               </div>
             </div>
           </div>
@@ -462,7 +515,7 @@ export const SponsorShowcase: React.FC = () => {
             transition: 'all 0.15s ease',
           }}
         >
-          <span>✨ 50% - 50% All Sponsors</span>
+          <span>✨ All Seva Patrons</span>
           <span
             style={{
               fontSize: 11,
@@ -473,7 +526,7 @@ export const SponsorShowcase: React.FC = () => {
               fontWeight: 800,
             }}
           >
-            {sponsors.length || 2}
+            {sponsors.length || 4}
           </span>
         </button>
 
@@ -495,7 +548,7 @@ export const SponsorShowcase: React.FC = () => {
             transition: 'all 0.15s ease',
           }}
         >
-          <span>🌺 50% Murti Seva</span>
+          <span>🌺 Murti Seva</span>
           <span
             style={{
               fontSize: 11,
@@ -528,7 +581,7 @@ export const SponsorShowcase: React.FC = () => {
             transition: 'all 0.15s ease',
           }}
         >
-          <span>🎨 50% Decoration Seva</span>
+          <span>🎨 Decoration Seva</span>
           <span
             style={{
               fontSize: 11,
@@ -542,9 +595,75 @@ export const SponsorShowcase: React.FC = () => {
             A-505
           </span>
         </button>
+
+        <button
+          onClick={() => setActiveFilter('Maha Prasad')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 20,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            border: activeFilter === 'Maha Prasad' ? '1.5px solid #d97706' : '1px solid #e2e8f0',
+            background: activeFilter === 'Maha Prasad' ? '#fffbeb' : '#ffffff',
+            color: activeFilter === 'Maha Prasad' ? '#b45309' : '#475569',
+            boxShadow: activeFilter === 'Maha Prasad' ? '0 2px 8px rgba(217, 119, 6, 0.15)' : 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span>🍲 Maha Prasad Seva</span>
+          <span
+            style={{
+              fontSize: 11,
+              background: activeFilter === 'Maha Prasad' ? '#b45309' : '#f1f5f9',
+              color: activeFilter === 'Maha Prasad' ? '#ffffff' : '#64748b',
+              padding: '1px 7px',
+              borderRadius: 10,
+              fontWeight: 800,
+            }}
+          >
+            A-704 &amp; C-303
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveFilter('Almirah')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 20,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            border: activeFilter === 'Almirah' ? '1.5px solid #059669' : '1px solid #e2e8f0',
+            background: activeFilter === 'Almirah' ? '#ecfdf5' : '#ffffff',
+            color: activeFilter === 'Almirah' ? '#047857' : '#475569',
+            boxShadow: activeFilter === 'Almirah' ? '0 2px 8px rgba(5, 150, 105, 0.15)' : 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span>🗄️ Almirah Seva</span>
+          <span
+            style={{
+              fontSize: 11,
+              background: activeFilter === 'Almirah' ? '#047857' : '#f1f5f9',
+              color: activeFilter === 'Almirah' ? '#ffffff' : '#64748b',
+              padding: '1px 7px',
+              borderRadius: 10,
+              fontWeight: 800,
+            }}
+          >
+            A-103
+          </span>
+        </button>
       </div>
 
-      {/* 50% 50% Dual Column Equal Prominence Sponsor Grid */}
+      {/* Equal Prominence Sponsor Grid */}
       <div
         style={{
           display: 'grid',
@@ -668,7 +787,7 @@ export const SponsorShowcase: React.FC = () => {
                         borderRadius: 8,
                       }}
                     >
-                      <CheckCircle2 size={13} /> 50% Major Seva Dedicated
+                      <CheckCircle2 size={13} /> Devotional Seva Confirmed
                     </span>
 
                     <span style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600 }}>
@@ -830,155 +949,6 @@ export const SponsorShowcase: React.FC = () => {
             </div>
           );
         })}
-      </div>
-
-      {/* Open Seva & Sponsorship Opportunities Section */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1.5px solid #e2e8f0',
-          borderRadius: 22,
-          padding: '22px 20px',
-          boxShadow: 'var(--shadow-sm)',
-          marginBottom: 20,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-              <span style={{ fontSize: 18 }}>🤝</span>
-              <h2 style={{ fontSize: 17, fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                Open Seva & Sponsorship Opportunities
-              </h2>
-            </div>
-            <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
-              Would your family or business like to sponsor an event or seva for Euriska 2026?
-            </p>
-          </div>
-
-          <button
-            onClick={() => setShowAddModal(true)}
-            style={{
-              background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: 20,
-              padding: '7px 16px',
-              fontSize: 12.5,
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
-            }}
-          >
-            <Plus size={14} />
-            <span>Sponsor a Seva</span>
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginBottom: 18 }}>
-          {OPEN_SEVA_OPPORTUNITIES.map((opp, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: opp.bg,
-                border: `1px solid ${opp.color}30`,
-                borderRadius: 14,
-                padding: '14px 16px',
-                display: 'flex',
-                gap: 12,
-                alignItems: 'flex-start',
-              }}
-            >
-              <div style={{ fontSize: 24, flexShrink: 0 }}>{opp.icon}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>{opp.title}</span>
-                </div>
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: 800,
-                    color: opp.color,
-                    textTransform: 'uppercase',
-                    display: 'inline-block',
-                    marginBottom: 4,
-                  }}
-                >
-                  {opp.tag}
-                </span>
-                <p style={{ fontSize: 12, color: '#475569', lineHeight: 1.45, margin: 0 }}>
-                  {opp.desc}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Contact Committee CTA Banner */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-            border: '1px solid #cbd5e1',
-            borderRadius: 16,
-            padding: '16px 18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 12,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                background: '#4338ca',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Users size={20} />
-            </div>
-            <div>
-              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a' }}>
-                Join as a Seva Patron
-              </div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>
-                Contact the Cultural Committee (Sachin Singh / Amit Singh) to block your seva slot.
-              </div>
-            </div>
-          </div>
-
-          <a
-            href="https://wa.me/919823011223?text=Namaste%20Cultural%20Committee,%20I%20would%20like%20to%20sponsor%20a%20seva%20for%20Euriska%20Cultural%20Festival%202026."
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              background: '#16a34a',
-              color: '#ffffff',
-              padding: '9px 18px',
-              borderRadius: 12,
-              fontSize: 13,
-              fontWeight: 800,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              boxShadow: '0 2px 8px rgba(22, 163, 74, 0.25)',
-            }}
-          >
-            <MessageCircle size={15} />
-            <span>Connect on WhatsApp</span>
-          </a>
-        </div>
       </div>
 
       {/* Devotional Sanskrit Blessing Banner */}

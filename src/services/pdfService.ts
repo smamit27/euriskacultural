@@ -14,7 +14,7 @@ function cleanPdfText(text: string | undefined | null): string {
     .replace(/[‘’]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/[•·]/g, '|')
-    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{0900}-\u{097F}]/gu, '')
     .trim();
 }
 
@@ -1375,8 +1375,10 @@ export const pdfService = {
     const sponsorsList: Sponsor[] = (report.sponsors && report.sponsors.length > 0)
       ? report.sponsors
       : [
-          { id: '1', eventId: 'ganeshotsav-2026', name: 'Rahul Singh', flatNumber: 'B-307', tier: 'Platinum', sevaCategory: 'Shri Ganesh Murti Seva', description: 'Devotional sponsorship of main Eco-friendly Shree Ganesh Idol', contactPhone: '9820011223', amount: 25000, paymentStatus: 'PAID' },
-          { id: '2', eventId: 'ganeshotsav-2026', name: 'Prashant Mahindrakar', flatNumber: 'A-505', tier: 'Gold', sevaCategory: 'Mandap & Stage Decoration Seva', description: 'Grand floral lighting and mandap stage decoration', contactPhone: '9820033445', amount: 15000, paymentStatus: 'PAID' },
+          { id: '1', eventId: 'ganeshotsav-2026', name: 'Rahul', flatNumber: 'B-307', tier: 'Platinum', sevaCategory: 'Shri Ganesh Murti Seva', description: 'Devotional sponsorship of main Eco-friendly Shree Ganesh Idol', contactPhone: '9823000307', amount: 0, paymentStatus: 'PAID' },
+          { id: '2', eventId: 'ganeshotsav-2026', name: 'Prashant', flatNumber: 'A-505', tier: 'Gold', sevaCategory: 'Mandap & Stage Decoration Seva', description: 'Grand floral lighting and mandap stage decoration', contactPhone: '9590944363', amount: 0, paymentStatus: 'PAID' },
+          { id: '3', eventId: 'ganeshotsav-2026', name: 'Sachin & Sunil', flatNumber: 'A-704 & C-303', tier: 'Platinum', sevaCategory: 'Grand Maha Prasad Community Feast', description: 'Grand community feast prasadam for all 231+ resident families', contactPhone: '9960073627', amount: 0, paymentStatus: 'PAID' },
+          { id: '4', eventId: 'ganeshotsav-2026', name: 'Dwarka', flatNumber: 'A-103', tier: 'Gold', sevaCategory: 'Temple & Mandap Almirah Seva', description: 'Devotee sponsor for Society Temple & Pooja Samagri Storage Almirah Seva', contactPhone: '7798985631', amount: 0, paymentStatus: 'PAID' },
         ];
 
     const patronCardsY = sec5Y + 3;
@@ -2057,44 +2059,8 @@ export const pdfService = {
 
     const endY = (doc as any).lastAutoTable.finalY || 165;
 
-    // Highlights Box if available
-    if (sponsor.highlights && sponsor.highlights.length > 0) {
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(203, 213, 225);
-      doc.roundedRect(15, endY + 8, 180, 24, 3, 3, 'FD');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(15, 23, 42);
-      doc.text('KEY SEVA HIGHLIGHTS & CONTRIBUTIONS:', 19, endY + 14);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(71, 85, 105);
-      sponsor.highlights.forEach((h, idx) => {
-        doc.text(`[x] ${cleanPdfText(h)}`, 19, endY + 20 + idx * 4.5);
-      });
-    }
-
-    // Devotional Blessing Shloka Banner
-    const blessingY = endY + 38;
-    doc.setFillColor(255, 247, 237);
-    doc.setDrawColor(251, 146, 60);
-    doc.setLineWidth(0.8);
-    doc.roundedRect(15, blessingY, 180, 16, 3, 3, 'FD');
-
-    doc.setTextColor(194, 65, 12);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('* ॐ गं गणपतये नमः • GANPATI BAPPA MORYA *', 105, blessingY + 8, { align: 'center' });
-
-    doc.setFontSize(8);
-    doc.setTextColor(146, 64, 14);
-    doc.setFont('helvetica', 'normal');
-    doc.text('May Lord Ganesha shower supreme health, prosperity and happiness upon the sponsor family.', 105, blessingY + 13, { align: 'center' });
-
     // Official Committee Signature Seals
-    const signY = blessingY + 26;
+    const signY = endY + 22;
 
     // Left Signature
     doc.setFont('helvetica', 'bold');
@@ -2107,30 +2073,19 @@ export const pdfService = {
     doc.text('Cultural Committee Head', 24, signY + 12);
     doc.text('Euriska Society, Pune', 24, signY + 16);
 
-    // Center Seal
+    // Right Official Seal
     doc.setFillColor(254, 243, 199);
     doc.setDrawColor(245, 158, 11);
-    doc.roundedRect(82, signY + 2, 46, 18, 2, 2, 'FD');
+    doc.roundedRect(138, signY + 2, 48, 18, 2, 2, 'FD');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(180, 83, 9);
-    doc.text('OFFICIAL SEAL', 105, signY + 9, { align: 'center' });
+    doc.text('OFFICIAL SEAL', 162, signY + 9, { align: 'center' });
     doc.setFontSize(7.5);
-    doc.text('VERIFIED PATRON', 105, signY + 15, { align: 'center' });
-
-    // Right Signature
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(15, 23, 42);
-    doc.text('Executive Committee', 148, signY + 8);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text('Treasurer & Secretary', 148, signY + 12);
-    doc.text('Euriska Society, Pune', 148, signY + 16);
+    doc.text('VERIFIED PATRON', 162, signY + 15, { align: 'center' });
 
     // Footer Tag
-    const footerY = signY + 26;
+    const footerY = signY + 28;
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
     const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
@@ -2197,7 +2152,7 @@ export const pdfService = {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.text(
-      cleanPdfText(`Total Active Seva Patrons: ${sponsors.length} | 50% Murti Seva (B-307) | 50% Decoration Seva (A-505) | 100% Devotion`),
+      cleanPdfText(`Total Active Seva Patrons: ${sponsors.length} | Murti (B-307) | Decoration (A-505) | Maha Prasad (A-704 & C-303) | Almirah (A-103)`),
       18,
       47.5
     );

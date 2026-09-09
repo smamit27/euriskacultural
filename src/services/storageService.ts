@@ -43,7 +43,7 @@ const STORAGE_KEYS = {
   MAHA_PRASAD_RSVP: 'euriska_maha_prasad_rsvp',
 };
 
-const CURRENT_SEED_VERSION = 'v27_kalakriti_admin_guard';
+const CURRENT_SEED_VERSION = 'v30_rahul_murti_sponsor';
 
 class DataStore {
   private get<T>(key: string, defaultVal: T): T {

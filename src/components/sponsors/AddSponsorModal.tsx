@@ -195,7 +195,7 @@ export const AddSponsorModal: React.FC<AddSponsorModalProps> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Rahul Singh / Prashant"
+                placeholder="e.g. Rahul / Prashant"
                 required
                 style={{
                   width: '100%',
