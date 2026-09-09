@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Sparkles, ArrowRight, Timer } from 'lucide-react';
 import type { CulturalEvent } from '../../types';
 import { getNextEvent, daysUntil } from '../../services/eventsData';
+import { Festival3DCanvas } from '../3d/Festival3DCanvas';
 
 interface HeroSectionProps {
   onViewPrograms: () => void;
@@ -127,6 +128,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         background: overlayGradient,
         zIndex: 1,
       }} />
+
+      {/* 3D Devotional Atmosphere Three.js Canvas */}
+      <Festival3DCanvas festivalColor={nextEvent?.accentColor || '#f97316'} />
 
       <div className="hero-content" style={{ position: 'relative', zIndex: 2 }}>
         {/* Tag row */}
