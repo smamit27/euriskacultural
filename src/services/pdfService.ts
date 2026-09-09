@@ -2059,37 +2059,23 @@ export const pdfService = {
 
     const endY = (doc as any).lastAutoTable.finalY || 165;
 
-    // Official Committee Signature Seals
-    const signY = endY + 22;
-
-    // Left Signature
+    // Volunteer Initiative Appreciation Note
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(15, 23, 42);
-    doc.text('Sachin Singh / Amit Singh', 24, signY + 8);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text('Cultural Committee Head', 24, signY + 12);
-    doc.text('Euriska Society, Pune', 24, signY + 16);
-
-    // Right Official Seal
-    doc.setFillColor(254, 243, 199);
-    doc.setDrawColor(245, 158, 11);
-    doc.roundedRect(138, signY + 2, 48, 18, 2, 2, 'FD');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
+    doc.setFontSize(9.5);
     doc.setTextColor(180, 83, 9);
-    doc.text('OFFICIAL SEAL', 162, signY + 9, { align: 'center' });
-    doc.setFontSize(7.5);
-    doc.text('VERIFIED PATRON', 162, signY + 15, { align: 'center' });
+    doc.text('Majestique Euriska Cultural Festival 2026 • Volunteer Devotees Initiative', 105, endY + 16, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('With heartfelt gratitude and pranam to all society residents, families, and volunteer devotees.', 105, endY + 22, { align: 'center' });
 
     // Footer Tag
-    const footerY = signY + 28;
+    const footerY = endY + 34;
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
     const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    doc.text(`Digital Verification Certificate | Generated on: ${dateStr} | ID: EUR-SPON-${cleanPdfText(sponsor.flat)}`, 15, footerY);
+    doc.text(`Digital Devotee Recognition Certificate | Generated on: ${dateStr} | ID: EUR-SPON-${cleanPdfText(sponsor.flat)}`, 15, footerY);
 
     doc.save(`Euriska_Seva_Certificate_${cleanPdfText(sponsor.devoteeName).replace(/\s+/g, '_')}_Flat${cleanPdfText(sponsor.flat)}.pdf`);
   },
