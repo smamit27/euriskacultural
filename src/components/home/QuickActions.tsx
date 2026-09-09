@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Image, Mic, Palette, Flame, IndianRupee, Radio } from 'lucide-react';
+import { Calendar, Image, Mic, Palette, Flame, IndianRupee, Radio, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface QuickActionsProps {
@@ -10,6 +10,26 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onNavigate }) => {
   const { isAdmin } = useAuth();
   return (
     <div className="quick-actions-grid">
+      <div
+        className="quick-action-card"
+        onClick={() => onNavigate('3d-hub')}
+        role="button"
+        tabIndex={0}
+        style={{
+          border: '1.5px solid #f59e0b',
+          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+          boxShadow: '0 4px 15px rgba(245, 158, 11, 0.15)',
+        }}
+      >
+        <div className="quick-action-icon" style={{ background: 'linear-gradient(135deg, #f59e0b, #ea580c)', color: '#fff' }}>
+          <Sparkles size={24} />
+        </div>
+        <div>
+          <div className="quick-action-title" style={{ color: '#b45309', fontWeight: 800 }}>✨ 3D Cultural Hub</div>
+          <div className="quick-action-desc">3D Aarti, Deepotsav & Mandap</div>
+        </div>
+      </div>
+
       <div
         className="quick-action-card"
         onClick={() => onNavigate('livestream')}

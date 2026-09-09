@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Calendar, Image, Mic, Handshake, Users, ClipboardList, BarChart3, Settings, LogIn, LogOut, PartyPopper, Palette, Flame, UtensilsCrossed, ShieldAlert, Radio
+  Calendar, Image, Mic, Handshake, Users, ClipboardList, BarChart3, Settings, LogIn, LogOut, PartyPopper, Palette, Flame, UtensilsCrossed, ShieldAlert, Radio, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -10,9 +10,11 @@ type SubPage = 'programs' | 'performances' | 'gallery' | 'sponsors' | 'volunteer
 interface MoreMenuProps {
   onNavigate: (page: SubPage) => void;
   onOpenAdminLogin?: () => void;
+  onOpen3DHub?: () => void;
 }
 
-const MENU_ITEMS: { page: SubPage; icon: React.ReactNode; label: string; desc: string; adminOnly?: boolean }[] = [
+const MENU_ITEMS: { page: SubPage | '3d-hub'; icon: React.ReactNode; label: string; desc: string; adminOnly?: boolean }[] = [
+  { page: '3d-hub', icon: <Sparkles size={22} color="#f59e0b" />, label: '✨ 3D Cultural Experience Hub', desc: '3D Ganpati Aarti, Virtual Deepotsav & Grand Mandap' },
   { page: 'livestream', icon: <Radio size={22} color="#ef4444" />, label: '🔴 Live Aarti & Stream', desc: 'Daily Aarti (8 PM) & Kalakriti live darshan' },
   { page: 'mahaprasad', icon: <UtensilsCrossed size={22} color="#c2410c" />, label: '🍲 Maha Prasad RSVP (24 Sep)', desc: 'Community feast headcount & meal token (8:00 PM – 10:00 PM)', adminOnly: true },
   { page: 'demographics', icon: <ShieldAlert size={22} color="#dc2626" />, label: '🔒 Executive Demographics', desc: 'Strictly confidential community & cultural analysis', adminOnly: true },
@@ -29,7 +31,7 @@ const MENU_ITEMS: { page: SubPage; icon: React.ReactNode; label: string; desc: s
   { page: 'settings', icon: <Settings size={22} color="#475569" />, label: '⚙️ Settings', desc: 'App preferences & account' },
 ];
 
-export const MoreMenu: React.FC<MoreMenuProps> = ({ onNavigate, onOpenAdminLogin }) => {
+export const MoreMenu: React.FC<MoreMenuProps> = ({ onNavigate, onOpenAdminLogin, onOpen3DHub }) => {
   const { isAdmin, logoutAdmin, user } = useAuth();
   const { showToast } = useToast();
 
@@ -91,7 +93,13 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({ onNavigate, onOpenAdminLogin
           return (
             <div
               key={item.page}
-              onClick={() => onNavigate(item.page)}
+              onClick={() => {
+                if (item.page === '3d-hub') {
+                  if (onOpen3DHub) onOpen3DHub();
+                } else {
+                  onNavigate(item.page);
+                }
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
