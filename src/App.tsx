@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './index.css';
-import { Bell, ChevronLeft, Shield, QrCode, LogOut } from 'lucide-react';
+import { Bell, ChevronLeft } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { Header } from './components/common/Header';
@@ -30,7 +30,6 @@ import { AdminScanApprovalModal } from './components/auth/AdminScanApprovalModal
 import { DemographicsScanApprovalModal } from './components/auth/DemographicsScanApprovalModal';
 import { GlossyMandapWelcomeModal } from './components/sponsors/GlossyMandapWelcomeModal';
 import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
-import { LivePresenceBadge } from './components/common/LivePresenceBadge';
 import { LiveTrafficModal } from './components/admin/LiveTrafficModal';
 import { LiveStreamPlayerModal } from './components/livestream/LiveStreamPlayerModal';
 import { NotificationModal } from './components/notifications/NotificationModal';
@@ -72,33 +71,18 @@ function DesktopHeader({
   activeTab,
   subPage,
   onBack,
-  onOpenAdminLogin,
-  onOpenPairPhone,
   onOpenNotifications,
-  sessions = [],
-  onOpenTrafficModal,
 }: {
   activeTab: TabType;
   subPage: string | null;
   onBack: () => void;
-  onOpenAdminLogin: () => void;
+  onOpenAdminLogin?: () => void;
   onOpenPairPhone?: () => void;
   onOpenNotifications?: () => void;
   sessions?: ActiveSession[];
   onOpenTrafficModal?: () => void;
 }) {
-  const { isAdmin, logoutAdmin } = useAuth();
-  const { showToast } = useToast();
   const title = PAGE_TITLES[subPage ?? activeTab] ?? 'Dashboard';
-
-  const handleAdminToggle = () => {
-    if (isAdmin) {
-      logoutAdmin();
-      showToast('Switched to Resident view. Financial tabs hidden.', 'info');
-    } else {
-      onOpenAdminLogin();
-    }
-  };
 
   return (
     <div className="desktop-header">
@@ -131,56 +115,6 @@ function DesktopHeader({
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {/* Real-time active visitors badge */}
-        <LivePresenceBadge sessions={sessions} onClick={onOpenTrafficModal} />
-
-        {/* Role toggle button & Pair Phone QR */}
-        {isAdmin ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button
-              onClick={onOpenPairPhone || onOpenAdminLogin}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: '#ecfdf5', border: '1.5px solid #6ee7b7',
-                color: '#065f46', borderRadius: 8, padding: '7px 14px',
-                cursor: 'pointer', fontSize: 12.5, fontWeight: 800,
-                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)',
-              }}
-              title="Click to generate QR Code and Pair/Login on your Mobile Phone"
-            >
-              <QrCode size={15} color="#059669" />
-              <span>📱 Pair Phone (QR)</span>
-            </button>
-
-            <button
-              onClick={handleAdminToggle}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: '#fef2f2', border: '1px solid #fecaca',
-                color: '#dc2626', borderRadius: 8, padding: '7px 12px',
-                cursor: 'pointer', fontSize: 12, fontWeight: 700,
-              }}
-              title="Click to Exit Admin"
-            >
-              <LogOut size={14} />
-              <span>Exit Admin</span>
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleAdminToggle}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)',
-              color: '#ea580c', borderRadius: 8, padding: '7px 14px',
-              cursor: 'pointer', fontSize: 12.5, fontWeight: 800,
-            }}
-            title="Enter passcode or scan QR to access Admin features"
-          >
-            <Shield size={14} />
-            <span>👑 Admin Login</span>
-          </button>
-        )}
         {/* Notification bell */}
         <button
           onClick={onOpenNotifications}
