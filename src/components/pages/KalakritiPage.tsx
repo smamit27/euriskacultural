@@ -40,51 +40,57 @@ export const KalakritiPage: React.FC = () => {
     fancyDress: 0,
   });
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      // Clean up old static test key if present
-      localStorage.removeItem('euriska_kalakriti_entries');
-      const list = await kalakritiService.getEntries();
-      setEntries(list);
-      const counts = await kalakritiService.getActivityCounts();
-      setActivityCounts(counts);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadData();
+    setLoading(true);
+    // Clean up old static test key if present
+    localStorage.removeItem('euriska_kalakriti_entries');
+
+    const unsubscribe = kalakritiService.subscribeEntries((list) => {
+      setEntries(list);
+      kalakritiService.getActivityCounts().then(setActivityCounts);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const handleSaveEntry = async (data: Omit<KalakritiEntry, 'id' | 'sn' | 'createdAt'>) => {
-    if (editingEntry) {
-      await kalakritiService.updateEntry(editingEntry.id, data);
-      showToast('✅ Kalakriti entry updated & saved!', 'success');
-      setEditingEntry(null);
-    } else {
-      await kalakritiService.addEntry(data);
-      showToast('🎉 Participant registered & saved to database!', 'success');
+    try {
+      if (editingEntry) {
+        await kalakritiService.updateEntry(editingEntry.id, data);
+        showToast('✅ Kalakriti entry updated & saved to cloud!', 'success');
+        setEditingEntry(null);
+      } else {
+        await kalakritiService.addEntry(data);
+        showToast('🎉 Participant registered & saved to cloud database!', 'success');
+      }
+    } catch (e) {
+      console.error('Save error:', e);
+      showToast('Saved locally, will sync to cloud.', 'info');
     }
-    loadData();
   };
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!quickName.trim()) return;
 
-    await kalakritiService.addEntry({
-      name: quickName.trim(),
-      flatNumber: quickFlat.trim() || undefined,
-      dance: false,
-      fancyDress: false,
-    });
+    try {
+      await kalakritiService.addEntry({
+        name: quickName.trim(),
+        flatNumber: quickFlat.trim() || undefined,
+        dance: false,
+        fancyDress: false,
+      });
 
-    setQuickName('');
-    setQuickFlat('');
-    showToast(`✅ ${quickName.trim()} added! Tap columns to check activities.`, 'success');
-    loadData();
+      setQuickName('');
+      setQuickFlat('');
+      showToast(`✅ ${quickName.trim()} added to cloud! Tap columns to check activities.`, 'success');
+    } catch (err) {
+      console.error('Quick add error:', err);
+      showToast('Added locally.', 'info');
+    }
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -93,16 +99,22 @@ export const KalakritiPage: React.FC = () => {
       return;
     }
     if (window.confirm(`Are you sure you want to remove ${name}?`)) {
-      await kalakritiService.deleteEntry(id);
-      showToast('Entry removed from database.', 'info');
-      loadData();
+      try {
+        await kalakritiService.deleteEntry(id);
+        showToast('Entry removed from cloud database.', 'info');
+      } catch (err) {
+        console.error('Delete error:', err);
+      }
     }
   };
 
   const handleToggleCell = async (id: string, actKey: KalakritiActivityKey) => {
     if (!isAdmin) return;
-    await kalakritiService.toggleActivity(id, actKey);
-    loadData();
+    try {
+      await kalakritiService.toggleActivity(id, actKey);
+    } catch (err) {
+      console.error('Toggle error:', err);
+    }
   };
 
   // Filtered list

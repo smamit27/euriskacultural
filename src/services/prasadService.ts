@@ -5,6 +5,7 @@ import {
   getDocs,
   setDoc,
   deleteDoc,
+  onSnapshot,
 } from 'firebase/firestore';
 import type { PrasadSlot, PrasadBooking } from '../types';
 
@@ -215,6 +216,39 @@ function normalizeSlot(base: PrasadSlot, raw: any): PrasadSlot {
 }
 
 export const prasadService = {
+  /**
+   * Subscribe to real-time changes in Prasad slots
+   */
+  subscribeSlots(callback: (slots: PrasadSlot[]) => void): () => void {
+    const baseSlots = DEFAULT_SLOTS.map((s) => ({ ...s, bookings: [] as PrasadBooking[] }));
+
+    // 1. Send initial data immediately
+    this.getSlots().then((initial) => {
+      callback(initial);
+    });
+
+    if (!db) return () => {};
+
+    try {
+      const unsub = onSnapshot(collection(db, PRASAD_COLLECTION), (querySnapshot) => {
+        const firestoreMap: Record<string, any> = {};
+        querySnapshot.forEach((docSnap) => {
+          firestoreMap[docSnap.id] = docSnap.data();
+        });
+        saveLocalCache(firestoreMap);
+        const merged = baseSlots.map((slot) => {
+          const remote = firestoreMap[slot.id];
+          return normalizeSlot(slot, remote);
+        });
+        callback(merged);
+      });
+      return unsub;
+    } catch (err) {
+      console.warn('Real-time prasad subscription error:', err);
+      return () => {};
+    }
+  },
+
   /**
    * Fetch all 12 Prasad slots with live Firebase bookings merged
    */

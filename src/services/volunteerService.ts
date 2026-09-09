@@ -1,9 +1,23 @@
 import { localStore } from './storageService';
 import type { Volunteer, Task, Sponsor, TaskStatus } from '../types';
 import { DEFAULT_EVENT_ID, COLLECTIONS } from '../firebase/collections';
-import { readCollection, writeDocument, writeBatchDocuments } from './firestoreService';
+import { readCollection, writeDocument, writeBatchDocuments, subscribeCollection } from './firestoreService';
 
 export const volunteerService = {
+  subscribeVolunteers(callback: (volunteers: Volunteer[]) => void): () => void {
+    const local = localStore.getVolunteers();
+    if (local.length > 0) callback(local);
+
+    this.getVolunteers().then(callback);
+
+    return subscribeCollection<Volunteer>(COLLECTIONS.VOLUNTEERS, (remote) => {
+      if (remote && remote.length > 0) {
+        localStore.saveVolunteers(remote);
+        callback(remote);
+      }
+    });
+  },
+
   async getVolunteers(buildingId?: string): Promise<Volunteer[]> {
     const remote = await readCollection<Volunteer>(COLLECTIONS.VOLUNTEERS);
     let list = remote && remote.length > 0 ? remote : localStore.getVolunteers();
@@ -36,6 +50,20 @@ export const volunteerService = {
 };
 
 export const taskService = {
+  subscribeTasks(callback: (tasks: Task[]) => void): () => void {
+    const local = localStore.getTasks();
+    if (local.length > 0) callback(local);
+
+    this.getTasks().then(callback);
+
+    return subscribeCollection<Task>(COLLECTIONS.TASKS, (remote) => {
+      if (remote && remote.length > 0) {
+        localStore.saveTasks(remote);
+        callback(remote);
+      }
+    });
+  },
+
   async getTasks(status?: TaskStatus): Promise<Task[]> {
     const remote = await readCollection<Task>(COLLECTIONS.TASKS);
     let list = remote && remote.length > 0 ? remote : localStore.getTasks();
@@ -78,6 +106,20 @@ export const taskService = {
 };
 
 export const sponsorService = {
+  subscribeSponsors(callback: (sponsors: Sponsor[]) => void): () => void {
+    const local = localStore.getSponsors();
+    if (local.length > 0) callback(local);
+
+    this.getSponsors().then(callback);
+
+    return subscribeCollection<Sponsor>(COLLECTIONS.SPONSORS, (remote) => {
+      if (remote && remote.length > 0) {
+        localStore.saveSponsors(remote);
+        callback(remote);
+      }
+    });
+  },
+
   async getSponsors(): Promise<Sponsor[]> {
     const remote = await readCollection<Sponsor>(COLLECTIONS.SPONSORS);
     let list = remote && remote.length > 0 ? remote : localStore.getSponsors();
@@ -103,3 +145,4 @@ export const sponsorService = {
     return newRecord;
   },
 };
+

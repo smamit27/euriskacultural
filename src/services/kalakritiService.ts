@@ -6,7 +6,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { COLLECTIONS } from '../firebase/collections';
-import { writeDocument, deleteDocument, writeBatchDocuments } from './firestoreService';
+import { writeDocument, deleteDocument, writeBatchDocuments, subscribeCollection } from './firestoreService';
 import type { KalakritiEntry, KalakritiActivityKey } from '../types';
 
 const STORAGE_KEY = 'euriska_kalakriti_entries_live';
@@ -42,6 +42,38 @@ class KalakritiService {
     } catch {
       // ignore
     }
+  }
+
+  /**
+   * Real-time subscription to Kalakriti roster
+   */
+  subscribeEntries(callback: (entries: KalakritiEntry[]) => void): () => void {
+    // 1. Send initial local entries immediately
+    const initial = this.getLocalEntries();
+    if (initial.length > 0) {
+      callback(initial);
+    }
+    this.getEntries().then((list) => {
+      callback(list);
+    });
+
+    // 2. Real-time onSnapshot from Firestore
+    return subscribeCollection<KalakritiEntry>(COLLECTIONS.KALAKRITI, async (remoteDocs) => {
+      if (remoteDocs && remoteDocs.length > 0) {
+        // Sort by sn
+        const sorted = [...remoteDocs].sort((a, b) => (a.sn || 0) - (b.sn || 0));
+        this.saveLocalEntries(sorted);
+        callback(sorted);
+      } else {
+        const local = this.getLocalEntries();
+        if (local.length > 0) {
+          await writeBatchDocuments(COLLECTIONS.KALAKRITI, local);
+          callback(local);
+        } else {
+          callback([]);
+        }
+      }
+    });
   }
 
   /**

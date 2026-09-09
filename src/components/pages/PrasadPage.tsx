@@ -42,19 +42,23 @@ export const PrasadPage: React.FC = () => {
   }, []);
 
   const loadSlots = async () => {
-    setLoading(true);
     try {
       const data = await prasadService.getSlots();
       setSlots(data);
     } catch {
-      showToast('Could not load prasad slots.', 'error');
-    } finally {
-      setLoading(false);
+      // ignore
     }
   };
 
   useEffect(() => {
-    loadSlots();
+    setLoading(true);
+    const unsub = prasadService.subscribeSlots((data) => {
+      setSlots(data);
+      setLoading(false);
+    });
+    return () => {
+      unsub();
+    };
   }, []);
 
   const handleOpenBooking = (slot?: PrasadSlot, booking?: PrasadBooking) => {
