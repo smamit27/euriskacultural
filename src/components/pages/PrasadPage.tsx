@@ -801,7 +801,9 @@ export const PrasadPage: React.FC = () => {
                         fontWeight: 600,
                       }}
                     >
-                      ✨ This evening's prasad seva is open! Be the first family to book.
+                      {slot.dayNumber === 12
+                        ? '🌊 Grand Ganesh Visarjan Day — Procession & Final Aarti at 4:00 PM.'
+                        : "✨ This evening's prasad seva is open! Be the first family to book."}
                     </div>
                   )}
                 </div>
