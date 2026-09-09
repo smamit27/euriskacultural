@@ -1,15 +1,12 @@
 import {
   collection,
   getDocs,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
   query,
   orderBy,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { COLLECTIONS } from '../firebase/collections';
+import { writeDocument, deleteDocument, writeBatchDocuments } from './firestoreService';
 import type { KalakritiEntry, KalakritiActivityKey } from '../types';
 
 const STORAGE_KEY = 'euriska_kalakriti_entries_live';
@@ -64,6 +61,12 @@ class KalakritiService {
           });
           this.saveLocalEntries(list);
           return list;
+        } else {
+          // If Firestore is empty but local has entries, sync to Firestore
+          const local = this.getLocalEntries();
+          if (local.length > 0) {
+            await writeBatchDocuments(COLLECTIONS.KALAKRITI, local);
+          }
         }
       } catch (err) {
         console.warn('Firestore fetch failed, using local cache:', err);
@@ -80,7 +83,7 @@ class KalakritiService {
   ): Promise<KalakritiEntry> {
     const current = await this.getEntries();
     const nextSn = current.length > 0 ? Math.max(...current.map((e) => e.sn)) + 1 : 1;
-    const newId = `kala-${Date.now()}`;
+    const newId = `kala-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const newEntry: KalakritiEntry = {
       ...data,
       id: newId,
@@ -88,14 +91,8 @@ class KalakritiService {
       createdAt: new Date().toISOString(),
     };
 
-    // Save to Firestore
-    if (db) {
-      try {
-        await setDoc(doc(db, COLLECTIONS.KALAKRITI, newId), newEntry);
-      } catch (err) {
-        console.warn('Firestore save failed, saved locally:', err);
-      }
-    }
+    // Save to Firestore with automatic sanitization
+    await writeDocument(COLLECTIONS.KALAKRITI, newEntry);
 
     // Save to localStorage
     current.push(newEntry);
@@ -113,16 +110,10 @@ class KalakritiService {
     const current = this.getLocalEntries();
     const idx = current.findIndex((e) => e.id === id);
     if (idx === -1) throw new Error('Entry not found');
-    current[idx] = { ...current[idx], ...updates };
+    const updatedRecord = { ...current[idx], ...updates, id };
+    current[idx] = updatedRecord;
 
-    if (db) {
-      try {
-        await updateDoc(doc(db, COLLECTIONS.KALAKRITI, id), updates);
-      } catch (err) {
-        console.warn('Firestore update failed:', err);
-      }
-    }
-
+    await writeDocument(COLLECTIONS.KALAKRITI, updatedRecord);
     this.saveLocalEntries(current);
     return current[idx];
   }
@@ -131,13 +122,7 @@ class KalakritiService {
    * Delete participant from Firestore & localStorage
    */
   async deleteEntry(id: string): Promise<void> {
-    if (db) {
-      try {
-        await deleteDoc(doc(db, COLLECTIONS.KALAKRITI, id));
-      } catch (err) {
-        console.warn('Firestore delete failed:', err);
-      }
-    }
+    await deleteDocument(COLLECTIONS.KALAKRITI, id);
 
     let current = this.getLocalEntries();
     current = current.filter((e) => e.id !== id);
@@ -161,15 +146,7 @@ class KalakritiService {
     const newVal = !current[idx][activity];
     current[idx][activity] = newVal;
 
-    if (db) {
-      try {
-        await updateDoc(doc(db, COLLECTIONS.KALAKRITI, id), {
-          [activity]: newVal,
-        });
-      } catch (err) {
-        console.warn('Firestore toggle failed:', err);
-      }
-    }
+    await writeDocument(COLLECTIONS.KALAKRITI, current[idx]);
 
     this.saveLocalEntries(current);
     return current[idx];

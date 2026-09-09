@@ -1,10 +1,20 @@
 import { localStore } from './storageService';
 import type { Volunteer, Task, Sponsor, TaskStatus } from '../types';
-import { DEFAULT_EVENT_ID } from '../firebase/collections';
+import { DEFAULT_EVENT_ID, COLLECTIONS } from '../firebase/collections';
+import { readCollection, writeDocument, writeBatchDocuments } from './firestoreService';
 
 export const volunteerService = {
   async getVolunteers(buildingId?: string): Promise<Volunteer[]> {
-    let list = localStore.getVolunteers();
+    const remote = await readCollection<Volunteer>(COLLECTIONS.VOLUNTEERS);
+    let list = remote && remote.length > 0 ? remote : localStore.getVolunteers();
+    
+    if (remote && remote.length > 0) {
+      localStore.saveVolunteers(list);
+    } else if (list.length > 0) {
+      // Sync local baseline to Firestore
+      await writeBatchDocuments(COLLECTIONS.VOLUNTEERS, list);
+    }
+
     if (buildingId && buildingId !== 'ALL') {
       list = list.filter((v) => v.buildingId === buildingId);
     }
@@ -15,18 +25,27 @@ export const volunteerService = {
     const list = localStore.getVolunteers();
     const newRecord: Volunteer = {
       ...data,
-      id: `vol-${Date.now()}`,
+      id: `vol-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       eventId: data.eventId || DEFAULT_EVENT_ID,
     };
     list.push(newRecord);
     localStore.saveVolunteers(list);
+    await writeDocument(COLLECTIONS.VOLUNTEERS, newRecord);
     return newRecord;
   },
 };
 
 export const taskService = {
   async getTasks(status?: TaskStatus): Promise<Task[]> {
-    let list = localStore.getTasks();
+    const remote = await readCollection<Task>(COLLECTIONS.TASKS);
+    let list = remote && remote.length > 0 ? remote : localStore.getTasks();
+
+    if (remote && remote.length > 0) {
+      localStore.saveTasks(list);
+    } else if (list.length > 0) {
+      await writeBatchDocuments(COLLECTIONS.TASKS, list);
+    }
+
     if (status) {
       list = list.filter((t) => t.status === status);
     }
@@ -40,6 +59,7 @@ export const taskService = {
 
     list[index].status = status;
     localStore.saveTasks(list);
+    await writeDocument(COLLECTIONS.TASKS, list[index]);
     return list[index];
   },
 
@@ -47,29 +67,39 @@ export const taskService = {
     const list = localStore.getTasks();
     const newRecord: Task = {
       ...data,
-      id: `task-${Date.now()}`,
+      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       eventId: data.eventId || DEFAULT_EVENT_ID,
     };
     list.unshift(newRecord);
     localStore.saveTasks(list);
+    await writeDocument(COLLECTIONS.TASKS, newRecord);
     return newRecord;
   },
 };
 
 export const sponsorService = {
   async getSponsors(): Promise<Sponsor[]> {
-    return localStore.getSponsors();
+    const remote = await readCollection<Sponsor>(COLLECTIONS.SPONSORS);
+    let list = remote && remote.length > 0 ? remote : localStore.getSponsors();
+
+    if (remote && remote.length > 0) {
+      localStore.saveSponsors(list);
+    } else if (list.length > 0) {
+      await writeBatchDocuments(COLLECTIONS.SPONSORS, list);
+    }
+    return list;
   },
 
   async addSponsor(data: Omit<Sponsor, 'id'>): Promise<Sponsor> {
     const list = localStore.getSponsors();
     const newRecord: Sponsor = {
       ...data,
-      id: `spon-${Date.now()}`,
+      id: `spon-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       eventId: data.eventId || DEFAULT_EVENT_ID,
     };
     list.push(newRecord);
     localStore.saveSponsors(list);
+    await writeDocument(COLLECTIONS.SPONSORS, newRecord);
     return newRecord;
   },
 };

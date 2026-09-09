@@ -25,6 +25,21 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Allow Volunteers & Roster Registration
+    match /volunteers/{document=**} {
+      allow read, write: if true;
+    }
+
+    // Allow Sponsors & Seva Patrons
+    match /sponsors/{document=**} {
+      allow read, write: if true;
+    }
+
+    // Allow Tasks & Committee Actions
+    match /tasks/{document=**} {
+      allow read, write: if true;
+    }
+
     // Allow Society Expenses & Approvals
     match /expenses/{document=**} {
       allow read, write: if true;
@@ -50,6 +65,14 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Allow Presence & Live Stream Interactions
+    match /presence/{document=**} {
+      allow read, write: if true;
+    }
+    match /livestream/{document=**} {
+      allow read, write: if true;
+    }
+
     // Allow Admin & Demographics Pairing / Login Handshake Sessions
     match /admin_sessions/{document=**} {
       allow read, write: if true;
@@ -63,10 +86,28 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Programs, Performances & Events
+    match /programs/{document=**} {
+      allow read, write: if true;
+    }
+    match /performances/{document=**} {
+      allow read, write: if true;
+    }
+    match /events/{document=**} {
+      allow read, write: if true;
+    }
+    match /galleryAlbums/{document=**} {
+      allow read, write: if true;
+    }
+    match /galleryImages/{document=**} {
+      allow read, write: if true;
+    }
+
+    // Fallback for all other festival collections
     match /{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
   }
 }
+
 
