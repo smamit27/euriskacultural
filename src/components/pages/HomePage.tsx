@@ -9,7 +9,6 @@ import { UpcomingPrograms } from '../home/UpcomingPrograms';
 import { AdminDashboardSummary } from '../home/AdminDashboardSummary';
 import { CulturalEventsSection } from '../home/CulturalEventsSection';
 import { HomeSponsorsSection } from '../home/HomeSponsorsSection';
-import { VirtualAarti3DModal } from '../3d/VirtualAarti3DModal';
 import { programService } from '../../services/programService';
 import { contributionService } from '../../services/contributionService';
 import { liveStreamService } from '../../services/liveStreamService';
@@ -114,7 +113,6 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
   const [showLivePlayer, setShowLivePlayer] = useState(false);
   const [showAdminBroadcast, setShowAdminBroadcast] = useState(false);
-  const [showVirtualAarti3D, setShowVirtualAarti3D] = useState(false);
 
   useEffect(() => {
     programService.getPrograms().then(setPrograms);
@@ -134,14 +132,6 @@ export const HomePage: React.FC<HomePageProps> = ({
     });
     return () => unsub();
   }, [isAdmin]);
-
-  const handleActionNavigate = (section: string) => {
-    if (section === 'virtual_aarti_3d') {
-      setShowVirtualAarti3D(true);
-    } else {
-      onNavigate(section);
-    }
-  };
 
   const nextEvent = getNextEvent();
   const banner = nextEvent ? (FESTIVAL_BANNERS[nextEvent.id] ?? DEFAULT_BANNER) : DEFAULT_BANNER;
@@ -191,7 +181,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Quick Actions Grid */}
       <div style={{ marginTop: 0 }}>
         <QuickActions
-          onNavigate={handleActionNavigate}
+          onNavigate={(section) => onNavigate(section)}
         />
       </div>
 
@@ -403,12 +393,6 @@ export const HomePage: React.FC<HomePageProps> = ({
         isOpen={showAdminBroadcast}
         onClose={() => setShowAdminBroadcast(false)}
         onStreamUpdated={(updated) => setStreamInfo(updated)}
-      />
-
-      {/* 3D Virtual Aarti & Mandap Devotional Modal */}
-      <VirtualAarti3DModal
-        isOpen={showVirtualAarti3D}
-        onClose={() => setShowVirtualAarti3D(false)}
       />
     </div>
   );
