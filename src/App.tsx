@@ -33,7 +33,6 @@ import { LoginAuditLogView } from './components/admin/LoginAuditLogView';
 import { LiveTrafficModal } from './components/admin/LiveTrafficModal';
 import { LiveStreamPlayerModal } from './components/livestream/LiveStreamPlayerModal';
 import { NotificationModal } from './components/notifications/NotificationModal';
-import { Experience3DHubModal, type Experience3DTab } from './components/3d/Experience3DHubModal';
 import { liveStreamService } from './services/liveStreamService';
 import { notificationService } from './services/notificationService';
 import { presenceService, type ActiveSession } from './services/presenceService';
@@ -150,8 +149,6 @@ function AppContent() {
   const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
   const [showLivePlayerModal, setShowLivePlayerModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [show3DModal, setShow3DModal] = useState(false);
-  const [initial3DTab, setInitial3DTab] = useState<Experience3DTab>('aarti');
   const prevIsLiveRef = React.useRef(false);
 
   // Subscribe to real-time live stream updates & trigger notifications
@@ -316,26 +313,6 @@ function AppContent() {
     if (section === 'prasad') { handleTabChange('prasad'); return; }
     if (section === 'kalakriti') { handleTabChange('kalakriti'); return; }
     if (section === 'events') { setActiveTab('more'); setSubPage('events'); return; }
-    if (section === '3d-hub' || section === '3d-aarti') {
-      setInitial3DTab('aarti');
-      setShow3DModal(true);
-      return;
-    }
-    if (section === 'deepotsav') {
-      setInitial3DTab('deepotsav');
-      setShow3DModal(true);
-      return;
-    }
-    if (section === 'mandap') {
-      setInitial3DTab('mandap');
-      setShow3DModal(true);
-      return;
-    }
-    if (section === 'trophy') {
-      setInitial3DTab('trophy');
-      setShow3DModal(true);
-      return;
-    }
     if (section === 'livestream') {
       setActiveTab('more');
       setSubPage('livestream');
@@ -435,10 +412,6 @@ function AppContent() {
               }
             }}
             onOpenAdminLogin={() => setShowAdminLogin(true)}
-            onOpen3DHub={() => {
-              setInitial3DTab('aarti');
-              setShow3DModal(true);
-            }}
           />
         );
       default:
@@ -483,13 +456,6 @@ function AppContent() {
 
           {renderContent()}
         </main>
-
-        {/* 3D Cultural Experience Hub Modal */}
-        <Experience3DHubModal
-          isOpen={show3DModal}
-          onClose={() => setShow3DModal(false)}
-          initialTab={initial3DTab}
-        />
 
         {/* Festival & Live Aarti Notifications Drawer Modal */}
         <NotificationModal
