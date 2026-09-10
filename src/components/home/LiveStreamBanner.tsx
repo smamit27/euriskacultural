@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Radio, Play, Eye, Settings, Tv } from 'lucide-react';
 import type { LiveStreamInfo } from '../../types';
+import { liveScheduleService } from '../../services/liveScheduleService';
 
 interface LiveStreamBannerProps {
   streamInfo: LiveStreamInfo | null;
@@ -15,7 +16,19 @@ export const LiveStreamBanner: React.FC<LiveStreamBannerProps> = ({
   onOpenAdminBroadcast,
   isAdmin = false,
 }) => {
-  const isLive = streamInfo?.isLive ?? false;
+  const [nextSlotInfo, setNextSlotInfo] = useState<ReturnType<typeof liveScheduleService.getCurrentOrNextSlot> | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      setNextSlotInfo(liveScheduleService.getCurrentOrNextSlot());
+    };
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Admin forced live OR time is within active live window
+  const isLive = (streamInfo?.isLive ?? false) || (nextSlotInfo?.isLiveNow ?? false);
 
   if (isLive) {
     return (
@@ -25,7 +38,7 @@ export const LiveStreamBanner: React.FC<LiveStreamBannerProps> = ({
           borderRadius: 20,
           border: '1.5px solid #ef4444',
           padding: '16px 18px',
-          marginBottom: 20,
+          marginBottom: 16,
           color: '#ffffff',
           boxShadow: '0 8px 24px rgba(239, 68, 68, 0.25)',
           position: 'relative',
@@ -107,7 +120,7 @@ export const LiveStreamBanner: React.FC<LiveStreamBannerProps> = ({
               </div>
 
               <h3 style={{ fontSize: 16, fontWeight: 900, color: '#ffffff', margin: '0 0 2px' }}>
-                {streamInfo?.title || 'Shree Ganesh Evening Maha Aarti'}
+                {streamInfo?.title || nextSlotInfo?.slot.title || 'Shree Ganesh Daily Aarti'}
               </h3>
               <p style={{ fontSize: 12, color: '#fed7aa', margin: 0, fontWeight: 500 }}>
                 {streamInfo?.channelName || 'Majestique Euriska Cultural'} • Live Darshan
@@ -167,7 +180,7 @@ export const LiveStreamBanner: React.FC<LiveStreamBannerProps> = ({
     );
   }
 
-  // Not currently live: Sleek Live Stream Banner with Next Schedule
+  // Not currently live: Sleek Live Stream Banner with Next Schedule & Live Countdown
   return (
     <div
       style={{
@@ -175,7 +188,7 @@ export const LiveStreamBanner: React.FC<LiveStreamBannerProps> = ({
         borderRadius: 20,
         border: '1px solid #fed7aa',
         padding: '16px 18px',
-        marginBottom: 20,
+        marginBottom: 16,
         boxShadow: '0 2px 12px rgba(249, 115, 22, 0.06)',
       }}
     >
@@ -221,13 +234,20 @@ export const LiveStreamBanner: React.FC<LiveStreamBannerProps> = ({
               >
                 DAILY LIVE AARTI
               </span>
-              <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>
-                Morning 8:00 AM • Evening 8:00 PM
+              <span style={{ fontSize: 11, color: '#ea580c', fontWeight: 800 }}>
+                {nextSlotInfo ? (
+                  <>
+                    Next: {nextSlotInfo.slot.type === 'morning' ? '🌅 Morning 8:00 AM' : '🌆 Evening 8:00 PM'} (in{' '}
+                    {liveScheduleService.formatCountdown(nextSlotInfo.timeRemainingMs)})
+                  </>
+                ) : (
+                  'Morning 8:00 AM • Evening 8:00 PM'
+                )}
               </span>
             </div>
 
             <h3 style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', margin: '0 0 2px' }}>
-              Majestique Euriska Live Darshan &amp; Broadcast
+              {nextSlotInfo?.slot.title || 'Majestique Euriska Live Darshan'}
             </h3>
             <p style={{ fontSize: 12, color: '#64748b', margin: 0, fontWeight: 500 }}>
               Official channel: <strong>Majestique Euriska Cultural</strong>

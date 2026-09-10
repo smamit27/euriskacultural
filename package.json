@@ -12,9 +12,11 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@types/html2canvas": "^0.5.35",
     "@types/three": "^0.185.4",
     "canvas-confetti": "^1.9.4",
     "firebase": "^12.18.0",
+    "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",

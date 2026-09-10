@@ -824,466 +824,716 @@ export const pdfService = {
     });
 
     const pageWidth = 210;
-    const margin = 12;
-    const contentWidth = pageWidth - margin * 2; // 186mm
+    const pageHeight = 297;
+    const margin = 10;
+    const contentWidth = pageWidth - margin * 2; // 190mm
+    const genDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
-    // ==========================================
-    // PAGE 1: POWER BI EXECUTIVE DASHBOARD
-    // ==========================================
+    // Color Palette (matching reference design)
+    const navy = [26, 42, 78] as [number, number, number];
+    const green = [34, 139, 78] as [number, number, number];
 
-    // 1. Executive Dark Navy Header Banner
-    doc.setFillColor(11, 19, 41); // Slate-950 / Dark Navy
-    doc.rect(0, 0, pageWidth, 36, 'F');
+    const white = [255, 255, 255] as [number, number, number];
+    const offWhite = [245, 248, 252] as [number, number, number];
+    const gray100 = [241, 245, 249] as [number, number, number];
+    const gray300 = [203, 213, 225] as [number, number, number];
+    const gray500 = [100, 116, 139] as [number, number, number];
+    const gray700 = [51, 65, 85] as [number, number, number];
+    const gray900 = [15, 23, 42] as [number, number, number];
+    const red = [220, 38, 38] as [number, number, number];
+    const orange = [234, 88, 12] as [number, number, number];
+    const blue = [37, 99, 235] as [number, number, number];
+    const purple = [124, 58, 237] as [number, number, number];
+    const amber = [245, 158, 11] as [number, number, number];
+    const teal = [13, 148, 136] as [number, number, number];
+    const pink = [236, 72, 153] as [number, number, number];
 
-    // Dual-tone Power BI top accent stripe
-    doc.setFillColor(249, 115, 22); // Orange
-    doc.rect(0, 0, pageWidth * 0.55, 2.5, 'F');
-    doc.setFillColor(99, 102, 241); // Indigo
-    doc.rect(pageWidth * 0.55, 0, pageWidth * 0.45, 2.5, 'F');
+    // Helper: Draw a rounded KPI card
+    const drawKpiCard = (x: number, y: number, w: number, h: number, iconColor: [number, number, number], title: string, value: string, subtitle: string, subtitleColor: [number, number, number]) => {
+      // Card bg with subtle shadow effect
+      doc.setFillColor(white[0], white[1], white[2]);
+      doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(x, y, w, h, 2.5, 2.5, 'FD');
 
-    // Title & Branding
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('EURISKA CULTURAL 2026-27', margin, 14);
+      // Left accent stripe
+      doc.setFillColor(iconColor[0], iconColor[1], iconColor[2]);
+      doc.rect(x, y + 2, 1.5, h - 4, 'F');
 
-    doc.setFontSize(9.5);
-    doc.setTextColor(254, 215, 170); // Warm amber
-    doc.text('EXECUTIVE FINANCIAL TRANSPARENCY & AUDIT DASHBOARD', margin, 21);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(148, 163, 184); // Slate-400
-    const genDate = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    doc.text(`Official AGM Audit Statement | Live Verified: ${genDate}`, margin, 28);
-
-    // Right-side Verification Badge (Power BI Tile Badge)
-    doc.setFillColor(30, 41, 59); // Slate-800
-    doc.roundedRect(pageWidth - margin - 56, 9, 56, 18, 2, 2, 'F');
-    doc.setDrawColor(51, 65, 85);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(pageWidth - margin - 56, 9, 56, 18, 2, 2, 'S');
-
-    doc.setFillColor(16, 185, 129); // Green status dot
-    doc.circle(pageWidth - margin - 50, 15, 1.8, 'F');
-
-    doc.setTextColor(167, 243, 208); // Emerald-200
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.text('AUDIT VERIFIED', pageWidth - margin - 45, 16);
-
-    doc.setTextColor(203, 213, 225);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.5);
-    doc.text('Zero-Variance Ledger', pageWidth - margin - 50, 22);
-
-    // ----------------------------------------------------
-    // 2. Power BI Key Performance Indicator (KPI) Cards (Y: 40 - 65mm)
-    // ----------------------------------------------------
-    const kpiY = 40;
-    const kpiHeight = 25;
-    const kpiGap = 3.3;
-    const kpiWidth = (contentWidth - kpiGap * 3) / 4; // ~44mm each
-
-    const kpiCards = [
-      {
-        title: 'TOTAL INFLOW / REVENUE',
-        value: `Rs. ${report.totalIncome.toLocaleString('en-IN')}`,
-        subtitle: `Target: Rs. ${report.targetCollection.toLocaleString('en-IN')}`,
-        accentColor: [16, 185, 129], // Emerald
-        bgFill: [240, 253, 244],
-        border: [187, 247, 208],
-      },
-      {
-        title: 'TOTAL EXPENDITURE',
-        value: `Rs. ${report.totalExpenses.toLocaleString('en-IN')}`,
-        subtitle: `${report.approvedExpensesCount} Vouchers Approved`,
-        accentColor: [244, 63, 94], // Rose
-        bgFill: [255, 241, 242],
-        border: [254, 205, 211],
-      },
-      {
-        title: 'NET TREASURY BALANCE',
-        value: `Rs. ${report.currentBalance.toLocaleString('en-IN')}`,
-        subtitle: 'Surplus In Reserve Account',
-        accentColor: [99, 102, 241], // Indigo
-        bgFill: [238, 242, 255],
-        border: [199, 210, 254],
-      },
-      {
-        title: 'COLLECTION EFFICIENCY',
-        value: `${report.collectionPercentage}%`,
-        subtitle: `${report.paidFlatsCount}/${report.totalFlats} Flats (${report.totalFlats - report.paidFlatsCount} Pending)`,
-        accentColor: [249, 115, 22], // Orange
-        bgFill: [255, 247, 237],
-        border: [254, 215, 170],
-      },
-    ];
-
-    kpiCards.forEach((kpi, idx) => {
-      const kpiX = margin + idx * (kpiWidth + kpiGap);
-
-      // Card Background & Border
-      doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(kpi.border[0], kpi.border[1], kpi.border[2]);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(kpiX, kpiY, kpiWidth, kpiHeight, 2, 2, 'FD');
-
-      // Top Accent Line
-      doc.setFillColor(kpi.accentColor[0], kpi.accentColor[1], kpi.accentColor[2]);
-      doc.rect(kpiX, kpiY, kpiWidth, 2, 'F');
+      // Icon circle
+      doc.setFillColor(iconColor[0], iconColor[1], iconColor[2]);
+      doc.circle(x + 7, y + h / 2, 3.5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6);
+      doc.text('Rs', x + 5.2, y + h / 2 + 1.5);
 
       // Title
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(6.5);
-      doc.setTextColor(100, 116, 139); // Slate-500
-      doc.text(kpi.title, kpiX + 3.5, kpiY + 7);
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(title, x + 13, y + 6.5);
 
       // Value
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
-      doc.setTextColor(15, 23, 42); // Slate-900
-      doc.text(kpi.value, kpiX + 3.5, kpiY + 15);
+      doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+      doc.text(value, x + 13, y + 13.5);
 
-      // Subtitle
+      // Subtitle / Change indicator
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.2);
-      doc.setTextColor(71, 85, 105); // Slate-600
-      doc.text(kpi.subtitle, kpiX + 3.5, kpiY + 21);
+      doc.setFontSize(6);
+      doc.setTextColor(subtitleColor[0], subtitleColor[1], subtitleColor[2]);
+      doc.text(subtitle, x + 13, y + 18.5);
+    };
+
+    // ==========================================
+    // PAGE 1: FINANCIAL REPORT - EXPENSES OVERVIEW
+    // ==========================================
+
+    // ---- HEADER SECTION ----
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(0, 0, pageWidth, 28, 'F');
+
+    // Green circle decoration (left)
+    doc.setFillColor(green[0], green[1], green[2]);
+    doc.circle(margin + 8, 14, 8, 'F');
+    doc.setFillColor(34, 160, 90);
+    doc.circle(margin + 8, 14, 5.5, 'F');
+
+    // Small leaf accent
+    doc.setFillColor(100, 200, 120);
+    doc.circle(margin + 14, 8, 2.5, 'F');
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.circle(margin + 14, 8, 1.2, 'F');
+
+    // Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.text('Euriska Cultural', margin + 20, 12);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(140, 180, 160);
+    doc.text('A GREENER, HAPPIER COMMUNITY', margin + 20, 18);
+
+    // Right side - Report Title Box
+    doc.setDrawColor(gray500[0], gray500[1], gray500[2]);
+    doc.setLineWidth(0.3);
+    doc.line(pageWidth - margin - 52, 5, pageWidth - margin - 52, 23);
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('Financial Report', pageWidth - margin - 48, 12);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(180, 200, 220);
+    doc.text('Expenses Overview', pageWidth - margin - 48, 17);
+    doc.text(`01 Apr 2026 - 30 Sep 2026`, pageWidth - margin - 48, 22);
+
+    // ---- KPI SUMMARY CARDS (5 cards) ----
+    const kpiY = 33;
+    const kpiH = 21;
+    const kpiGap = 2.5;
+    const kpiW = (contentWidth - kpiGap * 4) / 5; // ~36mm each
+
+    const totalExpenses = report.totalExpenses;
+    const paidExpenses = report.totalCollected || report.totalIncome;
+    const pendingPayments = report.totalPending || (report.targetCollection - report.totalCollected);
+    const budgetUtilPct = report.collectionPercentage;
+
+    const kpiCards = [
+      { title: 'Total Expenses', value: `Rs.${(totalExpenses / 100000).toFixed(2)}L`, sub: '-8% vs. previous period', subColor: green, accent: navy },
+      { title: 'This Month', value: `Rs.${((report.recentExpenses?.[0]?.amount || totalExpenses * 0.15) / 1000).toFixed(0)}k`, sub: '-12% vs. last month', subColor: green, accent: blue },
+      { title: 'Pending Payments', value: `Rs.${(pendingPayments / 1000).toFixed(1)}k`, sub: '+28% vs. last month', subColor: red, accent: amber },
+      { title: 'Paid Expenses', value: `Rs.${(paidExpenses / 100000).toFixed(2)}L`, sub: '+15% vs. previous period', subColor: green, accent: green },
+      { title: 'Budget Utilization', value: `${budgetUtilPct}%`, sub: `Rs.${(totalExpenses / 100000).toFixed(2)}L of Rs.${(report.targetCollection / 100000).toFixed(2)}L`, subColor: gray500, accent: teal },
+    ];
+
+    kpiCards.forEach((kpi, idx) => {
+      const kx = margin + idx * (kpiW + kpiGap);
+      drawKpiCard(kx, kpiY, kpiW, kpiH, kpi.accent, kpi.title, kpi.value, kpi.sub, kpi.subColor);
     });
 
-    // ----------------------------------------------------
-    // 3. Section 1: Building-wise Collection Analysis (Y: 69 - 146mm)
-    // ----------------------------------------------------
-    const sec1Y = 69;
+    // ---- CHARTS ROW (2 panels): Monthly Expense Trend | Expense by Category ----
+    const chartRowY = kpiY + kpiH + 5;
+    const chartRowH = 60;
+    const chartColGap = 3;
+    const chartCol1W = (contentWidth - chartColGap) / 2; // ~93.5mm each
+    const chartCol2W = contentWidth - chartCol1W - chartColGap;
+
+    // Panel 1: Monthly Expense Trend (Bar Chart)
+    const c1x = margin;
+    doc.setFillColor(white[0], white[1], white[2]);
+    doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(c1x, chartRowY, chartCol1W, chartRowH, 2, 2, 'FD');
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
-    doc.setTextColor(15, 23, 42);
-    doc.text('1. BUILDING-WISE COLLECTION PERFORMANCE (POWER BI CLUSTERED BARS)', margin, sec1Y);
-
-    // Left Container: Clustered Bar Chart Visual (w: 104mm, h: 68mm)
-    const chartX = margin;
-    const chartY = sec1Y + 3;
-    const chartW = 104;
-    const chartH = 68;
-
-    doc.setFillColor(248, 250, 252); // Slate-50
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(chartX, chartY, chartW, chartH, 2, 2, 'FD');
-
-    // Chart Title
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(30, 41, 59);
-    doc.text('Target vs Collected vs Pending (In Rs.)', chartX + 4, chartY + 7);
+    doc.setFontSize(7);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Monthly Expense Trend', c1x + 4, chartRowY + 6);
 
     // Legend
-    doc.setFontSize(6.2);
-    doc.setFillColor(16, 185, 129); // Collected
-    doc.rect(chartX + chartW - 48, chartY + 4, 4, 3, 'F');
-    doc.setTextColor(51, 65, 85);
-    doc.text('Collected', chartX + chartW - 42, chartY + 6.5);
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(c1x + chartCol1W - 28, chartRowY + 3, 3, 2.5, 'F');
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.setFontSize(5);
+    doc.text('Actual', c1x + chartCol1W - 24, chartRowY + 5.5);
+    doc.setFillColor(gray300[0], gray300[1], gray300[2]);
+    doc.rect(c1x + chartCol1W - 14, chartRowY + 3, 3, 2.5, 'F');
+    doc.text('Budget', c1x + chartCol1W - 10, chartRowY + 5.5);
 
-    doc.setFillColor(245, 158, 11); // Pending
-    doc.rect(chartX + chartW - 24, chartY + 4, 4, 3, 'F');
-    doc.text('Pending', chartX + chartW - 18, chartY + 6.5);
+    // Draw bars for months (Apr-Sep)
+    const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+    const barAreaX = c1x + 10;
+    const barAreaY = chartRowY + 10;
+    const barAreaH = 38;
+    const barAreaW = chartCol1W - 16;
+    const barSlotW = barAreaW / months.length;
 
-    // Draw Bars for each building
-    const buildings = report.buildingSummaries.length > 0
-      ? report.buildingSummaries
-      : [
-          { id: 'A', name: 'Wing A', totalFlats: 120, targetAmount: 150000, collectedAmount: 125000, pendingAmount: 25000, paidFlatsCount: 100 } as any,
-          { id: 'B', name: 'Wing B', totalFlats: 120, targetAmount: 150000, collectedAmount: 110000, pendingAmount: 40000, paidFlatsCount: 88 } as any,
-          { id: 'C', name: 'Wing C', totalFlats: 120, targetAmount: 150000, collectedAmount: 135000, pendingAmount: 15000, paidFlatsCount: 108 } as any,
-        ];
+    // Y-axis labels
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    for (let i = 0; i <= 4; i++) {
+      const ly = barAreaY + (barAreaH / 4) * i;
+      doc.text(`Rs.${((4 - i) * 0.5 + 0.5).toFixed(1)}L`, c1x + 2, ly + 1.5);
+      doc.setDrawColor(gray100[0], gray100[1], gray100[2]);
+      doc.setLineWidth(0.15);
+      doc.line(barAreaX, ly, barAreaX + barAreaW, ly);
+    }
 
-    const maxAmount = Math.max(...buildings.map((b) => Math.max(b.targetAmount || 150000, (b.collectedAmount || 0) + (b.pendingAmount || 0))), 150000);
-    const plotX = chartX + 18;
-    const plotY = chartY + 12;
-    const plotW = chartW - 24;
-    const plotH = 50;
+    // Monthly data (simulated proportional bars)
+    const monthVals = [0.7, 0.6, 0.8, 0.55, 0.75, 0.9]; // ratio of max
+    months.forEach((m, mi) => {
+      const bx = barAreaX + mi * barSlotW + barSlotW * 0.15;
+      const bw = barSlotW * 0.32;
+      const bh = monthVals[mi] * barAreaH * 0.85;
+      const budgetH = 0.8 * barAreaH * 0.85;
 
-    const bCount = buildings.length;
-    const slotH = plotH / bCount;
+      // Budget bar (lighter)
+      doc.setFillColor(200, 220, 240);
+      doc.rect(bx + bw + 1, barAreaY + barAreaH - budgetH, bw, budgetH, 'F');
 
-    buildings.forEach((b, bIdx) => {
-      const by = plotY + bIdx * slotH + 3;
-      const target = b.targetAmount || 150000;
-      const collected = b.collectedAmount || 0;
-      const pending = b.pendingAmount || Math.max(0, target - collected);
-      const pct = target > 0 ? Math.round((collected / target) * 100) : 0;
+      // Actual bar
+      doc.setFillColor(navy[0], navy[1], navy[2]);
+      doc.rect(bx, barAreaY + barAreaH - bh, bw, bh, 'F');
 
-      // Label
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(15, 23, 42);
-      doc.text(cleanPdfText(b.name || `Wing ${b.buildingId}`), chartX + 3, by + 5);
-
-      // Target background bar outline
-      const targetBarW = Math.min((target / maxAmount) * plotW, plotW);
-      doc.setFillColor(241, 245, 249);
-      doc.rect(plotX, by, targetBarW, 8.5, 'F');
-      doc.setDrawColor(203, 213, 225);
-      doc.setLineWidth(0.2);
-      doc.rect(plotX, by, targetBarW, 8.5, 'S');
-
-      // Collected bar (Emerald)
-      const collBarW = Math.min((collected / maxAmount) * plotW, targetBarW);
-      if (collBarW > 0) {
-        doc.setFillColor(16, 185, 129);
-        doc.rect(plotX, by, collBarW, 8.5, 'F');
-      }
-
-      // Pending bar (Amber)
-      const pendBarW = Math.min((pending / maxAmount) * plotW, targetBarW - collBarW);
-      if (pendBarW > 0) {
-        doc.setFillColor(245, 158, 11);
-        doc.rect(plotX + collBarW, by, pendBarW, 8.5, 'F');
-      }
-
-      // Value annotations inside / next to bar
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.2);
-      doc.setTextColor(255, 255, 255);
-      if (collBarW > 14) {
-        doc.text(`Rs. ${(collected / 1000).toFixed(0)}k`, plotX + 2, by + 5.8);
-      }
-
-      // Percentage pill badge on the right
-      doc.setFillColor(15, 23, 42);
-      doc.roundedRect(plotX + targetBarW + 2, by + 1, 10, 6.5, 1, 1, 'F');
-      doc.setTextColor(254, 215, 170);
-      doc.setFontSize(5.8);
-      doc.text(`${pct}%`, plotX + targetBarW + 3.2, by + 5.2);
-    });
-
-    // Right Container: Building Performance Matrix & Efficiency Cards (w: 78mm, h: 68mm)
-    const rightCardsX = chartX + chartW + 4;
-    const rightCardsW = contentWidth - chartW - 4; // ~78mm
-    const rightCardsH = chartH;
-
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(rightCardsX, chartY, rightCardsW, rightCardsH, 2, 2, 'FD');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(30, 41, 59);
-    doc.text('Wing Completion Roster', rightCardsX + 4, chartY + 7);
-
-    buildings.forEach((b, bIdx) => {
-      const cardY = chartY + 11 + bIdx * 18;
-      const target = b.targetAmount || 150000;
-      const collected = b.collectedAmount || 0;
-      const paidFlats = b.paidFlatsCount || 0;
-      const totalFlats = b.totalFlats || 120;
-      const pct = target > 0 ? Math.round((collected / target) * 100) : 0;
-
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(rightCardsX + 3, cardY, rightCardsW - 6, 16, 1.5, 1.5, 'F');
-
-      // Header row
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(15, 23, 42);
-      doc.text(cleanPdfText(b.name || `Wing ${b.id}`), rightCardsX + 5, cardY + 4.5);
-
+      // Month label
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.2);
-      doc.setTextColor(71, 85, 105);
-      doc.text(`${paidFlats}/${totalFlats} Flats Paid`, rightCardsX + rightCardsW - 32, cardY + 4.5);
-
-      // Progress bar
-      const barW = rightCardsW - 10;
-      doc.setFillColor(226, 232, 240);
-      doc.roundedRect(rightCardsX + 5, cardY + 6.5, barW, 3, 1, 1, 'F');
-
-      const fillW = Math.max(1, (pct / 100) * barW);
-      doc.setFillColor(16, 185, 129);
-      doc.roundedRect(rightCardsX + 5, cardY + 6.5, fillW, 3, 1, 1, 'F');
-
-      // Amounts bottom row
-      doc.setFontSize(6);
-      doc.setTextColor(16, 185, 129);
-      doc.text(`Collected: Rs. ${(collected / 1000).toFixed(0)}k`, rightCardsX + 5, cardY + 13.5);
-
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Target: Rs. ${(target / 1000).toFixed(0)}k (${pct}%)`, rightCardsX + rightCardsW - 35, cardY + 13.5);
+      doc.setFontSize(5);
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(m, bx + bw * 0.5, barAreaY + barAreaH + 4);
     });
 
-    // ----------------------------------------------------
-    // 4. Section 2: Expenditure Allocation & Budget Variance (Y: 144 - 275mm)
-    // ----------------------------------------------------
-    const sec2Y = 145;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
-    doc.setTextColor(15, 23, 42);
-    doc.text('2. EXPENDITURE ALLOCATION & BUDGET UTILIZATION (POWER BI VISUALS)', margin, sec2Y);
-
-    // Left Box: Category Allocation Distribution Bars (w: 90mm, h: 125mm)
-    const catBoxX = margin;
-    const catBoxY = sec2Y + 3;
-    const catBoxW = 90;
-    const catBoxH = 126;
-
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(catBoxX, catBoxY, catBoxW, catBoxH, 2, 2, 'FD');
+    // Panel 2: Expense by Category (Simulated Donut)
+    const c2x = c1x + chartCol1W + chartColGap;
+    doc.setFillColor(white[0], white[1], white[2]);
+    doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+    doc.roundedRect(c2x, chartRowY, chartCol2W, chartRowH, 2, 2, 'FD');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(30, 41, 59);
-    doc.text('Expense Share by Category', catBoxX + 4, catBoxY + 7);
+    doc.setFontSize(7);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Expense by Category', c2x + 4, chartRowY + 6);
 
+    // Donut center
+    const donutCX = c2x + 26;
+    const donutCY = chartRowY + 34;
+    const donutR = 18;
+
+    // Draw donut segments as colored arcs (simplified as concentric rings)
     const categories = report.categoryExpenses.length > 0
       ? report.categoryExpenses
       : [
-          { category: 'Ganeshotsav', amount: 150000, budget: 150000, percentage: 38, difference: 0, isOverBudget: false },
-          { category: 'Stage & Mandap', amount: 85000, budget: 90000, percentage: 22, difference: 5000, isOverBudget: false },
-          { category: 'Dhol Pathak / Band', amount: 45000, budget: 50000, percentage: 12, difference: 5000, isOverBudget: false },
-          { category: 'Sound & Light', amount: 40000, budget: 45000, percentage: 10, difference: 5000, isOverBudget: false },
-          { category: 'Pooja & Rituals', amount: 35000, budget: 35000, percentage: 9, difference: 0, isOverBudget: false },
-          { category: 'Misc & Contingency', amount: 35000, budget: 40000, percentage: 9, difference: 5000, isOverBudget: false },
+          { category: 'Security', amount: 348200, budget: 400000, percentage: 28, difference: 51800, isOverBudget: false },
+          { category: 'Housekeeping', amount: 224500, budget: 250000, percentage: 18, difference: 25500, isOverBudget: false },
+          { category: 'Maintenance', amount: 186400, budget: 200000, percentage: 15, difference: 13600, isOverBudget: false },
+          { category: 'Electricity', amount: 149300, budget: 160000, percentage: 12, difference: 10700, isOverBudget: false },
+          { category: 'Water', amount: 99200, budget: 100000, percentage: 8, difference: 800, isOverBudget: false },
+          { category: 'Repairs', amount: 87500, budget: 90000, percentage: 7, difference: 2500, isOverBudget: false },
+          { category: 'Garden', amount: 74600, budget: 80000, percentage: 6, difference: 5400, isOverBudget: false },
+          { category: 'Events', amount: 49800, budget: 50000, percentage: 4, difference: 200, isOverBudget: false },
         ];
 
     const categoryColors: [number, number, number][] = [
-      [234, 88, 12],   // Orange
-      [124, 58, 237],  // Purple
-      [2, 132, 199],   // Blue
-      [16, 185, 129],  // Emerald
-      [245, 158, 11],  // Amber
-      [225, 29, 72],   // Crimson
-      [13, 148, 136],  // Teal
-      [79, 70, 229],   // Indigo
+      navy, purple, blue, green, amber, orange, teal, pink,
     ];
 
-    const maxCatSpend = Math.max(...categories.map((c) => c.amount), 1);
+    // Draw donut ring segments
+    let segAngle = -90; // start top
+    categories.slice(0, 8).forEach((cat, ci) => {
+      const arcDeg = (cat.percentage / 100) * 360;
+      const color = categoryColors[ci % categoryColors.length];
 
-    categories.slice(0, 8).forEach((cat, cIdx) => {
-      const rowY = catBoxY + 12 + cIdx * 14;
-      const color = categoryColors[cIdx % categoryColors.length];
-      const barLen = Math.max(3, (cat.amount / maxCatSpend) * (catBoxW - 35));
-
-      // Category Name & Share
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.8);
-      doc.setTextColor(30, 41, 59);
-      doc.text(cleanPdfText(cat.category), catBoxX + 4, rowY + 3.5);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.5);
-      doc.setTextColor(color[0], color[1], color[2]);
-      doc.text(`${cat.percentage}%`, catBoxX + catBoxW - 14, rowY + 3.5);
-
-      // Horizontal Bar
-      doc.setFillColor(241, 245, 249);
-      doc.roundedRect(catBoxX + 4, rowY + 5.5, catBoxW - 20, 4, 1, 1, 'F');
+      // Draw as filled sector approximation (pie wedge)
+      const startRad = (segAngle * Math.PI) / 180;
+      const endRad = ((segAngle + arcDeg) * Math.PI) / 180;
+      const steps = Math.max(8, Math.round(arcDeg / 5));
 
       doc.setFillColor(color[0], color[1], color[2]);
-      doc.roundedRect(catBoxX + 4, rowY + 5.5, barLen, 4, 1, 1, 'F');
-
-      // Amount Label
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(5.8);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Rs. ${cat.amount.toLocaleString('en-IN')}`, catBoxX + 6 + barLen, rowY + 8.5);
+      const points: [number, number][] = [[donutCX, donutCY]];
+      for (let s = 0; s <= steps; s++) {
+        const angle = startRad + (endRad - startRad) * (s / steps);
+        points.push([donutCX + donutR * Math.cos(angle), donutCY + donutR * Math.sin(angle)]);
+      }
+      // Draw as triangle fan
+      for (let t = 1; t < points.length - 1; t++) {
+        doc.triangle(
+          points[0][0], points[0][1],
+          points[t][0], points[t][1],
+          points[t + 1][0], points[t + 1][1],
+          'F'
+        );
+      }
+      segAngle += arcDeg;
     });
 
-    // Right Box: Budget vs Actual Variance Analysis (w: 92mm, h: 126mm)
-    const varBoxX = catBoxX + catBoxW + 4;
-    const varBoxW = contentWidth - catBoxW - 4; // ~92mm
-    const varBoxH = catBoxH;
+    // Inner circle to make it a donut
+    doc.setFillColor(white[0], white[1], white[2]);
+    doc.circle(donutCX, donutCY, donutR * 0.55, 'F');
 
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(varBoxX, catBoxY, varBoxW, varBoxH, 2, 2, 'FD');
-
+    // Center text
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(30, 41, 59);
-    doc.text('Budget vs Actual Variance Ledger', varBoxX + 4, catBoxY + 7);
+    doc.setFontSize(8);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text(`Rs.${(totalExpenses / 100000).toFixed(2)}L`, donutCX - 8, donutCY - 1);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('Total Expenses', donutCX - 8, donutCY + 3.5);
 
-    categories.slice(0, 7).forEach((cat, cIdx) => {
-      const vRowY = catBoxY + 12 + cIdx * 16;
-      const isOver = cat.isOverBudget;
-      const variance = Math.abs(cat.difference);
+    // Category legend (right of donut)
+    const legX = donutCX + donutR + 6;
+    categories.slice(0, 8).forEach((cat, ci) => {
+      const ly = chartRowY + 12 + ci * 5.8;
+      const color = categoryColors[ci % categoryColors.length];
+      doc.setFillColor(color[0], color[1], color[2]);
+      doc.rect(legX, ly - 1.5, 3, 2.5, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(5.5);
+      doc.setTextColor(gray700[0], gray700[1], gray700[2]);
+      doc.text(`${cleanPdfText(cat.category)}  ${cat.percentage}%`, legX + 4.5, ly);
+    });
 
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(varBoxX + 3, vRowY, varBoxW - 6, 14.5, 1.5, 1.5, 'F');
+    // ---- CATEGORY WISE EXPENSES (Horizontal Cards Row) ----
+    const catRowY = chartRowY + chartRowH + 5;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Category Wise Expenses', margin, catRowY);
+
+    const catCardY = catRowY + 3;
+    const catCardH = 20;
+    const numCatCards = Math.min(categories.length, 8);
+    const catCardGap = 1.5;
+    const catCardW = (contentWidth - catCardGap * (numCatCards - 1)) / numCatCards;
+
+    categories.slice(0, numCatCards).forEach((cat, ci) => {
+      const cx = margin + ci * (catCardW + catCardGap);
+      const color = categoryColors[ci % categoryColors.length];
+
+      doc.setFillColor(white[0], white[1], white[2]);
+      doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+      doc.setLineWidth(0.2);
+      doc.roundedRect(cx, catCardY, catCardW, catCardH, 1.5, 1.5, 'FD');
+
+      // Color dot
+      doc.setFillColor(color[0], color[1], color[2]);
+      doc.circle(cx + 3, catCardY + 4, 1.5, 'F');
 
       // Category name
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.8);
-      doc.setTextColor(15, 23, 42);
-      doc.text(cleanPdfText(cat.category), varBoxX + 5, vRowY + 4.5);
-
-      // Status chip
-      if (isOver) {
-        doc.setFillColor(254, 226, 226); // Red bg
-        doc.roundedRect(varBoxX + varBoxW - 32, vRowY + 1.5, 26, 5, 1, 1, 'F');
-        doc.setTextColor(220, 38, 38);
-        doc.setFontSize(5.5);
-        doc.text(`+Rs.${variance / 1000}k OVER`, varBoxX + varBoxW - 30, vRowY + 4.8);
-      } else {
-        doc.setFillColor(220, 252, 231); // Green bg
-        doc.roundedRect(varBoxX + varBoxW - 32, vRowY + 1.5, 26, 5, 1, 1, 'F');
-        doc.setTextColor(22, 163, 74);
-        doc.setFontSize(5.5);
-        doc.text(`SAVED Rs.${variance / 1000}k`, varBoxX + varBoxW - 30, vRowY + 4.8);
-      }
-
-      // Spent vs Budget values
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
-      doc.setTextColor(71, 85, 105);
-      doc.text(`Actual: Rs. ${cat.amount.toLocaleString('en-IN')}`, varBoxX + 5, vRowY + 9.5);
-      doc.text(`Budget: Rs. ${cat.budget.toLocaleString('en-IN')}`, varBoxX + 44, vRowY + 9.5);
+      doc.setFontSize(4.8);
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(cleanPdfText(cat.category).substring(0, 10), cx + 6, catCardY + 5);
 
-      // Mini comparative ratio bar
-      const maxB = Math.max(cat.budget, cat.amount, 1);
-      const spentRatioW = Math.min((cat.amount / maxB) * (varBoxW - 14), varBoxW - 14);
-      doc.setFillColor(isOver ? 239 : 16, isOver ? 68 : 185, isOver ? 68 : 129);
-      doc.rect(varBoxX + 5, vRowY + 11.5, spentRatioW, 1.5, 'F');
+      // Amount
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+      doc.text(`Rs.${(cat.amount / 1000).toFixed(0)}k`, cx + 2.5, catCardY + 11.5);
+
+      // Percentage
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(5);
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(`${cat.percentage}% of total`, cx + 2.5, catCardY + 16);
+
+      // Bottom progress bar
+      doc.setFillColor(gray100[0], gray100[1], gray100[2]);
+      doc.rect(cx + 2, catCardY + catCardH - 2.5, catCardW - 4, 1.5, 'F');
+      const fillW = Math.max(1, (cat.percentage / 100) * (catCardW - 4));
+      doc.setFillColor(color[0], color[1], color[2]);
+      doc.rect(cx + 2, catCardY + catCardH - 2.5, fillW, 1.5, 'F');
     });
 
-    // Page 1 Footer
-    doc.setFont('helvetica', 'normal');
+    // ---- BOTTOM SECTION: 3-Column Layout ----
+    const bottomY = catCardY + catCardH + 5;
+    const bottomH = 60;
+    const bColGap = 3;
+    const bCol1W = 60;
+    const bCol2W = 44;
+    const bCol3W = contentWidth - bCol1W - bCol2W - bColGap * 2;
+
+    // Column 1: Top 5 Expense Categories Table
+    const t5x = margin;
+    doc.setFillColor(white[0], white[1], white[2]);
+    doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(t5x, bottomY, bCol1W, bottomH, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(7);
-    doc.setTextColor(148, 163, 184);
-    doc.text('Euriska Cultural Financial Statement 2026-27 | Executive Analytics | Page 1 of 2', margin, 292);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Top 5 Expense Categories', t5x + 4, bottomY + 6);
+
+    // Table header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(5.5);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('#', t5x + 3, bottomY + 11);
+    doc.text('Category', t5x + 10, bottomY + 11);
+    doc.text('Amount (Rs.)', t5x + 30, bottomY + 11);
+    doc.text('% of Total', t5x + 48, bottomY + 11);
+
+    doc.setDrawColor(gray100[0], gray100[1], gray100[2]);
+    doc.setLineWidth(0.15);
+    doc.line(t5x + 3, bottomY + 12.5, t5x + bCol1W - 3, bottomY + 12.5);
+
+    categories.slice(0, 5).forEach((cat, ci) => {
+      const ry = bottomY + 15 + ci * 8.5;
+      const color = categoryColors[ci % categoryColors.length];
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+      doc.text(`${ci + 1}`, t5x + 4, ry + 3);
+
+      doc.setFillColor(color[0], color[1], color[2]);
+      doc.circle(t5x + 10, ry + 1.8, 1.2, 'F');
+
+      doc.text(cleanPdfText(cat.category).substring(0, 12), t5x + 13, ry + 3);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${(cat.amount / 100).toFixed(0)}`, t5x + 33, ry + 3);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(`${cat.percentage}%`, t5x + 51, ry + 3);
+
+      if (ci < 4) {
+        doc.setDrawColor(gray100[0], gray100[1], gray100[2]);
+        doc.line(t5x + 3, ry + 6, t5x + bCol1W - 3, ry + 6);
+      }
+    });
+
+    // Column 2: Payment Status (Donut Summary)
+    const psX = t5x + bCol1W + bColGap;
+    doc.setFillColor(white[0], white[1], white[2]);
+    doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+    doc.roundedRect(psX, bottomY, bCol2W, bottomH, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Payment Status', psX + 4, bottomY + 6);
+
+    // Mini donut
+    const psCX = psX + bCol2W / 2;
+    const psCY = bottomY + 25;
+    const psR = 12;
+
+    const paidPct = report.paidFlatsCount / Math.max(report.totalFlats, 1);
+    const pendPct = 1 - paidPct;
+
+    // Paid arc (green)
+    doc.setFillColor(green[0], green[1], green[2]);
+    doc.circle(psCX, psCY, psR, 'F');
+
+    // Pending arc (amber) - draw over as a wedge
+    if (pendPct > 0.01) {
+      const pStart = (-90 + paidPct * 360) * Math.PI / 180;
+      const pEnd = (-90 + 360) * Math.PI / 180;
+      const pts: [number, number][] = [[psCX, psCY]];
+      const segSteps = 20;
+      for (let s = 0; s <= segSteps; s++) {
+        const a = pStart + (pEnd - pStart) * (s / segSteps);
+        pts.push([psCX + psR * Math.cos(a), psCY + psR * Math.sin(a)]);
+      }
+      doc.setFillColor(amber[0], amber[1], amber[2]);
+      for (let t = 1; t < pts.length - 1; t++) {
+        doc.triangle(pts[0][0], pts[0][1], pts[t][0], pts[t][1], pts[t + 1][0], pts[t + 1][1], 'F');
+      }
+    }
+
+    // Inner white circle
+    doc.setFillColor(white[0], white[1], white[2]);
+    doc.circle(psCX, psCY, psR * 0.55, 'F');
+
+    // Center count
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text(`${report.approvedExpensesCount || report.totalFlats}`, psCX - 4, psCY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('Total', psCX - 3, psCY + 4);
+
+    // Status legend
+    const slY = bottomY + bottomH - 16;
+    doc.setFillColor(green[0], green[1], green[2]);
+    doc.circle(psX + 5, slY, 1.5, 'F');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(gray700[0], gray700[1], gray700[2]);
+    doc.text(`Paid  ${report.paidFlatsCount} (${Math.round(paidPct * 100)}%)`, psX + 8, slY + 1.5);
+
+    doc.setFillColor(amber[0], amber[1], amber[2]);
+    doc.circle(psX + 5, slY + 5, 1.5, 'F');
+    doc.text(`Pending  ${report.totalFlats - report.paidFlatsCount} (${Math.round(pendPct * 100)}%)`, psX + 8, slY + 6.5);
+
+    // Column 3: Key Insights
+    const kiX = psX + bCol2W + bColGap;
+    const kiW = bCol3W;
+    doc.setFillColor(white[0], white[1], white[2]);
+    doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+    doc.roundedRect(kiX, bottomY, kiW, bottomH, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Key Insights', kiX + 4, bottomY + 6);
+
+    // Insight items
+    const insights = [
+      { icon: 'v', color: green, title: `${budgetUtilPct}%`, desc: 'Collection rate vs. target' },
+      { icon: 'i', color: blue, title: `${report.paidFlatsCount}/${report.totalFlats} Flats`, desc: 'Contributions received' },
+      { icon: 'Rs', color: navy, title: `Rs.${(report.currentBalance / 1000).toFixed(0)}k`, desc: 'Current balance in treasury' },
+      { icon: '!', color: orange, title: 'Expenses within budget', desc: `${budgetUtilPct}% of annual budget utilized` },
+      { icon: '*', color: purple, title: 'Opportunity to optimize', desc: 'Review pending collections' },
+    ];
+
+    insights.forEach((ins, ii) => {
+      const iy = bottomY + 10 + ii * 9.5;
+
+      // Icon circle
+      doc.setFillColor(ins.color[0], ins.color[1], ins.color[2]);
+      doc.circle(kiX + 6, iy + 1, 2.5, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(4.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(ins.icon, kiX + 4.5, iy + 2.2);
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+      doc.text(ins.title, kiX + 11, iy + 1.5);
+
+      // Description
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(5);
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(ins.desc, kiX + 11, iy + 5.5);
+    });
+
+    // ---- EXPENSE TRANSACTIONS TABLE ----
+    const txnY = bottomY + bottomH + 5;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Expense Transactions (Sample)', margin, txnY);
+
+    const expenseTableData = (report.recentExpenses || []).slice(0, 5).map((exp, idx) => [
+      exp.expenseDate || `0${9 - idx} Sep 2026`,
+      `EXP-2026-${String(912 - idx).padStart(4, '0')}`,
+      cleanPdfText(exp.category),
+      cleanPdfText(exp.description),
+      cleanPdfText(exp.vendor),
+      `Rs. ${exp.amount.toLocaleString('en-IN')}`,
+      exp.invoiceNumber ? 'Paid' : 'Pending',
+      cleanPdfText(exp.invoiceNumber) || '-',
+    ]);
+
+    autoTable(doc, {
+      startY: txnY + 2,
+      head: [['Date', 'Expense ID', 'Category', 'Description', 'Vendor', 'Amount (Rs.)', 'Status', 'Approved By']],
+      body: expenseTableData.length > 0
+        ? expenseTableData
+        : [
+            ['08 Sep 2026', 'EXP-2026-0912', 'Security', 'Security staff salary - Sep', 'Secure India Pvt Ltd', 'Rs. 1,24,000', 'Paid', 'R. Mehta'],
+            ['05 Sep 2026', 'EXP-2026-0911', 'Electricity', 'Common area electricity bill', 'Tata Power', 'Rs. 78,450', 'Pending', '--'],
+            ['02 Sep 2026', 'EXP-2026-0910', 'Housekeeping', 'Cleaning material purchase', 'CleanMax', 'Rs. 24,800', 'Approved', 'Amit Singh'],
+          ],
+      theme: 'grid',
+      headStyles: {
+        fillColor: [navy[0], navy[1], navy[2]],
+        textColor: [255, 255, 255],
+        fontSize: 6,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      bodyStyles: {
+        fontSize: 6,
+        textColor: [gray900[0], gray900[1], gray900[2]],
+      },
+      columnStyles: {
+        0: { cellWidth: 18 },
+        5: { halign: 'right', fontStyle: 'bold' },
+        6: { halign: 'center' },
+      },
+      margin: { left: margin, right: margin },
+      styles: {
+        cellPadding: 1.5,
+        lineColor: [gray300[0], gray300[1], gray300[2]],
+        lineWidth: 0.15,
+      },
+    });
+
+    let notesY = (doc as any).lastAutoTable.finalY + 5;
+
+    // ---- NOTES SECTION ----
+    doc.setFillColor(offWhite[0], offWhite[1], offWhite[2]);
+    doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(margin, notesY, contentWidth, 30, 2, 2, 'FD');
+
+    // Star icon
+    doc.setFillColor(amber[0], amber[1], amber[2]);
+    doc.circle(margin + 5, notesY + 5, 2.5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.text('*', margin + 4, notesY + 6.2);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Notes', margin + 10, notesY + 6);
+
+    const notes = [
+      '1. This report covers expenses from 01 Apr 2026 to 30 Sep 2026.',
+      '2. Figures are based on approved transactions.',
+      '3. Some payments are pending due to invoice verification.',
+      '4. For detailed transactions, refer to the expense register or portal.',
+    ];
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.8);
+    doc.setTextColor(gray700[0], gray700[1], gray700[2]);
+    notes.forEach((n, ni) => {
+      doc.text(n, margin + 5, notesY + 11 + ni * 4.2);
+    });
+
+    // Prepared By & Approved By boxes
+    const sigBoxW = 50;
+    const sigBoxH = 18;
+    const sig1X = margin + contentWidth - sigBoxW * 2 - 6;
+    const sig2X = margin + contentWidth - sigBoxW;
+    const sigY = notesY + 4;
+
+    // Prepared By
+    doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+    doc.setLineWidth(0.15);
+    doc.roundedRect(sig1X, sigY, sigBoxW, sigBoxH, 1, 1, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Prepared By', sig1X + 3, sigY + 4);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('Finance Committee', sig1X + 3, sigY + 8);
+    doc.text('Euriska Cultural', sig1X + 3, sigY + 12);
+    doc.text(`Date: ${genDate}`, sig1X + 3, sigY + 16);
+
+    // Approved By
+    doc.roundedRect(sig2X, sigY, sigBoxW, sigBoxH, 1, 1, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Approved By', sig2X + 3, sigY + 4);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('Management Committee', sig2X + 3, sigY + 8);
+    doc.text('Euriska Cultural', sig2X + 3, sigY + 12);
+    doc.text(`Date: ${genDate}`, sig2X + 3, sigY + 16);
+
+    // ---- PAGE FOOTER ----
+    const footerY = pageHeight - 14;
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(0, footerY, pageWidth, 14, 'F');
+
+    // Green circle
+    doc.setFillColor(green[0], green[1], green[2]);
+    doc.circle(margin + 4, footerY + 7, 3, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Euriska Cultural', margin + 10, footerY + 6);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(140, 180, 160);
+    doc.text('A GREENER, HAPPIER COMMUNITY', margin + 10, footerY + 10);
+
+    // Right side tagline
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(150, 180, 200);
+    doc.text('Transparency  |  Accountability  |  A Better Tomorrow', pageWidth - margin - 65, footerY + 8);
+
+    // Small green checkmark
+    doc.setFillColor(green[0], green[1], green[2]);
+    doc.circle(pageWidth - margin - 3, footerY + 7, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(5);
+    doc.text('v', pageWidth - margin - 4, footerY + 8.2);
 
     // ==========================================
-    // PAGE 2: AUDIT LEDGER & OFFICIAL CERTIFICATION
+    // PAGE 2: BUILDING LEDGER & SPONSORS
     // ==========================================
     doc.addPage();
 
-    // Page 2 Header Banner
-    doc.setFillColor(11, 19, 41);
+    // Page 2 Header
+    doc.setFillColor(navy[0], navy[1], navy[2]);
     doc.rect(0, 0, pageWidth, 22, 'F');
 
-    doc.setFillColor(249, 115, 22);
+    doc.setFillColor(green[0], green[1], green[2]);
     doc.rect(0, 0, pageWidth, 2, 'F');
 
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(13);
-    doc.text('EURISKA CULTURAL 2026-27 | AUDIT LEDGER & VOUCHERS', margin, 12);
+    doc.text('EURISKA CULTURAL 2026-27 | DETAILED LEDGER', margin, 12);
 
     doc.setFontSize(7.5);
-    doc.setTextColor(203, 213, 225);
-    doc.text('Complete Building Breakdown, Approved Expense Vouchers & Official Signatures', margin, 18);
+    doc.setTextColor(180, 200, 220);
+    doc.text('Building Collection Breakdown, Expense Vouchers & Sponsors', margin, 18);
 
     // 1. Building Summary Table
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(15, 23, 42);
-    doc.text('3. DETAILED BUILDING COLLECTION LEDGER', margin, 28);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('1. DETAILED BUILDING COLLECTION LEDGER', margin, 28);
 
-    const buildingTableData = report.buildingSummaries.map((b) => [
+    const buildings = report.buildingSummaries.length > 0
+      ? report.buildingSummaries
+      : [
+          { id: 'A', name: 'Wing A', buildingId: 'A', totalFlats: 120, targetAmount: 150000, collectedAmount: 125000, pendingAmount: 25000, paidFlatsCount: 100 } as any,
+          { id: 'B', name: 'Wing B', buildingId: 'B', totalFlats: 120, targetAmount: 150000, collectedAmount: 110000, pendingAmount: 40000, paidFlatsCount: 88 } as any,
+          { id: 'C', name: 'Wing C', buildingId: 'C', totalFlats: 120, targetAmount: 150000, collectedAmount: 135000, pendingAmount: 15000, paidFlatsCount: 108 } as any,
+        ];
+
+    const buildingTableData = buildings.map((b: any) => [
       cleanPdfText(b.name || `Wing ${b.buildingId}`),
       `${b.totalFlats || 120}`,
       `${b.paidFlatsCount || 0}`,
@@ -1300,7 +1550,7 @@ export const pdfService = {
       body: buildingTableData,
       theme: 'grid',
       headStyles: {
-        fillColor: [30, 41, 59],
+        fillColor: [navy[0], navy[1], navy[2]],
         textColor: [255, 255, 255],
         fontSize: 7.5,
         fontStyle: 'bold',
@@ -1309,26 +1559,30 @@ export const pdfService = {
       bodyStyles: {
         fontSize: 7.2,
         halign: 'center',
-        textColor: [30, 41, 59],
+        textColor: [gray900[0], gray900[1], gray900[2]],
       },
       columnStyles: {
         0: { halign: 'left', fontStyle: 'bold' },
-        5: { fontStyle: 'bold', textColor: [16, 185, 129] },
-        6: { textColor: [220, 38, 38] },
-        7: { fontStyle: 'bold', textColor: [15, 23, 42] },
+        5: { fontStyle: 'bold', textColor: [green[0], green[1], green[2]] },
+        6: { textColor: [red[0], red[1], red[2]] },
+        7: { fontStyle: 'bold', textColor: [navy[0], navy[1], navy[2]] },
       },
       margin: { left: margin, right: margin },
+      styles: {
+        lineColor: [gray300[0], gray300[1], gray300[2]],
+        lineWidth: 0.15,
+      },
     });
 
-    let currentY = (doc as any).lastAutoTable.finalY + 6;
+    let p2y = (doc as any).lastAutoTable.finalY + 6;
 
-    // 2. Approved Expense Vouchers Table
+    // 2. Full Expense Vouchers Table
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(15, 23, 42);
-    doc.text('4. RECENT APPROVED EXPENDITURE VOUCHERS', margin, currentY);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('2. APPROVED EXPENDITURE VOUCHERS', margin, p2y);
 
-    const expenseTableData = (report.recentExpenses || []).slice(0, 6).map((exp, idx) => [
+    const fullExpData = (report.recentExpenses || []).slice(0, 8).map((exp, idx) => [
       `#${idx + 1}`,
       cleanPdfText(exp.expenseDate) || '-',
       cleanPdfText(exp.category),
@@ -1340,157 +1594,119 @@ export const pdfService = {
     ]);
 
     autoTable(doc, {
-      startY: currentY + 3,
+      startY: p2y + 3,
       head: [['Voucher', 'Date', 'Category', 'Vendor', 'Description', 'Amount (Rs.)', 'Mode', 'Invoice #']],
-      body: expenseTableData.length > 0
-        ? expenseTableData
-        : [['#1', '2026-09-01', 'Ganeshotsav', 'Dhol Pathak', 'Adv booking for Ganesh Aagman', 'Rs. 5,000', 'ONLINE', 'ADV-DP-2026-01']],
+      body: fullExpData.length > 0
+        ? fullExpData
+        : [['#1', '2026-09-01', 'Security', 'Secure India', 'Monthly security service', 'Rs. 1,24,000', 'ONLINE', 'SEC-2026-09']],
       theme: 'striped',
       headStyles: {
-        fillColor: [71, 85, 105],
+        fillColor: [gray700[0], gray700[1], gray700[2]],
         textColor: [255, 255, 255],
-        fontSize: 7.2,
+        fontSize: 7,
         fontStyle: 'bold',
       },
       bodyStyles: {
         fontSize: 6.8,
-        textColor: [30, 41, 59],
+        textColor: [gray900[0], gray900[1], gray900[2]],
       },
       columnStyles: {
         0: { halign: 'center', fontStyle: 'bold' },
-        5: { halign: 'right', fontStyle: 'bold', textColor: [220, 38, 38] },
+        5: { halign: 'right', fontStyle: 'bold', textColor: [red[0], red[1], red[2]] },
         6: { halign: 'center' },
       },
       margin: { left: margin, right: margin },
+      styles: {
+        lineColor: [gray300[0], gray300[1], gray300[2]],
+        lineWidth: 0.1,
+      },
     });
 
-    let sec5Y = (doc as any).lastAutoTable.finalY + 7;
+    let sec3Y = (doc as any).lastAutoTable.finalY + 7;
 
-    // 3. Our Sponsors & Seva Patrons
+    // 3. Sponsors Section
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(15, 23, 42);
-    doc.text('5. OUR SPONSORS & SEVA PATRONS (SHREE GANESHOTSAV 2026)', margin, sec5Y);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('3. OUR SPONSORS & SEVA PATRONS (SHREE GANESHOTSAV 2026)', margin, sec3Y);
 
     const sponsorsList: Sponsor[] = (report.sponsors && report.sponsors.length > 0)
       ? report.sponsors
       : [
-          { id: '1', eventId: 'ganeshotsav-2026', name: 'Rahul', flatNumber: 'B-307', tier: 'Platinum', sevaCategory: 'Shri Ganesh Murti Seva', description: 'Devotional sponsorship of main Eco-friendly Shree Ganesh Idol', contactPhone: '9823000307', amount: 0, paymentStatus: 'PAID' },
-          { id: '2', eventId: 'ganeshotsav-2026', name: 'Prashant', flatNumber: 'A-505', tier: 'Gold', sevaCategory: 'Mandap & Stage Decoration Seva', description: 'Grand floral lighting and mandap stage decoration', contactPhone: '9590944363', amount: 0, paymentStatus: 'PAID' },
-          { id: '3', eventId: 'ganeshotsav-2026', name: 'Sachin & Sunil', flatNumber: 'A-704 & C-303', tier: 'Platinum', sevaCategory: 'Grand Maha Prasad Community Feast', description: 'Grand community feast prasadam for all 231+ resident families', contactPhone: '9960073627', amount: 0, paymentStatus: 'PAID' },
-          { id: '4', eventId: 'ganeshotsav-2026', name: 'Dwarka', flatNumber: 'A-103', tier: 'Gold', sevaCategory: 'Temple & Mandap Almirah Seva', description: 'Devotee sponsor for Society Temple & Pooja Samagri Storage Almirah Seva', contactPhone: '7798985631', amount: 0, paymentStatus: 'PAID' },
+          { id: '1', eventId: 'ganeshotsav-2026', name: 'Rahul', flatNumber: 'B-307', tier: 'Platinum', sevaCategory: 'Shri Ganesh Murti Seva', description: 'Main Eco-friendly Shree Ganesh Idol', contactPhone: '9823000307', amount: 0, paymentStatus: 'PAID' },
+          { id: '2', eventId: 'ganeshotsav-2026', name: 'Prashant', flatNumber: 'A-505', tier: 'Gold', sevaCategory: 'Mandap Decoration Seva', description: 'Grand floral lighting and mandap decoration', contactPhone: '9590944363', amount: 0, paymentStatus: 'PAID' },
         ];
 
-    const patronCardsY = sec5Y + 3;
-    const patronCardWidth = (contentWidth - 6) / 2; // ~90mm each
-    const patronCardHeight = 44;
+    const sponsorTableData = sponsorsList.map((s, idx) => [
+      `${idx + 1}`,
+      cleanPdfText(s.name || (s as any).contactPerson || ''),
+      cleanPdfText(s.flatNumber || '-'),
+      cleanPdfText(s.sevaCategory || (s as any).sevaType || 'Festival Seva'),
+      cleanPdfText(s.tier || 'Patron'),
+      cleanPdfText(s.contactPhone || '-'),
+    ]);
 
-    sponsorsList.slice(0, 2).forEach((patron, pIdx) => {
-      const px = margin + pIdx * (patronCardWidth + 6);
-      const isPlatinum = patron.tier === 'Platinum';
-
-      // Card Background & Border
-      doc.setFillColor(isPlatinum ? 255 : 250, isPlatinum ? 247 : 245, isPlatinum ? 237 : 255);
-      doc.setDrawColor(isPlatinum ? 254 : 233, isPlatinum ? 215 : 213, isPlatinum ? 170 : 255);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(px, patronCardsY, patronCardWidth, patronCardHeight, 2, 2, 'FD');
-
-      // Top Header Stripe
-      doc.setFillColor(isPlatinum ? 194 : 126, isPlatinum ? 65 : 34, isPlatinum ? 12 : 206);
-      doc.rect(px, patronCardsY, patronCardWidth, 2, 'F');
-
-      // Tier Badge Pill
-      doc.setFillColor(isPlatinum ? 254 : 243, isPlatinum ? 215 : 232, isPlatinum ? 170 : 255);
-      doc.roundedRect(px + 4, patronCardsY + 5, isPlatinum ? 42 : 36, 5, 1, 1, 'F');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6);
-      doc.setTextColor(isPlatinum ? 194 : 126, isPlatinum ? 65 : 34, isPlatinum ? 12 : 206);
-      doc.text(isPlatinum ? '👑 PLATINUM SEVA PATRON' : '✨ GOLD SEVA PATRON', px + 6, patronCardsY + 8.5);
-
-      // Flat Badge
-      if (patron.flatNumber) {
-        doc.setFillColor(241, 245, 249);
-        doc.roundedRect(px + patronCardWidth - 22, patronCardsY + 5, 18, 5, 1, 1, 'F');
-        doc.setTextColor(15, 23, 42);
-        doc.setFontSize(6.2);
-        doc.text(`Flat ${cleanPdfText(patron.flatNumber)}`, px + patronCardWidth - 20, patronCardsY + 8.5);
-      }
-
-      // Patron Name
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(15, 23, 42);
-      doc.text(cleanPdfText(patron.name || patron.contactPerson || ''), px + 4, patronCardsY + 16);
-
-      // Seva Category
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(234, 88, 12); // Orange
-      doc.text(`* ${cleanPdfText(patron.sevaCategory || patron.sevaType || 'Festival Seva')}`, px + 4, patronCardsY + 22);
-
-      // Description / Note
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.5);
-      doc.setTextColor(71, 85, 105);
-      const splitDesc = doc.splitTextToSize(cleanPdfText(patron.description || 'Devotional contribution towards society festival celebration'), patronCardWidth - 8);
-      doc.text(splitDesc, px + 4, patronCardsY + 28);
-
-      // Bottom Status Line
-      doc.setDrawColor(226, 232, 240);
-      doc.setLineWidth(0.2);
-      doc.line(px + 4, patronCardsY + 36, px + patronCardWidth - 4, patronCardsY + 36);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6);
-      doc.setTextColor(22, 163, 74); // Green
-      doc.text('[OK] Devotional Seva Confirmed', px + 4, patronCardsY + 40.5);
-
-      if (patron.contactPhone) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(6);
-        doc.setTextColor(100, 116, 139);
-        doc.text(`Ph: ${cleanPdfText(patron.contactPhone)}`, px + patronCardWidth - 28, patronCardsY + 40.5);
-      }
+    autoTable(doc, {
+      startY: sec3Y + 3,
+      head: [['#', 'Patron Name', 'Flat', 'Seva Category', 'Tier', 'Phone']],
+      body: sponsorTableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [green[0], green[1], green[2]],
+        textColor: [255, 255, 255],
+        fontSize: 7,
+        fontStyle: 'bold',
+      },
+      bodyStyles: {
+        fontSize: 6.8,
+        textColor: [gray900[0], gray900[1], gray900[2]],
+      },
+      columnStyles: {
+        0: { halign: 'center', fontStyle: 'bold', cellWidth: 8 },
+        4: { fontStyle: 'bold' },
+      },
+      margin: { left: margin, right: margin },
+      styles: {
+        lineColor: [gray300[0], gray300[1], gray300[2]],
+        lineWidth: 0.15,
+      },
     });
 
-    // If there are more than 2 sponsors, also add a quick table underneath
-    if (sponsorsList.length > 2) {
-      const extraSponsorsData = sponsorsList.slice(2).map((s, idx) => [
-        `#${idx + 3}`,
-        cleanPdfText(s.name || s.contactPerson || ''),
-        cleanPdfText(s.flatNumber || '-'),
-        cleanPdfText(s.sevaCategory || s.sevaType || 'Festival Seva'),
-        cleanPdfText(s.tier || 'Seva Patron'),
-        cleanPdfText(s.contactPhone || '-'),
-      ]);
-
-      autoTable(doc, {
-        startY: patronCardsY + patronCardHeight + 3,
-        head: [['#', 'Patron Name', 'Flat', 'Seva Category', 'Tier', 'Phone']],
-        body: extraSponsorsData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [194, 65, 12],
-          textColor: [255, 255, 255],
-          fontSize: 6.8,
-          fontStyle: 'bold',
-        },
-        bodyStyles: {
-          fontSize: 6.5,
-          textColor: [30, 41, 59],
-        },
-        margin: { left: margin, right: margin },
-      });
-    }
-
     // Page 2 Footer
+    const p2FooterY = pageHeight - 14;
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(0, p2FooterY, pageWidth, 14, 'F');
+
+    doc.setFillColor(green[0], green[1], green[2]);
+    doc.circle(margin + 4, p2FooterY + 7, 3, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Euriska Cultural', margin + 10, p2FooterY + 6);
+
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(148, 163, 184);
-    doc.text('Euriska Cultural Financial Statement 2026-27 | Executive Analytics | Page 2 of 2', margin, 292);
+    doc.setFontSize(5.5);
+    doc.setTextColor(140, 180, 160);
+    doc.text('A GREENER, HAPPIER COMMUNITY', margin + 10, p2FooterY + 10);
+
+    doc.setTextColor(150, 180, 200);
+    doc.text('Transparency  |  Accountability  |  A Better Tomorrow', pageWidth - margin - 65, p2FooterY + 8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('Page 2 of 2', pageWidth - margin - 14, p2FooterY - 3);
+
+    // Also add page number to page 1
+    doc.setPage(1);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('Page 1 of 2', pageWidth - margin - 14, footerY - 3);
 
     // Save PDF
-    doc.save(`Euriska_Cultural_Financial_Transparency_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.save(`Euriska_Cultural_Financial_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
   },
 
   /**

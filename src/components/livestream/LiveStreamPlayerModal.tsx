@@ -7,8 +7,10 @@ import {
   BookOpen,
   Share2,
   Clock,
+  Calendar,
 } from 'lucide-react';
 import { AARTI_LYRICS } from '../../services/liveStreamService';
+import { DailyLiveScheduler } from './DailyLiveScheduler';
 import { useToast } from '../../context/ToastContext';
 import type { LiveStreamInfo } from '../../types';
 
@@ -33,7 +35,7 @@ export const LiveStreamPlayerModal: React.FC<LiveStreamPlayerModalProps> = ({
 }) => {
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'lyrics' | 'info'>('lyrics');
+  const [activeTab, setActiveTab] = useState<'lyrics' | 'schedule' | 'info'>('schedule');
   const [selectedAartiIdx, setSelectedAartiIdx] = useState(0);
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const [reactionsCount, setReactionsCount] = useState<Record<string, number>>({
@@ -412,13 +414,36 @@ export const LiveStreamPlayerModal: React.FC<LiveStreamPlayerModalProps> = ({
           )}
         </div>
 
-        {/* Bottom Drawer Tabs: Aarti Lyrics & Stream Info */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+        {/* Bottom Drawer Tabs: Daily Schedule, Aarti Lyrics & Stream Info */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', overflowX: 'auto' }}>
+          <button
+            onClick={() => setActiveTab('schedule')}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              fontSize: 12,
+              fontWeight: 800,
+              color: activeTab === 'schedule' ? '#ea580c' : '#64748b',
+              borderBottom: activeTab === 'schedule' ? '2.5px solid #ea580c' : 'none',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 5,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Calendar size={14} />
+            <span>📅 Daily Schedule (8 AM &amp; 8 PM)</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('lyrics')}
             style={{
               flex: 1,
-              padding: '10px 14px',
+              padding: '10px 12px',
               fontSize: 12,
               fontWeight: 800,
               color: activeTab === 'lyrics' ? '#ea580c' : '#64748b',
@@ -429,18 +454,19 @@ export const LiveStreamPlayerModal: React.FC<LiveStreamPlayerModalProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
+              gap: 5,
+              whiteSpace: 'nowrap',
             }}
           >
             <BookOpen size={14} />
-            <span>📖 Live Aarti Lyrics</span>
+            <span>📖 Aarti Lyrics</span>
           </button>
 
           <button
             onClick={() => setActiveTab('info')}
             style={{
               flex: 1,
-              padding: '10px 14px',
+              padding: '10px 12px',
               fontSize: 12,
               fontWeight: 800,
               color: activeTab === 'info' ? '#ea580c' : '#64748b',
@@ -451,17 +477,20 @@ export const LiveStreamPlayerModal: React.FC<LiveStreamPlayerModalProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
+              gap: 5,
+              whiteSpace: 'nowrap',
             }}
           >
             <Sparkles size={14} />
-            <span>Festive Details &amp; Venue</span>
+            <span>Festive Details</span>
           </button>
         </div>
 
         {/* Tab Body */}
-        <div style={{ padding: '14px 18px', overflowY: 'auto', maxHeight: 200, flex: 1, background: '#ffffff' }}>
-          {activeTab === 'lyrics' ? (
+        <div style={{ padding: '14px 18px', overflowY: 'auto', maxHeight: 260, flex: 1, background: '#ffffff' }}>
+          {activeTab === 'schedule' ? (
+            <DailyLiveScheduler compact onWatchLive={() => showToast('Enjoy the live stream!', 'success')} />
+          ) : activeTab === 'lyrics' ? (
             <div>
               {/* Aarti Selector Chips */}
               <div style={{ display: 'flex', gap: 6, marginBottom: 10, overflowX: 'auto', paddingBottom: 2 }}>

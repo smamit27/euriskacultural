@@ -1,0 +1,14 @@
+{
+  "name": "youtube-scheduler",
+  "version": "1.0.0",
+  "description": "Automated YouTube live stream scheduler for Euriska Cultural",
+  "type": "module",
+  "scripts": {
+    "auth": "node auth.js",
+    "schedule": "node schedule.js"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0",
+    "open": "^10.1.0"
+  }
+}

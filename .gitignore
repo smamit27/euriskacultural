@@ -17,6 +17,12 @@ dist-ssr
 playwright-report
 test-results
 
+# YouTube Scheduler secrets
+scripts/youtube-scheduler/client_secret.json
+scripts/youtube-scheduler/token.json
+scripts/youtube-scheduler/node_modules
+scripts/youtube-scheduler/*.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

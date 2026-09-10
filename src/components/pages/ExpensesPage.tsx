@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Table, LayoutGrid } from 'lucide-react';
 import { ExpenseCard } from '../expenses/ExpenseCard';
+import { ExpenseTable } from '../expenses/ExpenseTable';
 import { AddExpenseSheet } from '../expenses/AddExpenseSheet';
 import { expenseService } from '../../services/expenseService';
 import { useAuth } from '../../context/AuthContext';
@@ -14,9 +15,17 @@ export const ExpensesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'ALL' | ExpenseStatus>('ALL');
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>(() => {
+    return (localStorage.getItem('euriska_expenses_view_mode') as 'table' | 'cards') || 'table';
+  });
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [editTarget, setEditTarget] = useState<Expense | null>(null);
   const [billPreviewUrl, setBillPreviewUrl] = useState<string | null>(null);
+
+  const handleSetViewMode = (mode: 'table' | 'cards') => {
+    setViewMode(mode);
+    localStorage.setItem('euriska_expenses_view_mode', mode);
+  };
 
   const loadExpenses = async () => {
     setLoading(true);
@@ -131,53 +140,152 @@ export const ExpensesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Row */}
-      <div className="filter-row" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
-        {(['ALL', 'APPROVED', 'PENDING', 'REJECTED'] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`filter-chip ${statusFilter === s ? 'active' : ''}`}
-          >
-            {s === 'ALL' ? '📋 All' : s === 'APPROVED' ? '✅ Approved' : s === 'PENDING' ? '⏳ Pending' : '❌ Rejected'}
-          </button>
-        ))}
-        {isAdmin && (
-          <button
-            onClick={() => {
-              setEditTarget(null);
-              setShowAddSheet(true);
+      {/* Filter Row & View Switcher */}
+      <div
+        className="filter-row"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 8,
+          marginBottom: 10,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+          {(['ALL', 'APPROVED', 'PENDING', 'REJECTED'] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`filter-chip ${statusFilter === s ? 'active' : ''}`}
+            >
+              {s === 'ALL' ? '📋 All' : s === 'APPROVED' ? '✅ Approved' : s === 'PENDING' ? '⏳ Pending' : '❌ Rejected'}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+          {/* View Format Switcher: Table vs Cards */}
+          <div
+            style={{
+              display: 'inline-flex',
+              background: '#f1f5f9',
+              padding: 3,
+              borderRadius: 10,
+              border: '1px solid #e2e8f0',
             }}
-            className="filter-chip"
-            style={{ marginLeft: 'auto', background: '#fff7ed', borderColor: '#fed7aa', color: '#c2410c', fontWeight: 800 }}
           >
-            <PlusCircle size={13} /> Add Expense
-          </button>
-        )}
+            <button
+              onClick={() => handleSetViewMode('table')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '4px 10px',
+                borderRadius: 7,
+                border: 'none',
+                background: viewMode === 'table' ? '#ffffff' : 'transparent',
+                color: viewMode === 'table' ? '#ea580c' : '#64748b',
+                fontWeight: viewMode === 'table' ? 800 : 600,
+                boxShadow: viewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                cursor: 'pointer',
+                fontSize: 12,
+                transition: 'all 0.15s ease',
+              }}
+              title="Tabular Table View"
+            >
+              <Table size={13} />
+              <span>Table</span>
+            </button>
+            <button
+              onClick={() => handleSetViewMode('cards')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '4px 10px',
+                borderRadius: 7,
+                border: 'none',
+                background: viewMode === 'cards' ? '#ffffff' : 'transparent',
+                color: viewMode === 'cards' ? '#ea580c' : '#64748b',
+                fontWeight: viewMode === 'cards' ? 800 : 600,
+                boxShadow: viewMode === 'cards' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                cursor: 'pointer',
+                fontSize: 12,
+                transition: 'all 0.15s ease',
+              }}
+              title="Cards View"
+            >
+              <LayoutGrid size={13} />
+              <span>Cards</span>
+            </button>
+          </div>
+
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setEditTarget(null);
+                setShowAddSheet(true);
+              }}
+              className="filter-chip"
+              style={{
+                background: '#fff7ed',
+                borderColor: '#fed7aa',
+                color: '#c2410c',
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <PlusCircle size={13} /> Add Expense
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Expense Cards */}
-      <div style={{ padding: '4px 14px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* Expense Content: Tabular Table or Cards */}
+      <div style={{ padding: '4px 14px 20px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Loading expenses...</div>
+        ) : viewMode === 'table' ? (
+          <ExpenseTable
+            expenses={expenses}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onViewBill={(url) => setBillPreviewUrl(url)}
+            canApprove={isAdmin}
+          />
         ) : expenses.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40 }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: 40,
+              background: '#ffffff',
+              borderRadius: 16,
+              border: '1px solid #e2e8f0',
+            }}
+          >
             <div style={{ fontSize: 36, marginBottom: 8 }}>🧾</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#64748b' }}>No expenses found</div>
           </div>
         ) : (
-          expenses.map((expense) => (
-            <ExpenseCard
-              key={expense.id}
-              expense={expense}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onViewBill={(url) => setBillPreviewUrl(url)}
-              canApprove={isAdmin}
-            />
-          ))
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {expenses.map((expense) => (
+              <ExpenseCard
+                key={expense.id}
+                expense={expense}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onViewBill={(url) => setBillPreviewUrl(url)}
+                canApprove={isAdmin}
+              />
+            ))}
+          </div>
         )}
       </div>
 

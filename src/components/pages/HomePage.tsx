@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { HeroSection } from '../home/HeroSection';
-import { LiveStreamBanner } from '../home/LiveStreamBanner';
+import { LiveVideoCard } from '../livestream/LiveVideoCard';
 import { LiveStreamPlayerModal } from '../livestream/LiveStreamPlayerModal';
 import { AdminLiveStreamModal } from '../livestream/AdminLiveStreamModal';
+import { DailyLiveScheduler } from '../livestream/DailyLiveScheduler';
 import { EventScheduleCarousel } from '../home/EventScheduleCarousel';
 import { QuickActions } from '../home/QuickActions';
 import { UpcomingPrograms } from '../home/UpcomingPrograms';
@@ -111,6 +112,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [financials, setFinancials] = useState<FinancialSummary | null>(null);
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
+  const [selectedVideoId, setSelectedVideoId] = useState<string | undefined>(undefined);
   const [showLivePlayer, setShowLivePlayer] = useState(false);
   const [showAdminBroadcast, setShowAdminBroadcast] = useState(false);
 
@@ -146,13 +148,26 @@ export const HomePage: React.FC<HomePageProps> = ({
         onViewEvents={() => onNavigate('events')}
       />
 
-      {/* Live Stream / Aarti Broadcast Banner */}
+      {/* Featured Live Video Card */}
       <div style={{ padding: '0 14px', marginTop: 14 }}>
-        <LiveStreamBanner
+        <LiveVideoCard
           streamInfo={streamInfo}
-          onWatchLive={() => setShowLivePlayer(true)}
+          onWatchLive={(videoId) => {
+            setSelectedVideoId(videoId);
+            setShowLivePlayer(true);
+          }}
           onOpenAdminBroadcast={() => setShowAdminBroadcast(true)}
           isAdmin={isAdmin}
+        />
+      </div>
+
+      {/* Daily Live 8 AM & 8 PM Interactive Scheduler */}
+      <div style={{ padding: '0 14px', marginBottom: 14 }}>
+        <DailyLiveScheduler
+          onWatchLive={(videoId) => {
+            setSelectedVideoId(videoId);
+            setShowLivePlayer(true);
+          }}
         />
       </div>
 
@@ -383,8 +398,27 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Live Stream Devotional Player Modal */}
       <LiveStreamPlayerModal
         isOpen={showLivePlayer}
-        onClose={() => setShowLivePlayer(false)}
-        streamInfo={streamInfo}
+        onClose={() => {
+          setShowLivePlayer(false);
+          setSelectedVideoId(undefined);
+        }}
+        streamInfo={
+          selectedVideoId
+            ? {
+                ...(streamInfo || {
+                  id: 'scheduled_session',
+                  isLive: true,
+                  title: 'Majestique Euriska Ganeshotsav Live',
+                  description: 'Live broadcast from Majestique Euriska Club House Mandap.',
+                  category: 'Aarti' as const,
+                  streamUrl: `https://www.youtube.com/watch?v=${selectedVideoId}`,
+                  channelName: 'Majestique Euriska Cultural',
+                  channelEmail: 'euriska.cultural@gmail.com',
+                }),
+                youtubeVideoId: selectedVideoId,
+              }
+            : streamInfo
+        }
         onOpenPrasadBooking={() => onNavigate('prasad')}
       />
 
