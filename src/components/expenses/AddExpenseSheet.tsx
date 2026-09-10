@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BottomSheet } from '../common/BottomSheet';
-import { PlusCircle, Camera, Upload, Smartphone, Banknote, X } from 'lucide-react';
+import { PlusCircle, Camera, Upload, Smartphone, Banknote, X, UserCheck } from 'lucide-react';
 import type { Expense, PaymentMode } from '../../types';
 
 interface AddExpenseSheetProps {
@@ -47,6 +47,7 @@ export const AddExpenseSheet: React.FC<AddExpenseSheetProps> = ({
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
   const [remarks, setRemarks] = useState('');
   const [createdBy, setCreatedBy] = useState('Sachin Singh');
+  const [paidBy, setPaidBy] = useState('Sachin Singh');
 
   React.useEffect(() => {
     if (initialExpense) {
@@ -61,6 +62,7 @@ export const AddExpenseSheet: React.FC<AddExpenseSheetProps> = ({
       setExpenseDate(initialExpense.expenseDate || new Date().toISOString().split('T')[0]);
       setRemarks(initialExpense.remarks || '');
       setCreatedBy(initialExpense.createdBy || 'Sachin Singh');
+      setPaidBy(initialExpense.paidBy || initialExpense.approvedBy || 'Sachin Singh');
     } else {
       setCategory('Ganesh Chaturthi');
       setVendor('');
@@ -73,6 +75,7 @@ export const AddExpenseSheet: React.FC<AddExpenseSheetProps> = ({
       setExpenseDate(new Date().toISOString().split('T')[0]);
       setRemarks('');
       setCreatedBy('Sachin Singh');
+      setPaidBy('Sachin Singh');
     }
   }, [initialExpense, isOpen]);
 
@@ -104,7 +107,8 @@ export const AddExpenseSheet: React.FC<AddExpenseSheetProps> = ({
       expenseDate,
       remarks: remarks.trim() || undefined,
       createdBy: createdBy || 'Sachin Singh',
-      approvedBy: status === 'APPROVED' ? (initialExpense?.approvedBy || 'Sachin Singh') : undefined,
+      paidBy: paidBy.trim() || 'Sachin Singh',
+      approvedBy: status === 'APPROVED' ? (initialExpense?.approvedBy || paidBy.trim() || 'Sachin Singh') : undefined,
       approvedAt: status === 'APPROVED' ? (initialExpense?.approvedAt || new Date().toISOString()) : undefined,
     });
 
@@ -208,6 +212,24 @@ export const AddExpenseSheet: React.FC<AddExpenseSheetProps> = ({
             onChange={(e) => setInvoiceNumber(e.target.value)}
             className="form-input"
           />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <UserCheck size={14} style={{ color: '#ea580c' }} />
+            <span>Paid By</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Sachin Singh / Resident Name"
+            value={paidBy}
+            onChange={(e) => setPaidBy(e.target.value)}
+            className="form-input"
+            required
+          />
+          <span style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+            Person, volunteer, or coordinator who made the payment
+          </span>
         </div>
 
         {/* Mobile Bill Upload Component (Prompt #22) */}

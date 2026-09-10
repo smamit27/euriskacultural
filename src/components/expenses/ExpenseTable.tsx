@@ -117,7 +117,7 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
 
   const exportTableCSV = () => {
     if (expenses.length === 0) return;
-    const headers = ['Date', 'Invoice #', 'Category', 'Vendor', 'Description', 'Amount (INR)', 'Payment Mode', 'Status', 'Approved By', 'Bill Attached'];
+    const headers = ['Date', 'Invoice #', 'Category', 'Vendor', 'Description', 'Amount (INR)', 'Payment Mode', 'Status', 'Paid By', 'Bill Attached'];
     const rows = sortedExpenses.map((e) => [
       e.expenseDate,
       e.invoiceNumber || 'N/A',
@@ -127,7 +127,7 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
       e.amount,
       e.paymentMode,
       e.status,
-      e.approvedBy || 'N/A',
+      e.paidBy || e.approvedBy || 'Sachin Singh',
       e.billUrl ? 'Yes' : 'No',
     ]);
 
@@ -413,12 +413,12 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
                       >
                         {expense.description}
                       </div>
-                      {expense.approvedBy && (
+                      {(expense.paidBy || expense.approvedBy) && (
                         <div
                           style={{
-                            fontSize: 10,
+                            fontSize: 10.5,
                             color: '#059669',
-                            fontStyle: 'italic',
+                            fontWeight: 700,
                             marginTop: 3,
                             display: 'flex',
                             alignItems: 'center',
@@ -426,7 +426,7 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
                           }}
                         >
                           <ShieldCheck size={11} />
-                          <span>Approved by {expense.approvedBy}</span>
+                          <span>Paid By {expense.paidBy || expense.approvedBy}</span>
                         </div>
                       )}
                     </td>

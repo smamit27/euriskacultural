@@ -195,9 +195,9 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
         </div>
       </div>
 
-      {expense.approvedBy && (
-        <div style={{ fontSize: 10.5, color: '#059669', fontStyle: 'italic', marginTop: 2 }}>
-          ✓ Verified & Approved by {expense.approvedBy}
+      {(expense.paidBy || expense.approvedBy) && (
+        <div style={{ fontSize: 11, color: '#059669', fontWeight: 700, marginTop: 2 }}>
+          ✓ Paid By {expense.paidBy || expense.approvedBy}
         </div>
       )}
     </div>

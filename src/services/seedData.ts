@@ -657,6 +657,7 @@ export const INITIAL_EXPENSES: Expense[] = [
     expenseDate: '2026-09-01',
     invoiceNumber: 'ADV-DP-2026-01',
     createdBy: 'Sachin Singh',
+    paidBy: 'Sachin Singh',
     approvedBy: 'Sachin Singh',
     approvedAt: '2026-09-01T10:00:00Z',
     remarks: 'Adv booking for Ganesh Chaturthi',

@@ -37,12 +37,18 @@ async function getStoredExpenses(): Promise<Expense[]> {
           merged.push(r);
         }
       });
-      return merged;
+      return merged.map((e) => ({
+        ...e,
+        paidBy: e.paidBy || e.approvedBy || 'Sachin Singh',
+      }));
     }
   } catch (err) {
     console.warn('Failed to load expenses from Firestore, using local cache:', err);
   }
-  return local;
+  return local.map((e) => ({
+    ...e,
+    paidBy: e.paidBy || e.approvedBy || 'Sachin Singh',
+  }));
 }
 
 export const expenseService = {
@@ -127,6 +133,7 @@ export const expenseService = {
     return this.updateExpense(id, {
       status: 'APPROVED',
       approvedBy: approverName,
+      paidBy: approverName,
       approvedAt: new Date().toISOString(),
     });
   },
