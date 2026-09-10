@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { HeroSection } from '../home/HeroSection';
-import { LiveVideoCard } from '../livestream/LiveVideoCard';
-import { LiveStreamPlayerModal } from '../livestream/LiveStreamPlayerModal';
-import { AdminLiveStreamModal } from '../livestream/AdminLiveStreamModal';
-import { DailyLiveScheduler } from '../livestream/DailyLiveScheduler';
 import { EventScheduleCarousel } from '../home/EventScheduleCarousel';
 import { QuickActions } from '../home/QuickActions';
 import { UpcomingPrograms } from '../home/UpcomingPrograms';
@@ -12,10 +8,9 @@ import { CulturalEventsSection } from '../home/CulturalEventsSection';
 import { HomeSponsorsSection } from '../home/HomeSponsorsSection';
 import { programService } from '../../services/programService';
 import { contributionService } from '../../services/contributionService';
-import { liveStreamService } from '../../services/liveStreamService';
 import { useAuth } from '../../context/AuthContext';
 import { getNextEvent, daysUntil } from '../../services/eventsData';
-import type { Program, FinancialSummary, Building, LiveStreamInfo } from '../../types';
+import type { Program, FinancialSummary, Building } from '../../types';
 
 interface HomePageProps {
   onNavigate: (section: string) => void;
@@ -111,10 +106,6 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [programs, setPrograms] = useState<Program[]>([]);
   const [financials, setFinancials] = useState<FinancialSummary | null>(null);
   const [buildings, setBuildings] = useState<Building[]>([]);
-  const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
-  const [selectedVideoId, setSelectedVideoId] = useState<string | undefined>(undefined);
-  const [showLivePlayer, setShowLivePlayer] = useState(false);
-  const [showAdminBroadcast, setShowAdminBroadcast] = useState(false);
 
   useEffect(() => {
     programService.getPrograms().then(setPrograms);
@@ -127,12 +118,6 @@ export const HomePage: React.FC<HomePageProps> = ({
         setBuildings(bldgs);
       });
     }
-
-    // Subscribe in real-time to Live Stream changes
-    const unsub = liveStreamService.subscribeLiveStream((info) => {
-      setStreamInfo(info);
-    });
-    return () => unsub();
   }, [isAdmin]);
 
   const nextEvent = getNextEvent();
@@ -147,29 +132,6 @@ export const HomePage: React.FC<HomePageProps> = ({
         onViewPerformances={() => onNavigate('performances')}
         onViewEvents={() => onNavigate('events')}
       />
-
-      {/* Featured Live Video Card */}
-      <div style={{ padding: '0 14px', marginTop: 14 }}>
-        <LiveVideoCard
-          streamInfo={streamInfo}
-          onWatchLive={(videoId) => {
-            setSelectedVideoId(videoId);
-            setShowLivePlayer(true);
-          }}
-          onOpenAdminBroadcast={() => setShowAdminBroadcast(true)}
-          isAdmin={isAdmin}
-        />
-      </div>
-
-      {/* Daily Live 8 AM & 8 PM Interactive Scheduler */}
-      <div style={{ padding: '0 14px', marginBottom: 14 }}>
-        <DailyLiveScheduler
-          onWatchLive={(videoId) => {
-            setSelectedVideoId(videoId);
-            setShowLivePlayer(true);
-          }}
-        />
-      </div>
 
       {/* Ganeshotsav 2026 Event Schedule Carousel Showcase */}
       <EventScheduleCarousel
@@ -394,40 +356,6 @@ export const HomePage: React.FC<HomePageProps> = ({
           <span>View All →</span>
         </div>
       </div>
-
-      {/* Live Stream Devotional Player Modal */}
-      <LiveStreamPlayerModal
-        isOpen={showLivePlayer}
-        onClose={() => {
-          setShowLivePlayer(false);
-          setSelectedVideoId(undefined);
-        }}
-        streamInfo={
-          selectedVideoId
-            ? {
-                ...(streamInfo || {
-                  id: 'scheduled_session',
-                  isLive: true,
-                  title: 'Majestique Euriska Ganeshotsav Live',
-                  description: 'Live broadcast from Majestique Euriska Club House Mandap.',
-                  category: 'Aarti' as const,
-                  streamUrl: `https://www.youtube.com/watch?v=${selectedVideoId}`,
-                  channelName: 'Majestique Euriska Cultural',
-                  channelEmail: 'euriska.cultural@gmail.com',
-                }),
-                youtubeVideoId: selectedVideoId,
-              }
-            : streamInfo
-        }
-        onOpenPrasadBooking={() => onNavigate('prasad')}
-      />
-
-      {/* Admin Live Stream Broadcast Controls */}
-      <AdminLiveStreamModal
-        isOpen={showAdminBroadcast}
-        onClose={() => setShowAdminBroadcast(false)}
-        onStreamUpdated={(updated) => setStreamInfo(updated)}
-      />
     </div>
   );
 };

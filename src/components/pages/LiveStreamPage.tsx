@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { liveStreamService, AARTI_LYRICS } from '../../services/liveStreamService';
 import { AdminLiveStreamModal } from '../livestream/AdminLiveStreamModal';
+import { LiveVideoCard } from '../livestream/LiveVideoCard';
+import { DailyLiveScheduler } from '../livestream/DailyLiveScheduler';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { LiveStreamInfo } from '../../types';
@@ -167,6 +169,7 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
   const { showToast } = useToast();
 
   const [streamInfo, setStreamInfo] = useState<LiveStreamInfo | null>(null);
+  const [activePlayingVideoId, setActivePlayingVideoId] = useState<string | null>(null);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'schedule' | 'lyrics' | 'info'>('schedule');
   const [selectedAartiIdx, setSelectedAartiIdx] = useState(0);
@@ -187,6 +190,7 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
 
   const videoId = streamInfo?.youtubeVideoId;
   const isLive = streamInfo?.isLive ?? false;
+  const currentVideoId = activePlayingVideoId || (isLive ? videoId : null);
 
   const triggerReaction = (emoji: string) => {
     const id = Date.now() + Math.random();
@@ -348,139 +352,115 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
         </div>
       </div>
 
-      {/* Main Video Player Box */}
-      <div
-        style={{
-          background: '#000000',
-          borderRadius: 20,
-          overflow: 'hidden',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-          position: 'relative',
-          marginBottom: 14,
-          aspectRatio: '16/9',
-          maxHeight: '56vh',
-        }}
-      >
-        {videoId ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-            title="Euriska Cultural Live Stream"
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
+      {/* Main Live Broadcast Section: LiveVideoCard or Active Video Stream */}
+      <div style={{ marginBottom: 16 }}>
+        {currentVideoId ? (
           <div
             style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'linear-gradient(135deg, #1e1b4b 0%, #31104b 100%)',
-              color: '#fff',
-              padding: '24px',
-              textAlign: 'center',
+              background: '#000000',
+              borderRadius: 24,
+              overflow: 'hidden',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.3)',
+              position: 'relative',
+              border: '1.5px solid #fed7aa',
             }}
           >
+            {/* Top Control Bar */}
             <div
               style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                background: 'rgba(249, 115, 22, 0.2)',
-                color: '#f97316',
+                background: 'linear-gradient(135deg, #0f172a, #1e1b4b)',
+                padding: '10px 16px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 32,
-                marginBottom: 12,
+                justifyContent: 'space-between',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 800,
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
               }}
             >
-              🪔
-            </div>
-            <h2 style={{ fontSize: 18, fontWeight: 900, margin: '0 0 6px' }}>
-              Daily Live Aarti Scheduled: 8:00 PM
-            </h2>
-            <p style={{ fontSize: 13, color: '#cbd5e1', maxWidth: 480, margin: '0 0 16px', lineHeight: 1.5 }}>
-              Live video broadcast will appear here during daily evening Aarti, Ganpati Aagman, and Kalakriti performances.
-            </p>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <a
-                href={streamInfo?.channelUrl || 'https://www.youtube.com/channel/UCxRNcIybtSFaD6HWiMlrpLw'}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: '#ef4444',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 14,
-                  padding: '10px 18px',
-                  fontSize: 13,
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
-                }}
-              >
-                <span>▶ Visit YouTube Channel</span>
-              </a>
-
-              {isAdmin && (
-                <button
-                  onClick={() => setShowAdminModal(true)}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
                   style={{
-                    background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                    background: '#ef4444',
                     color: '#fff',
-                    border: 'none',
-                    borderRadius: 14,
-                    padding: '10px 18px',
-                    fontSize: 13,
+                    padding: '2px 8px',
+                    borderRadius: 10,
+                    fontSize: 10,
                     fontWeight: 900,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
                   }}
                 >
-                  <Radio size={16} />
-                  <span>Go Live / Paste Stream URL</span>
-                </button>
-              )}
+                  🔴 PLAYING LIVE BROADCAST
+                </span>
+                <span style={{ color: '#fed7aa', fontSize: 11.5 }}>
+                  {streamInfo?.title || 'Euriska Cultural Live Darshan'}
+                </span>
+              </div>
+              <button
+                onClick={() => setActivePlayingVideoId(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  color: '#fff',
+                  borderRadius: 10,
+                  padding: '5px 12px',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                ✕ Switch to Card
+              </button>
+            </div>
+
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', maxHeight: '56vh' }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                title="Euriska Cultural Live Stream"
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+
+              {/* Floating Devotional Reactions Overlay */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  pointerEvents: 'none',
+                  overflow: 'hidden',
+                }}
+              >
+                {reactions.map((r) => (
+                  <div
+                    key={r.id}
+                    style={{
+                      position: 'absolute',
+                      bottom: 12,
+                      left: `${r.x}%`,
+                      fontSize: 30,
+                      animation: 'floatUpAndFade 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+                    }}
+                  >
+                    {r.emoji}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+        ) : (
+          <LiveVideoCard
+            streamInfo={streamInfo}
+            onWatchLive={(vid) => {
+              setActivePlayingVideoId(vid || streamInfo?.youtubeVideoId || 'oU9IsBtGAJ4');
+            }}
+            onOpenAdminBroadcast={() => setShowAdminModal(true)}
+            isAdmin={isAdmin}
+          />
         )}
-
-        {/* Floating Devotional Reactions Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-            overflow: 'hidden',
-          }}
-        >
-          {reactions.map((r) => (
-            <div
-              key={r.id}
-              style={{
-                position: 'absolute',
-                bottom: 12,
-                left: `${r.x}%`,
-                fontSize: 30,
-                animation: 'floatUpAndFade 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
-              }}
-            >
-              {r.emoji}
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Pinned Announcement */}
@@ -665,10 +645,20 @@ export const LiveStreamPage: React.FC<LiveStreamPageProps> = ({ onNavigate }) =>
         <div style={{ padding: '18px 20px' }}>
           {activeTab === 'schedule' ? (
             <div>
+              {/* Daily 8 AM & 8 PM Interactive Scheduler with 1-Click Launch */}
+              <div style={{ marginBottom: 20 }}>
+                <DailyLiveScheduler
+                  onWatchLive={(vid) => {
+                    setActivePlayingVideoId(vid || 'oU9IsBtGAJ4');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                />
+              </div>
+
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
                 <div>
                   <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0f172a', margin: '0 0 4px' }}>
-                    🐘 Ganeshotsav 2026 — Daily Aarti &amp; Live Darshan Calendar
+                    🐘 Ganeshotsav 2026 — Daily Aarti &amp; Festival Calendar
                   </h3>
                   <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
                     Everyday: <strong>Morning Aarti @ 8:00 AM</strong> &amp; <strong>Evening Maha Aarti @ 8:00 PM</strong> at Main Mandap
