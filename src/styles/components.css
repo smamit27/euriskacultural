@@ -1136,3 +1136,159 @@
   }
 }
 
+/* ── View Toggle (Cards / Table) ──────────────────────────────────── */
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+
+.view-toggle-btn:first-child {
+  border-right: 1px solid #e2e8f0;
+}
+
+.view-toggle-btn.active {
+  background: #0f172a;
+  color: #fff;
+}
+
+.view-toggle-btn:hover:not(.active) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+/* ── Contribution Table ───────────────────────────────────────────── */
+.contribution-table-wrapper {
+  overflow-x: auto;
+  padding: 0 14px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.contribution-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 640px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+}
+
+.contribution-table thead {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.contribution-table thead th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1.5px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.contribution-table tbody tr {
+  transition: background 0.12s;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.contribution-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.contribution-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.contribution-table tbody tr.row-paid {
+  background: #f0fdf4;
+}
+
+.contribution-table tbody tr.row-paid:hover {
+  background: #dcfce7;
+}
+
+.contribution-table tbody tr.row-pending {
+  background: #fffbeb;
+}
+
+.contribution-table tbody tr.row-pending:hover {
+  background: #fef3c7;
+}
+
+.contribution-table td {
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+
+.table-flat-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  background: #e2e8f0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.table-resident-name {
+  font-weight: 600;
+  color: var(--text-main);
+  min-width: 130px;
+}
+
+.table-amount {
+  font-weight: 800;
+  font-size: 14px;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.table-amount-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+.table-txn-id {
+  font-size: 11.5px;
+  color: #475569;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Desktop: wider table padding */
+@media (min-width: 768px) {
+  .contribution-table-wrapper {
+    padding: 0 32px 32px;
+  }
+}
+
