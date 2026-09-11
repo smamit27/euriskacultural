@@ -948,7 +948,7 @@ export const pdfService = {
   /**
    * Export Executive Financial Transparency Report as a Power BI-style Visual Dashboard PDF
    */
-  exportFinancialTransparencyReportPDF(report: FinancialReportData) {
+  exportFinancialTransparencyReportPDF(report: FinancialReportData, _contributions: Contribution[] = [], expenses: Expense[] = []) {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -1073,16 +1073,17 @@ export const pdfService = {
     const kpiW = (contentWidth - kpiGap * 4) / 5; // ~36mm each
 
     const totalExpenses = report.totalExpenses;
-    const paidExpenses = report.totalCollected || report.totalIncome;
-    const pendingPayments = report.totalPending || (report.targetCollection - report.totalCollected);
+    const totalCollected = report.totalCollected;
+    const pendingPayments = report.totalPending;
+    const currentBalance = report.currentBalance;
     const budgetUtilPct = report.collectionPercentage;
 
     const kpiCards = [
-      { title: 'Total Expenses', value: `Rs.${(totalExpenses / 100000).toFixed(2)}L`, sub: '-8% vs. previous period', subColor: green, accent: navy },
-      { title: 'This Month', value: `Rs.${((report.recentExpenses?.[0]?.amount || totalExpenses * 0.15) / 1000).toFixed(0)}k`, sub: '-12% vs. last month', subColor: green, accent: blue },
-      { title: 'Pending Payments', value: `Rs.${(pendingPayments / 1000).toFixed(1)}k`, sub: '+28% vs. last month', subColor: red, accent: amber },
-      { title: 'Paid Expenses', value: `Rs.${(paidExpenses / 100000).toFixed(2)}L`, sub: '+15% vs. previous period', subColor: green, accent: green },
-      { title: 'Budget Utilization', value: `${budgetUtilPct}%`, sub: `Rs.${(totalExpenses / 100000).toFixed(2)}L of Rs.${(report.targetCollection / 100000).toFixed(2)}L`, subColor: gray500, accent: teal },
+      { title: 'Total Collected',    value: `Rs.${(totalCollected / 1000).toFixed(0)}k`,  sub: `${report.paidFlatsCount} of ${report.totalFlats} flats paid`, subColor: green,  accent: green },
+      { title: 'Total Expenses',     value: `Rs.${(totalExpenses / 1000).toFixed(0)}k`,   sub: `${report.approvedExpensesCount} approved vouchers`,          subColor: gray500, accent: navy },
+      { title: 'Pending Collection', value: `Rs.${(pendingPayments / 1000).toFixed(0)}k`, sub: `${report.pendingFlatsCount || (report.totalFlats - report.paidFlatsCount)} flats pending`, subColor: red,    accent: amber },
+      { title: 'Current Balance',    value: `Rs.${(currentBalance / 1000).toFixed(0)}k`,  sub: 'Collected minus approved spend',                              subColor: currentBalance >= 0 ? green : red, accent: teal },
+      { title: 'Collection Rate',    value: `${budgetUtilPct}%`,                           sub: `Target: Rs.${(report.targetCollection / 1000).toFixed(0)}k`, subColor: gray500, accent: blue },
     ];
 
     kpiCards.forEach((kpi, idx) => {
@@ -1352,7 +1353,7 @@ export const pdfService = {
       doc.text(cleanPdfText(cat.category).substring(0, 12), t5x + 13, ry + 3);
 
       doc.setFont('helvetica', 'bold');
-      doc.text(`${(cat.amount / 100).toFixed(0)}`, t5x + 33, ry + 3);
+      doc.text(`Rs.${(cat.amount / 1000).toFixed(0)}k`, t5x + 33, ry + 3);
 
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(gray500[0], gray500[1], gray500[2]);
@@ -1482,26 +1483,26 @@ export const pdfService = {
     doc.setTextColor(gray900[0], gray900[1], gray900[2]);
     doc.text('Expense Transactions (Sample)', margin, txnY);
 
-    const expenseTableData = (report.recentExpenses || []).slice(0, 5).map((exp, idx) => [
-      exp.expenseDate || `0${9 - idx} Sep 2026`,
-      `EXP-2026-${String(912 - idx).padStart(4, '0')}`,
+    const allExpenses = expenses.length > 0 ? expenses : (report.recentExpenses || []);
+    const expenseTableData = allExpenses.slice(0, 8).map((exp) => [
+      exp.expenseDate || '-',
       cleanPdfText(exp.category),
       cleanPdfText(exp.description),
       cleanPdfText(exp.vendor),
       `Rs. ${exp.amount.toLocaleString('en-IN')}`,
-      exp.invoiceNumber ? 'Paid' : 'Pending',
-      cleanPdfText(exp.invoiceNumber) || '-',
+      exp.status || (exp.invoiceNumber ? 'APPROVED' : 'PENDING'),
+      cleanPdfText(exp.approvedBy) || '-',
     ]);
 
     autoTable(doc, {
       startY: txnY + 2,
-      head: [['Date', 'Expense ID', 'Category', 'Description', 'Vendor', 'Amount (Rs.)', 'Status', 'Approved By']],
+      head: [['Date', 'Category', 'Description', 'Vendor', 'Amount (Rs.)', 'Status', 'Approved By']],
       body: expenseTableData.length > 0
         ? expenseTableData
         : [
-            ['08 Sep 2026', 'EXP-2026-0912', 'Security', 'Security staff salary - Sep', 'Secure India Pvt Ltd', 'Rs. 1,24,000', 'Paid', 'R. Mehta'],
-            ['05 Sep 2026', 'EXP-2026-0911', 'Electricity', 'Common area electricity bill', 'Tata Power', 'Rs. 78,450', 'Pending', '--'],
-            ['02 Sep 2026', 'EXP-2026-0910', 'Housekeeping', 'Cleaning material purchase', 'CleanMax', 'Rs. 24,800', 'Approved', 'Amit Singh'],
+            ['08 Sep 2026', 'Security',     'Security staff salary - Sep',   'Secure India Pvt Ltd', 'Rs. 1,24,000', 'APPROVED', 'R. Mehta'],
+            ['05 Sep 2026', 'Electricity',  'Common area electricity bill',  'Tata Power',           'Rs. 78,450',  'PENDING',  '--'],
+            ['02 Sep 2026', 'Housekeeping', 'Cleaning material purchase',    'CleanMax',             'Rs. 24,800',  'APPROVED', 'Amit Singh'],
           ],
       theme: 'grid',
       headStyles: {
@@ -1516,9 +1517,17 @@ export const pdfService = {
         textColor: [gray900[0], gray900[1], gray900[2]],
       },
       columnStyles: {
-        0: { cellWidth: 18 },
-        5: { halign: 'right', fontStyle: 'bold' },
-        6: { halign: 'center' },
+        0: { cellWidth: 20 },
+        4: { halign: 'right', fontStyle: 'bold' },
+        5: { halign: 'center' },
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 5) {
+          const val = String(data.cell.raw);
+          if (val === 'APPROVED') { data.cell.styles.textColor = [5, 150, 105]; data.cell.styles.fontStyle = 'bold'; }
+          else if (val === 'PENDING') { data.cell.styles.textColor = [217, 119, 6]; data.cell.styles.fontStyle = 'bold'; }
+          else if (val === 'REJECTED') { data.cell.styles.textColor = [220, 38, 38]; data.cell.styles.fontStyle = 'bold'; }
+        }
       },
       margin: { left: margin, right: margin },
       styles: {
@@ -1714,23 +1723,24 @@ export const pdfService = {
     doc.setTextColor(gray900[0], gray900[1], gray900[2]);
     doc.text('2. APPROVED EXPENDITURE VOUCHERS', margin, p2y);
 
-    const fullExpData = (report.recentExpenses || []).slice(0, 8).map((exp, idx) => [
+    const allFullExpenses = expenses.length > 0 ? expenses : (report.recentExpenses || []);
+    const fullExpData = allFullExpenses.map((exp, idx) => [
       `#${idx + 1}`,
       cleanPdfText(exp.expenseDate) || '-',
       cleanPdfText(exp.category),
       cleanPdfText(exp.vendor),
       cleanPdfText(exp.description),
       `Rs. ${exp.amount.toLocaleString('en-IN')}`,
-      cleanPdfText(exp.paymentMode) || 'ONLINE',
-      cleanPdfText(exp.invoiceNumber) || '-',
+      exp.status || (exp.invoiceNumber ? 'APPROVED' : 'PENDING'),
+      cleanPdfText(exp.approvedBy) || '-',
     ]);
 
     autoTable(doc, {
       startY: p2y + 3,
-      head: [['Voucher', 'Date', 'Category', 'Vendor', 'Description', 'Amount (Rs.)', 'Mode', 'Invoice #']],
+      head: [['Voucher', 'Date', 'Category', 'Vendor', 'Description', 'Amount (Rs.)', 'Status', 'Approved By']],
       body: fullExpData.length > 0
         ? fullExpData
-        : [['#1', '2026-09-01', 'Security', 'Secure India', 'Monthly security service', 'Rs. 1,24,000', 'ONLINE', 'SEC-2026-09']],
+        : [['#1', '2026-09-01', 'Security', 'Secure India', 'Monthly security service', 'Rs. 1,24,000', 'APPROVED', 'R. Mehta']],
       theme: 'striped',
       headStyles: {
         fillColor: [gray700[0], gray700[1], gray700[2]],
@@ -1743,9 +1753,17 @@ export const pdfService = {
         textColor: [gray900[0], gray900[1], gray900[2]],
       },
       columnStyles: {
-        0: { halign: 'center', fontStyle: 'bold' },
+        0: { halign: 'center', fontStyle: 'bold', cellWidth: 12 },
         5: { halign: 'right', fontStyle: 'bold', textColor: [red[0], red[1], red[2]] },
         6: { halign: 'center' },
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 6) {
+          const val = String(data.cell.raw);
+          if (val === 'APPROVED') { data.cell.styles.textColor = [5, 150, 105]; data.cell.styles.fontStyle = 'bold'; }
+          else if (val === 'PENDING') { data.cell.styles.textColor = [217, 119, 6]; data.cell.styles.fontStyle = 'bold'; }
+          else if (val === 'REJECTED') { data.cell.styles.textColor = [220, 38, 38]; data.cell.styles.fontStyle = 'bold'; }
+        }
       },
       margin: { left: margin, right: margin },
       styles: {

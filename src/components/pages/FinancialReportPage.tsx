@@ -68,7 +68,7 @@ export const FinancialReportPage: React.FC = () => {
   const handleExportPDF = () => {
     if (!reportData) return;
     try {
-      pdfService.exportFinancialTransparencyReportPDF(reportData);
+      pdfService.exportFinancialTransparencyReportPDF(reportData, contributions, expenses);
       showToast('📄 Financial Report PDF downloaded!', 'success');
     } catch {
       showToast('Could not generate PDF.', 'error');
