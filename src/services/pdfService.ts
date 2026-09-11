@@ -585,12 +585,11 @@ export const pdfService = {
       `Rs. ${(c.paidAmount || 0).toLocaleString('en-IN')}`,
       c.status === 'PAID' ? 'PAID' : 'PENDING',
       c.paymentMode || '-',
-      c.receiptNumber || c.transactionId || '-',
     ]);
 
     autoTable(doc, {
       startY: 52,
-      head: [['#', 'Flat', 'Resident Name', 'Expected', 'Paid', 'Status', 'Mode', 'Ref / Receipt']],
+      head: [['#', 'Flat', 'Resident Name', 'Expected', 'Paid', 'Status', 'Mode']],
       body: tableBody,
       theme: 'striped',
       headStyles: {
@@ -606,12 +605,11 @@ export const pdfService = {
       columnStyles: {
         0: { cellWidth: 10, halign: 'center' },
         1: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
-        2: { cellWidth: 46 },
+        2: { cellWidth: 54 },
         3: { cellWidth: 22, halign: 'right' },
         4: { cellWidth: 22, halign: 'right', fontStyle: 'bold' },
         5: { cellWidth: 18, halign: 'center' },
-        6: { cellWidth: 18, halign: 'center' },
-        7: { cellWidth: 28 },
+        6: { cellWidth: 26, halign: 'center' },
       },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index === 5) {
