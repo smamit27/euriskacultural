@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Search, Table, LayoutGrid } from 'lucide-react';
+import { PlusCircle, Search, Table, LayoutGrid, FileText } from 'lucide-react';
 import { ExpenseCard } from '../expenses/ExpenseCard';
 import { ExpenseTable } from '../expenses/ExpenseTable';
 import { AddExpenseSheet } from '../expenses/AddExpenseSheet';
 import { expenseService } from '../../services/expenseService';
+import { pdfService } from '../../services/pdfService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { Expense, ExpenseStatus } from '../../types';
@@ -162,6 +163,22 @@ export const ExpensesPage: React.FC = () => {
               {s === 'ALL' ? '📋 All' : s === 'APPROVED' ? '✅ Approved' : s === 'PENDING' ? '⏳ Pending' : '❌ Rejected'}
             </button>
           ))}
+
+          <button
+            onClick={() => {
+              try {
+                pdfService.exportExpensesPDF(expenses);
+                showToast('📄 Expense ledger PDF downloaded!', 'success');
+              } catch {
+                showToast('Failed to generate PDF.', 'error');
+              }
+            }}
+            className="filter-chip"
+            style={{ background: '#e0f2fe', borderColor: '#bae6fd', color: '#0369a1', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+            title="Download Expense Ledger PDF"
+          >
+            <FileText size={13} /> Export PDF
+          </button>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>

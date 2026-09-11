@@ -637,8 +637,142 @@ export const pdfService = {
   },
 
   /**
+   * Export Expense Management Ledger as PDF
+   */
+  exportExpensesPDF(expenses: Expense[]) {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // ── Header bar ─────────────────────────────────────────────────────────
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, pageWidth, 22, 'F');
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('EURISKA - EXPENSE MANAGEMENT LEDGER', 14, 14);
+
+    const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${dateStr}`, pageWidth - 14, 14, { align: 'right' });
+
+    // ── Sub-header summary line ─────────────────────────────────────────────
+    const approved = expenses.filter((e) => e.status === 'APPROVED');
+    const pending  = expenses.filter((e) => e.status === 'PENDING');
+    const rejected = expenses.filter((e) => e.status === 'REJECTED');
+    const totalApproved = approved.reduce((s, e) => s + e.amount, 0);
+    const totalPending  = pending.reduce((s, e) => s + e.amount, 0);
+    const totalRejected = rejected.reduce((s, e) => s + e.amount, 0);
+
+    doc.setFontSize(8.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(
+      `Cultural & Festive 2026-27  |  Total: ${expenses.length} expenses  |  Approved: Rs.${totalApproved.toLocaleString('en-IN')}  |  Pending: Rs.${totalPending.toLocaleString('en-IN')}  |  Rejected: Rs.${totalRejected.toLocaleString('en-IN')}`,
+      14,
+      30
+    );
+
+    // ── KPI summary cards ──────────────────────────────────────────────────
+    const cards = [
+      { label: 'Approved',  count: approved.length,  amount: totalApproved, fill: [5, 150, 105]  as [number,number,number], textColor: [255,255,255] as [number,number,number] },
+      { label: 'Pending',   count: pending.length,   amount: totalPending,  fill: [217,119, 6]   as [number,number,number], textColor: [255,255,255] as [number,number,number] },
+      { label: 'Rejected',  count: rejected.length,  amount: totalRejected, fill: [220, 38, 38]  as [number,number,number], textColor: [255,255,255] as [number,number,number] },
+      { label: 'Total',     count: expenses.length,  amount: totalApproved + totalPending, fill: [30, 41, 59] as [number,number,number], textColor: [255,255,255] as [number,number,number] },
+    ];
+    const cardW = 60, cardH = 18, cardY = 34, gap = 6;
+    cards.forEach((card, i) => {
+      const cx = 14 + i * (cardW + gap);
+      doc.setFillColor(...card.fill);
+      doc.roundedRect(cx, cardY, cardW, cardH, 3, 3, 'F');
+      doc.setTextColor(...card.textColor);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${card.label.toUpperCase()} (${card.count})`, cx + 4, cardY + 6);
+      doc.setFontSize(10);
+      doc.text(`Rs. ${card.amount.toLocaleString('en-IN')}`, cx + 4, cardY + 14);
+    });
+
+    // ── Table ──────────────────────────────────────────────────────────────
+    const tableBody = expenses.map((e, idx) => [
+      idx + 1,
+      cleanPdfText(e.expenseDate) || '-',
+      cleanPdfText(e.category) || '-',
+      cleanPdfText(e.vendor) || '-',
+      cleanPdfText(e.description) || '-',
+      (e.paymentMode || '-').replace('_', ' '),
+      `Rs. ${e.amount.toLocaleString('en-IN')}`,
+      e.status,
+      cleanPdfText(e.approvedBy) || '-',
+    ]);
+
+    autoTable(doc, {
+      startY: 58,
+      head: [['#', 'Date', 'Category', 'Vendor', 'Description', 'Mode', 'Amount', 'Status', 'Approved By']],
+      body: tableBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [30, 41, 59],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+      },
+      bodyStyles: { fontSize: 7.5, textColor: [15, 23, 42] },
+      columnStyles: {
+        0: { cellWidth: 8,  halign: 'center' },
+        1: { cellWidth: 22, halign: 'center' },
+        2: { cellWidth: 32 },
+        3: { cellWidth: 32 },
+        4: { cellWidth: 62 },
+        5: { cellWidth: 22, halign: 'center' },
+        6: { cellWidth: 26, halign: 'right', fontStyle: 'bold' },
+        7: { cellWidth: 20, halign: 'center' },
+        8: { cellWidth: 30 },
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 7) {
+          const val = data.cell.raw as string;
+          if (val === 'APPROVED') {
+            data.cell.styles.textColor = [5, 150, 105];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (val === 'PENDING') {
+            data.cell.styles.textColor = [217, 119, 6];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (val === 'REJECTED') {
+            data.cell.styles.textColor = [220, 38, 38];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        // Highlight rejected rows with light red background
+        if (data.section === 'body') {
+          const rowData = expenses[data.row.index];
+          if (rowData?.status === 'REJECTED' && data.column.index !== 7) {
+            data.cell.styles.textColor = [185, 28, 28];
+          }
+        }
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    // ── Footer ─────────────────────────────────────────────────────────────
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Euriska Cultural Committee - Confidential Society Record | Page ${i} of ${pageCount}`,
+        14,
+        doc.internal.pageSize.getHeight() - 6
+      );
+    }
+
+    doc.save('Euriska_Expense_Ledger_2026.pdf');
+  },
+
+  /**
    * Export Budget vs Actual Spending PDF
    */
+
   exportBudgetVsActualPDF(categoryExpenses: any[], totalBudget: number, totalExpenses: number) {
     const doc = new jsPDF({
       orientation: 'portrait',
