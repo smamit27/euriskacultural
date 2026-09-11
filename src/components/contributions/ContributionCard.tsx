@@ -48,31 +48,18 @@ export const ContributionCard: React.FC<ContributionCardProps> = ({
       </div>
 
       {isPaid ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {contribution.paymentMode === 'ONLINE' ? (
-              <span className="badge badge-online">
-                <Smartphone size={11} />
-                <span>ONLINE</span>
-              </span>
-            ) : (
-              <span className="badge badge-cash">
-                <Banknote size={11} />
-                <span>CASH</span>
-              </span>
-            )}
-
-            {contribution.transactionId && (
-              <span style={{ fontSize: 11.5, color: '#475569', fontWeight: 500 }}>
-                {contribution.transactionId}
-              </span>
-            )}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#64748b' }}>
-            {contribution.paymentDate && <span>Paid on: {contribution.paymentDate}</span>}
-            {contribution.receiptNumber && <span>Rec: #{contribution.receiptNumber}</span>}
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+          {contribution.paymentMode === 'ONLINE' ? (
+            <span className="badge badge-online">
+              <Smartphone size={11} />
+              <span>ONLINE</span>
+            </span>
+          ) : (
+            <span className="badge badge-cash">
+              <Banknote size={11} />
+              <span>CASH</span>
+            </span>
+          )}
         </div>
       ) : (
         <div style={{ fontSize: 11.5, color: '#b45309', fontWeight: 500, marginTop: 2 }}>

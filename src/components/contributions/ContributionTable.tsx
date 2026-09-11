@@ -35,9 +35,6 @@ export const ContributionTable: React.FC<ContributionTableProps> = ({
             <th>Status</th>
             <th>Amount</th>
             <th>Payment Mode</th>
-            <th>Transaction ID</th>
-            <th>Date Paid</th>
-            <th>Receipt #</th>
             {isAdmin && <th>Actions</th>}
           </tr>
         </thead>
@@ -85,15 +82,6 @@ export const ContributionTable: React.FC<ContributionTableProps> = ({
                   ) : (
                     <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
                   )}
-                </td>
-                <td className="table-txn-id">
-                  {c.transactionId || <span style={{ color: '#cbd5e1', fontSize: '12px' }}>—</span>}
-                </td>
-                <td style={{ fontSize: '12px', color: '#475569', whiteSpace: 'nowrap' }}>
-                  {c.paymentDate || <span style={{ color: '#cbd5e1' }}>—</span>}
-                </td>
-                <td style={{ fontSize: '12px', color: '#475569' }}>
-                  {c.receiptNumber ? `#${c.receiptNumber}` : <span style={{ color: '#cbd5e1' }}>—</span>}
                 </td>
                 {isAdmin && (
                   <td>
