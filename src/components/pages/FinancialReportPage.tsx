@@ -9,6 +9,7 @@ import { RecentExpensesFeed } from '../report/RecentExpensesFeed';
 import { DetailedLedgerTabs } from '../report/DetailedLedgerTabs';
 import { SponsorsReportSection } from '../report/SponsorsReportSection';
 import { ManageBudgetModal } from '../report/ManageBudgetModal';
+import { PreviousYearReport } from '../report/PreviousYearReport';
 import { AddContributionSheet } from '../contributions/AddContributionSheet';
 import { AddExpenseSheet } from '../expenses/AddExpenseSheet';
 import { MarkPaidSheet } from '../contributions/MarkPaidSheet';
@@ -20,7 +21,15 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import type { FinancialReportData, Contribution, Expense, Building } from '../../types';
 
+type FinancialYear = '2026-27' | '2025-26';
+
+const YEAR_TABS: { key: FinancialYear; label: string; badge?: string }[] = [
+  { key: '2026-27', label: '2026–27', badge: 'CURRENT' },
+  { key: '2025-26', label: '2025–26', badge: 'PREVIOUS' },
+];
+
 export const FinancialReportPage: React.FC = () => {
+  const [selectedYear, setSelectedYear] = useState<FinancialYear>('2026-27');
   const { isAdmin } = useAuth();
   const { showToast } = useToast();
 
@@ -197,6 +206,76 @@ export const FinancialReportPage: React.FC = () => {
     );
   }
 
+  // ── Year Selector shared pill bar (rendered for both years) ──────────────
+  const YearSelector = (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '12px 14px 0',
+        marginBottom: 4,
+      }}
+    >
+      {YEAR_TABS.map((tab) => {
+        const isActive = selectedYear === tab.key;
+        return (
+          <button
+            key={tab.key}
+            onClick={() => setSelectedYear(tab.key)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 12,
+              border: isActive ? '2px solid #0f172a' : '2px solid #e2e8f0',
+              background: isActive ? '#0f172a' : '#f8fafc',
+              color: isActive ? '#ffffff' : '#475569',
+              fontWeight: 800,
+              fontSize: 13,
+              cursor: 'pointer',
+              transition: 'all 0.18s ease',
+            }}
+          >
+            <span>📅 {tab.label}</span>
+            {tab.badge && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 900,
+                  padding: '1px 6px',
+                  borderRadius: 999,
+                  background: isActive
+                    ? (tab.key === '2026-27' ? '#22c55e' : '#60a5fa')
+                    : (tab.key === '2026-27' ? '#dcfce7' : '#dbeafe'),
+                  color: isActive
+                    ? '#fff'
+                    : (tab.key === '2026-27' ? '#15803d' : '#1d4ed8'),
+                  letterSpacing: 0.3,
+                }}
+              >
+                {tab.badge}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // ── Previous year archive view ────────────────────────────────────────────
+  if (selectedYear === '2025-26') {
+    return (
+      <div className="financial-report-page" style={{ padding: '0 14px 40px' }}>
+        {YearSelector}
+        <div style={{ marginTop: 18 }}>
+          <PreviousYearReport />
+        </div>
+      </div>
+    );
+  }
+
   if (loading || !reportData) {
     return (
       <div style={{ textAlign: 'center', padding: '80px 20px', color: '#64748b' }}>
@@ -213,6 +292,8 @@ export const FinancialReportPage: React.FC = () => {
 
   return (
     <div className="financial-report-page" style={{ padding: '0 14px 40px' }}>
+      {/* Year Selector */}
+      {YearSelector}
       {/* 1. Hero Section */}
       <FinancialHero
         onExportPDF={handleExportPDF}

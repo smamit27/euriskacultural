@@ -305,6 +305,16 @@ export const contributionService = {
   },
 };
 
+function cleanFlatKey(flatNumber?: string, buildingId?: string): string {
+  if (!flatNumber) return '';
+  const clean = flatNumber.trim().toUpperCase();
+  const match = clean.match(/^([ABC])\s*[-_]?\s*(\d+)$/);
+  if (match) return `${match[1]}-${match[2]}`;
+  const digits = clean.match(/^(\d+)$/);
+  if (digits && buildingId) return `${buildingId.trim().toUpperCase().charAt(0)}-${digits[1]}`;
+  return clean.replace(/\s+/g, '');
+}
+
 async function getStoredContributions(): Promise<Contribution[]> {
   const local = localStore.getContributions();
   let list = local;
@@ -312,10 +322,24 @@ async function getStoredContributions(): Promise<Contribution[]> {
   try {
     const remote = await readCollection<Contribution>(COLLECTIONS.CONTRIBUTIONS);
     if (remote && remote.length > 0) {
-      const remoteMap = new Map(remote.map((r) => [r.id, r]));
-      const merged = local.map((item) => remoteMap.get(item.id) || item);
+      const remoteIdMap = new Map(remote.map((r) => [r.id, r]));
+      const remoteFlatMap = new Map<string, Contribution>();
       remote.forEach((r) => {
-        if (!local.some((l) => l.id === r.id)) {
+        const key = cleanFlatKey(r.flatNumber, r.buildingId);
+        if (key) remoteFlatMap.set(key, r);
+      });
+
+      const merged = local.map((item) => {
+        const key = cleanFlatKey(item.flatNumber, item.buildingId);
+        return remoteIdMap.get(item.id) || (key ? remoteFlatMap.get(key) : undefined) || item;
+      });
+
+      remote.forEach((r) => {
+        const key = cleanFlatKey(r.flatNumber, r.buildingId);
+        const existsInLocal = local.some(
+          (l) => l.id === r.id || (key && cleanFlatKey(l.flatNumber, l.buildingId) === key)
+        );
+        if (!existsInLocal) {
           merged.push(r);
         }
       });
